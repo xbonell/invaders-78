@@ -30,7 +30,7 @@ export function GameCanvas({
         camera.lookAt(0, 0, 0);
       }}
     >
-      <color attach="background" args={['#000000']} />
+      <color attach="background" args={['#1d4ed8']} />
       <ambientLight intensity={0.45} />
       <hemisphereLight args={['#9eb6ff', '#1a1a1a', 0.4]} />
       <directionalLight intensity={1.1} position={[10, 18, 8]} />

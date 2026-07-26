@@ -38,11 +38,23 @@ export function bulletHitsPoint(
 
 /** Erase first overlapping bunker cell; returns true if hit. */
 export function erodeBunkerAt(bunker: Bunker, bullet: Bullet): boolean {
-  const half = BUNKER.cellSize * 0.55;
+  const halfW = BUNKER.cellSize * 0.55;
+  const halfD = BUNKER.cellDepth * 0.55;
   for (let i = 0; i < bunker.cells.length; i++) {
     const cell = bunkerCellWorld(bunker, i);
     if (!cell) continue;
-    if (bulletHitsPoint(bullet, cell.x, cell.z, half, half)) {
+    if (
+      aabbOverlap(
+        bullet.x,
+        bullet.z,
+        HIT.bulletHalfW,
+        HIT.bulletHalfD,
+        cell.x,
+        cell.z,
+        halfW,
+        halfD,
+      )
+    ) {
       bunker.cells[i] = 0;
       return true;
     }

@@ -1,18 +1,32 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BUNKER,
+  FORMATION,
+  GROUND_LINE,
+  PLAYER,
+  PLAYFIELD,
+  TICK_DT,
+  UFO,
+  playerMaxAbsX,
+} from './constants';
+import {
+  ALIEN_CELL_PX,
+  REF_ALIEN_XR,
+  SHIELD_LEFT_XR,
+  SHIELD_PITCH_PX,
+  formationTopLeftForWave,
+  refAlienYrForWave,
+  shieldCenterWorld,
+} from './arcadeLayout';
+import { allAlienShotSlots, clearAlienShots } from './alienShots';
+import { SCALE_X, SCALE_Z } from './logicalSpace';
+import {
   createGame,
   dispatch,
   drainEvents,
   injectAlienShotAtPlayer,
   step,
 } from './simulation';
-import {
-  FORMATION,
-  GROUND_LINE,
-  PLAYER,
-  TICK_DT,
-  playerMaxAbsX,
-} from './constants';
 
 function startGame() {
   const game = createGame(0);
@@ -88,7 +102,6 @@ describe('simulation core', () => {
     step(game, TICK_DT);
     expect(game.state.phase).toBe('dying');
     expect(game.moveDir).toBe(0);
-    // Releases during dying must still update moveDir
     dispatch(game, { type: 'move', dir: -1 });
     expect(game.moveDir).toBe(-1);
     dispatch(game, { type: 'move', dir: 0 });
@@ -99,31 +112,54 @@ describe('simulation core', () => {
     expect(game.moveDir).toBe(0);
   });
 
-  it('playerMaxAbsX matches green-line outer-edge geometry', () => {
-    expect(playerMaxAbsX()).toBe(GROUND_LINE.width / 2 - PLAYER.halfWidth);
-    // Must be tighter than full playfield clamp
-    expect(playerMaxAbsX()).toBeLessThan(11 - PLAYER.halfWidth);
+  it('uses ROM-derived layout positions', () => {
+    expect(PLAYFIELD.width).toBe(28);
+    expect(FORMATION.colSpacing).toBeCloseTo(ALIEN_CELL_PX * SCALE_X, 5);
+    expect(FORMATION.rowSpacing).toBeCloseTo(ALIEN_CELL_PX * SCALE_Z, 5);
+    expect(FORMATION.startOriginX).toBeCloseTo(
+      formationTopLeftForWave(1).x,
+      5,
+    );
+    expect(FORMATION.startOriginZ).toBeCloseTo(
+      formationTopLeftForWave(1).z,
+      5,
+    );
+    expect(PLAYER.z).toBeCloseTo(UFO.z - (0xd0 - 0x20) * SCALE_Z, 5);
+    expect(BUNKER.z).toBeLessThan(FORMATION.startOriginZ);
+    expect(BUNKER.z).toBeGreaterThan(PLAYER.z);
+    expect(UFO.z).toBeGreaterThan(FORMATION.startOriginZ);
   });
 
   it('clamps player so the ship silhouette stays on the green line', () => {
     const game = startGame();
+    // Freeze rack; park shot slots so alien fire cannot reset the ship
+    game.state.alienHitFreezeTimer = 999;
+    clearAlienShots(game.state.alienShots);
+    for (const slot of allAlienShotSlots(game.state.alienShots)) {
+      slot.state = 'exploding';
+      slot.explosionFramesRemaining = 10_000;
+    }
     const max = playerMaxAbsX();
     dispatch(game, { type: 'move', dir: 1 });
-    for (let i = 0; i < 200; i++) step(game, TICK_DT);
+    for (let i = 0; i < 400; i++) step(game, TICK_DT);
     expect(game.state.player.x).toBeCloseTo(max, 5);
     expect(Math.abs(game.state.player.x) + PLAYER.halfWidth).toBeLessThanOrEqual(
       GROUND_LINE.width / 2 + 1e-6,
     );
 
     dispatch(game, { type: 'move', dir: -1 });
-    for (let i = 0; i < 400; i++) step(game, TICK_DT);
+    for (let i = 0; i < 800; i++) step(game, TICK_DT);
     expect(game.state.player.x).toBeCloseTo(-max, 5);
+  });
+
+  it('playerMaxAbsX matches green-line outer-edge geometry', () => {
+    expect(playerMaxAbsX()).toBe(GROUND_LINE.width / 2 - PLAYER.halfWidth);
+    expect(GROUND_LINE.width).toBeLessThanOrEqual(PLAYFIELD.width);
   });
 
   it('invasion: player explodes, formation flies away, then game over', () => {
     const game = startGame();
     drainEvents(game);
-    // Drop formation onto the player line
     game.state.formation.originZ = PLAYER.z;
     game.state.formation.stepTimer = game.state.formation.stepInterval;
     const originBefore = game.state.formation.originZ;
@@ -141,5 +177,32 @@ describe('simulation core', () => {
     game.state.dyingTimer = 0;
     step(game, TICK_DT);
     expect(game.state.phase).toBe('gameOver');
+  });
+});
+
+describe('arcade layout helpers', () => {
+  it('uses ROM wave-start Yr table', () => {
+    expect(refAlienYrForWave(1)).toBe(0x78);
+    expect(refAlienYrForWave(2)).toBe(0x60);
+    expect(refAlienYrForWave(7)).toBe(0x40);
+    expect(refAlienYrForWave(10)).toBe(0x60);
+    expect(formationTopLeftForWave(2).z).toBeLessThan(
+      formationTopLeftForWave(1).z,
+    );
+  });
+
+  it('places four shields at ROM pitch (22 + 23 gap)', () => {
+    expect(SHIELD_PITCH_PX).toBe(45);
+    expect([...SHIELD_LEFT_XR]).toEqual([34, 79, 124, 169]);
+    const xs = SHIELD_LEFT_XR.map((_, i) => shieldCenterWorld(i).x);
+    expect(xs[0]).toBeLessThan(xs[1]!);
+    expect(xs[3]).toBeGreaterThan(0);
+    expect(xs[0]).toBeGreaterThan(PLAYFIELD.minX);
+    expect(REF_ALIEN_XR).toBe(0x38);
+  });
+
+  it('keeps ground line under the cannon band', () => {
+    expect(GROUND_LINE.width).toBeGreaterThan(10);
+    expect(playerMaxAbsX()).toBeGreaterThan(0);
   });
 });

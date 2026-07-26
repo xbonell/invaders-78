@@ -61,16 +61,18 @@ describe('two player', () => {
 });
 
 describe('wave difficulty', () => {
-  it('starts later waves lower and faster', () => {
+  it('starts later waves lower using ROM Yr table', () => {
     const w1 = createFormation(1);
     const w3 = createFormation(3);
     expect(w3.originZ).toBeLessThan(w1.originZ);
-    expect(w3.stepInterval).toBeLessThan(w1.stepInterval);
+    expect(w3.stepInterval).toBe(w1.stepInterval);
   });
 
-  it('speeds up more aggressively on higher waves', () => {
+  it('step interval scales with alive count (one alien per frame)', () => {
     const early = stepIntervalForCount(40, 1);
     const late = stepIntervalForCount(40, 5);
-    expect(late).toBeLessThan(early);
+    expect(late).toBe(early);
+    expect(stepIntervalForCount(55, 1)).toBeCloseTo(55 / 60, 5);
+    expect(stepIntervalForCount(1, 1)).toBeCloseTo(1 / 60, 5);
   });
 });

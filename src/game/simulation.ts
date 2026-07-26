@@ -8,6 +8,7 @@ import {
   PLAYFIELD,
   UFO,
   playerMaxAbsX,
+  playfieldMaxAbsCenterX,
 } from './constants';
 import {
   bulletHitsPoint,
@@ -27,6 +28,7 @@ import {
   createAliens,
   createBunkers,
   createFormation,
+  formationStepX,
   formationWouldHitEdge,
   stepIntervalForCount,
 } from './formation';
@@ -61,13 +63,23 @@ function syncActive(state: GameState): void {
 
 function addScore(state: GameState, points: number): void {
   const i = state.activePlayer;
-  state.scores[i] = state.scores[i]! + points;
+  const before = state.scores[i]!;
+  state.scores[i] = before + points;
   state.score = state.scores[i]!;
   state.highScore = Math.max(
     state.highScore,
     state.scores[0]!,
     state.scores[1]!,
   );
+  if (
+    !state.bonusLifeAwarded[i] &&
+    before < PLAYER.bonusLifeAt &&
+    state.scores[i]! >= PLAYER.bonusLifeAt
+  ) {
+    state.bonusLifeAwarded[i] = true;
+    state.livesByPlayer[i] = state.livesByPlayer[i]! + 1;
+    state.lives = state.livesByPlayer[i]!;
+  }
 }
 
 function enterAttract(state: GameState): void {
@@ -76,6 +88,8 @@ function enterAttract(state: GameState): void {
   state.activePlayer = 0;
   state.playerCount = 1;
   state.shotCounts = [0, 0];
+  state.bonusLifeAwarded = [false, false];
+  state.alienHitFreezeTimer = 0;
   state.attractTimer = ATTRACT.screenDuration;
   state.attractScreen = 0;
   state.gameOverTimer = 0;
@@ -113,6 +127,8 @@ function baseState(highScore: number): GameState {
     events: emptyEvents(),
     shotCount: 0,
     shotCounts: [0, 0],
+    bonusLifeAwarded: [false, false],
+    alienHitFreezeTimer: 0,
     credits: 0,
   };
   startWave(state, 1);
@@ -130,6 +146,7 @@ function startWave(state: GameState, wave: number): void {
   state.bunkers = createBunkers();
   state.ufo = null;
   state.ufoSpawnTimer = UFO.spawnInterval;
+  state.alienHitFreezeTimer = 0;
   state.player.x = 0;
   state.player.z = PLAYER.z;
   state.player.alive = true;
@@ -169,6 +186,7 @@ function beginPlay(state: GameState, playerCount: 1 | 2): void {
     playerCount === 2 ? PLAYER.startLives : 0,
   ];
   state.shotCounts = [0, 0];
+  state.bonusLifeAwarded = [false, false];
   startWave(state, 1);
   state.phase = 'playing';
   syncActive(state);
@@ -233,16 +251,27 @@ function tryPlayerFire(game: Game): void {
   if (state.playerBullet) return;
   state.playerBullet = {
     x: state.player.x,
-    z: state.player.z + 0.5,
+    z: state.player.z + PLAYER.bulletSpawnOffsetZ,
     vz: PLAYER.bulletSpeed,
     fromPlayer: true,
   };
-  const i = state.activePlayer;
-  state.shotCounts[i] = state.shotCounts[i]! + 1;
-  state.shotCount = state.shotCounts[i]!;
   if (state.phase === 'playing') {
     pushEvent(state, { type: 'shoot' });
   }
+}
+
+/** Advance UFO score/direction counters when a player shot leaves play (ROM semantics). */
+function onPlayerShotRemoved(state: GameState): void {
+  if (state.phase !== 'playing' && state.phase !== 'attract') return;
+  const i = state.activePlayer;
+  state.shotCounts[i] = state.shotCounts[i]! + 1;
+  state.shotCount = state.shotCounts[i]!;
+}
+
+function clearPlayerBullet(state: GameState): void {
+  if (!state.playerBullet) return;
+  state.playerBullet = null;
+  onPlayerShotRemoved(state);
 }
 
 function updatePlayer(game: Game, dt: number): void {
@@ -263,11 +292,12 @@ function stepFormation(game: Game, dt: number, emitAudio: boolean): void {
   if (state.formation.stepTimer < state.formation.stepInterval) return;
   state.formation.stepTimer = 0;
 
-  if (formationWouldHitEdge(state.aliens, state.formation)) {
+  const stepX = formationStepX(alive, state.formation.dir);
+  if (formationWouldHitEdge(state.aliens, state.formation, stepX)) {
     state.formation.dir = state.formation.dir === 1 ? -1 : 1;
     state.formation.originZ -= FORMATION.dropZ;
   } else {
-    state.formation.originX += state.formation.dir * FORMATION.stepX;
+    state.formation.originX += state.formation.dir * stepX;
   }
 
   state.formation.animFrame = state.formation.animFrame === 0 ? 1 : 0;
@@ -307,9 +337,10 @@ function beginInvasion(game: Game): void {
   const px = state.player.x;
   const pz = state.player.z;
   state.player.alive = false;
-  state.playerBullet = null;
+  if (state.playerBullet) clearPlayerBullet(state);
   clearAlienShots(state.alienShots);
   state.ufo = null;
+  state.alienHitFreezeTimer = 0;
   game.moveDir = 0;
   game.fireQueued = false;
   state.livesByPlayer[0] = 0;
@@ -334,17 +365,19 @@ function updateInvasion(game: Game, dt: number): void {
   }
 }
 
-function mysteryScore(shotCount: number): { points: number; index: number } {
-  const index = shotCount % UFO.scoreTable.length;
-  return { points: UFO.scoreTable[index]!, index };
+function mysteryScoreIndex(shotCount: number): number {
+  return shotCount % UFO.scoreTable.length;
 }
 
 function spawnUfo(state: GameState): void {
   if (state.ufo) return;
-  const fromLeft = Math.random() < 0.5;
-  const { index } = mysteryScore(state.shotCount);
+  if (aliveCount(state.aliens) < UFO.minAliensToSpawn) return;
+  // Odd completed-shot count → from left (ROM LSB of shot counter)
+  const fromLeft = (state.shotCount & 1) === 1;
+  const index = mysteryScoreIndex(state.shotCount);
+  const edge = playfieldMaxAbsCenterX(UFO.halfWidth);
   state.ufo = {
-    x: fromLeft ? PLAYFIELD.minX - 1 : PLAYFIELD.maxX + 1,
+    x: fromLeft ? -edge : edge,
     z: UFO.z,
     vx: fromLeft ? UFO.speed : -UFO.speed,
     scoreIndex: index,
@@ -356,17 +389,23 @@ function updateUfo(state: GameState, dt: number): void {
   state.ufoSpawnTimer -= dt;
   if (state.ufoSpawnTimer <= 0) {
     state.ufoSpawnTimer = UFO.spawnInterval;
-    if (Math.random() < 0.75) spawnUfo(state);
+    spawnUfo(state);
   }
   if (!state.ufo) return;
   state.ufo.x += state.ufo.vx * dt;
-  if (
-    state.ufo.x < PLAYFIELD.minX - 2 ||
-    state.ufo.x > PLAYFIELD.maxX + 2
-  ) {
+  const edge = playfieldMaxAbsCenterX(UFO.halfWidth);
+  // Keep saucer inside the game area; despawn once it reaches the far rim
+  if (state.ufo.vx > 0 && state.ufo.x >= edge) {
     state.ufo = null;
     pushEvent(state, { type: 'ufoDespawn' });
+    return;
   }
+  if (state.ufo.vx < 0 && state.ufo.x <= -edge) {
+    state.ufo = null;
+    pushEvent(state, { type: 'ufoDespawn' });
+    return;
+  }
+  state.ufo.x = Math.max(-edge, Math.min(edge, state.ufo.x));
 }
 
 function collidePlayerBullet(state: GameState, scoring: boolean): void {
@@ -375,7 +414,7 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
 
   for (const bunker of state.bunkers) {
     if (erodeBunkerAt(bunker, b)) {
-      state.playerBullet = null;
+      clearPlayerBullet(state);
       // Always emit FX (attract demo kills need explosions too)
       pushEvent(state, { type: 'bunkerHit', x: b.x, z: b.z });
       return;
@@ -394,11 +433,13 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
     ) {
       const ux = state.ufo.x;
       const uz = state.ufo.z;
-      const points = scoring ? UFO.scoreTable[state.ufo.scoreIndex]! : 0;
+      // Score from current pointer at hit (ROM); then shot removal advances it
+      const index = mysteryScoreIndex(state.shotCount);
+      const points = scoring ? UFO.scoreTable[index]! : 0;
       if (scoring) addScore(state, points);
       pushEvent(state, { type: 'ufoHit', points, x: ux, z: uz });
       state.ufo = null;
-      state.playerBullet = null;
+      clearPlayerBullet(state);
       return;
     }
   }
@@ -408,9 +449,12 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
     const p = alienWorldPos(alien, state.formation);
     if (bulletHitsPoint(b, p.x, p.z, HIT.alienHalfW, HIT.alienHalfD)) {
       alien.alive = false;
-      state.playerBullet = null;
+      clearPlayerBullet(state);
       const points = scoring ? (ALIEN_POINTS[alien.type] ?? 10) : 0;
       if (scoring) addScore(state, points);
+      if (scoring) {
+        state.alienHitFreezeTimer = FORMATION.alienHitFreeze;
+      }
       pushEvent(state, {
         type: 'alienHit',
         points,
@@ -430,9 +474,10 @@ function hitPlayer(game: Game): void {
   const px = state.player.x;
   const pz = state.player.z;
   state.player.alive = false;
-  state.playerBullet = null;
+  if (state.playerBullet) clearPlayerBullet(state);
   clearAlienShots(state.alienShots);
   state.ufo = null;
+  state.alienHitFreezeTimer = 0;
   game.moveDir = 0;
   game.fireQueued = false;
   const i = state.activePlayer;
@@ -447,7 +492,7 @@ function updatePlayerBullet(state: GameState, dt: number): void {
   if (state.playerBullet) {
     state.playerBullet.z += state.playerBullet.vz * dt;
     if (state.playerBullet.z > PLAYFIELD.maxZ + 1) {
-      state.playerBullet = null;
+      clearPlayerBullet(state);
     }
   }
 }
@@ -460,7 +505,12 @@ function syncAlienShotUfoLock(state: GameState): void {
 function stepAlienShots(game: Game): void {
   const { state } = game;
   syncAlienShotUfoLock(state);
-  const ctx = alienShotContextFromGameState(state, () => hitPlayer(game));
+  const ctx = alienShotContextFromGameState(
+    state,
+    () => hitPlayer(game),
+    undefined,
+    () => clearPlayerBullet(state),
+  );
   updateAlienShots(state.alienShots, ctx);
 }
 
@@ -468,9 +518,10 @@ function checkWaveClear(state: GameState): void {
   if (aliveCount(state.aliens) > 0) return;
   state.phase = 'waveClear';
   state.waveClearTimer = FORMATION.waveClearDuration;
-  state.playerBullet = null;
+  if (state.playerBullet) clearPlayerBullet(state);
   clearAlienShots(state.alienShots);
   state.ufo = null;
+  state.alienHitFreezeTimer = 0;
   pushEvent(state, { type: 'waveClear' });
 }
 
@@ -616,12 +667,20 @@ export function step(game: Game, dt: number): void {
 
   tryPlayerFire(game);
   updatePlayer(game, dt);
-  stepFormation(game, dt, true);
-  if (state.phase !== 'playing') return;
+
+  if (state.alienHitFreezeTimer > 0) {
+    state.alienHitFreezeTimer -= dt;
+  }
 
   updateUfo(state, dt);
   updatePlayerBullet(state, dt);
   collidePlayerBullet(state, true);
+  if (state.phase !== 'playing') return;
+
+  if (state.alienHitFreezeTimer <= 0) {
+    stepFormation(game, dt, true);
+    if (state.phase !== 'playing') return;
+  }
   stepAlienShots(game);
   checkWaveClear(state);
 }

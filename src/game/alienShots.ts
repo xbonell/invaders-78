@@ -625,6 +625,7 @@ export function alienShotContextFromGameState(
   state: GameState,
   onPlayerHit: () => void,
   debugEvents?: AlienShotDebugEvent[],
+  onClearPlayerBullet?: () => void,
 ): AlienShotContext {
   return {
     playerScore: state.score,
@@ -635,7 +636,8 @@ export function alienShotContextFromGameState(
     bunkers: state.bunkers,
     playerBullet: state.playerBullet,
     clearPlayerBullet: () => {
-      state.playerBullet = null;
+      if (onClearPlayerBullet) onClearPlayerBullet();
+      else state.playerBullet = null;
     },
     player: state.player,
     onPlayerHit,

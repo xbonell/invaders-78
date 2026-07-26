@@ -15,7 +15,7 @@ Date: 2026-07-25 · Updated: 2026-07-26
 | Topic | Choice |
 |-------|--------|
 | Rules | Near arcade-accurate |
-| Camera | Fixed orthographic top-down (`up = +Z`, player at bottom) |
+| Camera | Orthographic top-down (`up = +Z`, player at bottom); contain-fits playfield |
 | Art | Pixel→voxel extrusions from classic silhouettes; no bitmaps |
 | Scope shipped | v1 core + v2 attract/credits/HUD + v3 2P/tuning + voxel/FX polish |
 | Bunkers | Cell erosion; taller voxel stacks |
@@ -44,16 +44,18 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 ## Gameplay
 
 - **1P / 2P:** `1`/`Enter` = 1 credit start; `2` = two credits, alternating turns
-- Player: horizontal only; one shot on screen; 3 lives each
-- Invaders: 5×11; edge drop + reverse; cadence vs alive count + wave; panic when few left
-- Points: squid 30, crab 20, octopus 10; UFO mystery table 50/100/150/300
-- Bunkers: 4 masks, cell erase on hit
-- Waves: clear → brief pause → next wave lower/faster
+- Player: horizontal only; one shot on screen; 3 lives each; bonus life at 1500
+- Invaders: 5×11 at ROM 16×16 pitch; start from ref ($38,$78) + wave Yr table; edge drop + reverse; step cadence = alive/60; last alien 3 px right / 2 px left; ~16-frame freeze on kill
+- Points: squid 30, crab 20, octopus 10; UFO ROM table (15 values); spawn ~25.6 s when ≥8 aliens; direction from shot LSB
+- Bunkers: 4 at ROM VRAM slots (22×16 px); cell erase on hit
+- Waves: clear → brief pause → next wave at ROM start Yr
 - Phases: `attract` → `playing` → `dying` / `waveClear` / `playerSwitch` → `gameOver` → attract
 - Hi-score: `localStorage`
+- Layout: arcade Xr/Yr via [`arcadeLayout.ts`](../../../src/game/arcadeLayout.ts) (not the old feel-tuned constants)
 
 ## Visuals
 
+- Visuals: playfield framed by contain-fit ortho camera; black letterbox (see [playfield viewport layout](./2026-07-26-playfield-viewport-layout-design.md))
 - Voxel recipes in `src/scene/voxels/recipes.ts` (sheet-accurate grids)
 - Alien death debris: **orange** additive glow; full voxel shatter
 - Bullets: thin additive “laser” stacks

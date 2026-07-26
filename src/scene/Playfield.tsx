@@ -142,7 +142,7 @@ export function Playfield({
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.02, 0]}
       >
-        <planeGeometry args={[PLAYFIELD.width + 4, PLAYFIELD.depth + 4]} />
+        <planeGeometry args={[GROUND_LINE.width, PLAYFIELD.depth + 4]} />
         <meshLambertMaterial color="#050505" />
       </mesh>
 
@@ -198,8 +198,18 @@ export function OrthoCameraRig() {
     const aspect = size.width / Math.max(size.height, 1);
     if (Math.abs(aspect - lastAspect.current) < 1e-6) return;
     lastAspect.current = aspect;
-    const viewH = 28;
-    const viewW = viewH * aspect;
+
+    const margin = 1;
+    const halfW = GROUND_LINE.width / 2 + margin;
+    const halfD = PLAYFIELD.depth / 2 + margin;
+    // Contain-fit playfield: show full width+depth with letterbox as needed.
+    let viewH = halfD * 2;
+    let viewW = viewH * aspect;
+    if (viewW < halfW * 2) {
+      viewW = halfW * 2;
+      viewH = viewW / aspect;
+    }
+
     camera.left = -viewW / 2;
     camera.right = viewW / 2;
     camera.top = viewH / 2;

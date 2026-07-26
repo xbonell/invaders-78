@@ -58,7 +58,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 - **FX via events:** kills must `pushEvent` with `x,z` (and alien type/frame). Attract demo also emits hits (score 0) so explosions still play.
 - **Move input:** `dispatch({ type: 'move' })` always updates `moveDir`; clear on death/respawn. Never gate move updates on `phase === 'playing'` only.
 - **Audio unlock:** first gesture must `await audio.unlock()` before start/fire that should make sound.
-- **Camera:** ortho, `camera.up.set(0,0,1)`; player at negative Z (screen bottom). Left key → `moveDir = 1`.
+- **Camera:** ortho, `camera.up.set(0,0,1)`; contain-fits `PLAYFIELD` (+ margin); player at negative Z (screen bottom). Left key → `moveDir = 1`.
 - **No bitmap game art:** recipes/code geometry only (favicon exempt).
 - **Controls:** see README; 2P is key `2`, not gamepad yet.
 

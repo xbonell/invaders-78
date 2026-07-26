@@ -144,6 +144,10 @@ export interface GameState {
   events: GameEvent[];
   shotCount: number;
   shotCounts: [number, number];
+  /** Per-player: bonus life at 1500 already granted */
+  bonusLifeAwarded: [boolean, boolean];
+  /** Countdown while formation freezes after a kill (in-flight shots keep moving) */
+  alienHitFreezeTimer: number;
   credits: number;
 }
 

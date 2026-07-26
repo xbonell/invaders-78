@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALIEN_SHOT } from './constants';
+import { ALIEN_SHOT, PLAYER } from './constants';
 import { createAliens, createFormation } from './formation';
 import { logicalToWorld } from './logicalSpace';
 import type { Alien, AlienShotContext, Bunker } from './types';
@@ -44,7 +44,7 @@ function stubCtx(
     bunkers: overrides.bunkers ?? [],
     playerBullet: null,
     clearPlayerBullet: () => {},
-    player: { x: 0, z: -10, alive: true },
+    player: { x: 0, z: PLAYER.z, alive: true },
     onPlayerHit: () => {},
     onBunkerHit: () => {},
     onAlienShotExplode: () => {},

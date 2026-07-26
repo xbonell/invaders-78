@@ -1,6 +1,13 @@
 /** 224×256 arcade logical playfield ↔ world XZ conversion. */
 
-import { PLAYFIELD } from './constants';
+export const PLAYFIELD = {
+  width: 28,
+  depth: 26,
+  minX: -14,
+  maxX: 14,
+  minZ: -12,
+  maxZ: 12,
+} as const;
 
 export const LOGICAL_W = 224;
 export const LOGICAL_H = 256;

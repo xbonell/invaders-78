@@ -33,11 +33,13 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/scene/GameCanvas.tsx` | R3F canvas, lights, shadows |
 | `src/scene/Playfield.tsx` | Syncs sim snapshot → meshes |
 | `src/scene/voxels/recipes.ts` | Pixel grids → voxel bits (aliens, player, UFO) |
-| `src/scene/voxels/VoxelBody.tsx` | Renders a recipe |
+| `src/scene/voxels/mergedGeometry.ts` | Cached merged BufferGeometry per recipe (movers) |
+| `src/scene/voxels/RecipeMesh.tsx` | Single-mesh silhouette for player / UFO / aliens |
+| `src/scene/voxels/VoxelBody.tsx` | Per-box meshes (unused by Playfield; bits still for FX) |
 | `src/scene/voxels/DebrisField.tsx` | Instanced additive debris |
 | `src/scene/voxels/fxQueue.ts` | Destruction events queue (not React state) |
 | `src/scene/meshes/GlowBullet.tsx` | Laser bolt visuals |
-| `src/scene/meshes/BunkerMesh.tsx` | Erodable bunker cells |
+| `src/scene/meshes/BunkerMesh.tsx` | Erodable bunker cells (per-cell boxes) |
 | `src/app/` | Shell, HUD, overlays, CSS |
 
 ## Data flow
@@ -48,6 +50,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 4. React `version` bumps when `visualSig(state)` changes or events fire — continuous player/UFO/bullet motion does **not** reconcile React.
 5. Continuous movers (player, UFO, player bullet, alien shots): advance lerps into `motionSnapshot`; meshes set transforms in `useFrame` with **no** React position props for those axes. Alien march stays discrete; invasion fly-off lerps formation origin via an offset group.
 6. Scene uses flat lighting (no shadow maps) so hundreds of voxel boxes do not hitch the frame.
+7. Player / UFO / aliens render as **merged recipe meshes** (`RecipeMesh`); bunkers stay per-cell; explosions still spawn from `recipeToBits`.
 
 ## Conventions (do not break casually)
 

@@ -14,7 +14,7 @@ import { alienWorldPos } from '../game/formation';
 import { BunkerMesh } from './meshes/BunkerMesh';
 import { GlowAlienShot } from './meshes/GlowAlienShot';
 import { GlowBullet } from './meshes/GlowBullet';
-import { VoxelBody } from './voxels/VoxelBody';
+import { RecipeMesh } from './voxels/RecipeMesh';
 import { DebrisField } from './voxels/DebrisField';
 import {
   alienRecipe,
@@ -59,7 +59,7 @@ function SmoothPlayer({
 
   return (
     <group ref={attach}>
-      <VoxelBody recipe={PLAYER_RECIPE} />
+      <RecipeMesh recipe={PLAYER_RECIPE} />
     </group>
   );
 }
@@ -90,7 +90,7 @@ function SmoothUfo({
 
   return (
     <group ref={attach}>
-      <VoxelBody recipe={UFO_RECIPE} />
+      <RecipeMesh recipe={UFO_RECIPE} />
     </group>
   );
 }
@@ -165,7 +165,7 @@ export function Playfield({
       <InvasionAlienOffset motionSnapshot={motionSnapshot}>
         {aliens.map(({ a, p }) => (
           <group key={a.id} position={[p.x, 0.85, p.z]}>
-            <VoxelBody
+            <RecipeMesh
               recipe={alienRecipe(a.type, state.formation.animFrame)}
             />
           </group>

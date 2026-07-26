@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { createGame, dispatch, drainEvents, step } from './simulation';
-import { FORMATION, GROUND_LINE, PLAYER, TICK_DT, playerMaxAbsX } from './constants';
+import {
+  createGame,
+  dispatch,
+  drainEvents,
+  injectAlienShotAtPlayer,
+  step,
+} from './simulation';
+import {
+  FORMATION,
+  GROUND_LINE,
+  PLAYER,
+  TICK_DT,
+  playerMaxAbsX,
+} from './constants';
 
 function startGame() {
   const game = createGame(0);
@@ -51,12 +63,7 @@ describe('simulation core', () => {
 
   it('loses a life and enters dying when player is hit', () => {
     const game = startGame();
-    game.state.alienBullets.push({
-      x: game.state.player.x,
-      z: game.state.player.z + 0.1,
-      vz: -10,
-      fromPlayer: false,
-    });
+    injectAlienShotAtPlayer(game.state);
     step(game, TICK_DT);
     expect(game.state.phase).toBe('dying');
     expect(game.state.lives).toBe(PLAYER.startLives - 1);
@@ -66,12 +73,7 @@ describe('simulation core', () => {
     const game = startGame();
     game.state.livesByPlayer[0] = 1;
     game.state.lives = 1;
-    game.state.alienBullets.push({
-      x: game.state.player.x,
-      z: game.state.player.z + 0.1,
-      vz: -10,
-      fromPlayer: false,
-    });
+    injectAlienShotAtPlayer(game.state);
     step(game, TICK_DT);
     game.state.dyingTimer = 0;
     step(game, TICK_DT);
@@ -82,12 +84,7 @@ describe('simulation core', () => {
     const game = startGame();
     dispatch(game, { type: 'move', dir: 1 });
     expect(game.moveDir).toBe(1);
-    game.state.alienBullets.push({
-      x: game.state.player.x,
-      z: game.state.player.z + 0.1,
-      vz: -10,
-      fromPlayer: false,
-    });
+    injectAlienShotAtPlayer(game.state);
     step(game, TICK_DT);
     expect(game.state.phase).toBe('dying');
     expect(game.moveDir).toBe(0);
@@ -121,5 +118,28 @@ describe('simulation core', () => {
     dispatch(game, { type: 'move', dir: -1 });
     for (let i = 0; i < 400; i++) step(game, TICK_DT);
     expect(game.state.player.x).toBeCloseTo(-max, 5);
+  });
+
+  it('invasion: player explodes, formation flies away, then game over', () => {
+    const game = startGame();
+    drainEvents(game);
+    // Drop formation onto the player line
+    game.state.formation.originZ = PLAYER.z;
+    game.state.formation.stepTimer = game.state.formation.stepInterval;
+    const originBefore = game.state.formation.originZ;
+    step(game, TICK_DT);
+    expect(game.state.phase).toBe('invasion');
+    expect(game.state.player.alive).toBe(false);
+    expect(game.state.lives).toBe(0);
+    const events = drainEvents(game);
+    expect(events.some((e) => e.type === 'playerHit')).toBe(true);
+
+    step(game, TICK_DT);
+    expect(game.state.formation.originZ).toBeLessThan(originBefore);
+    expect(game.state.phase).toBe('invasion');
+
+    game.state.dyingTimer = 0;
+    step(game, TICK_DT);
+    expect(game.state.phase).toBe('gameOver');
   });
 });

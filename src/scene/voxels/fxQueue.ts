@@ -7,6 +7,7 @@ const FX_TYPES = new Set([
   'ufoHit',
   'playerHit',
   'bunkerHit',
+  'alienShotHit',
 ]);
 
 /** Push destruction events for the scene to consume (survives React frame gaps). */

@@ -72,6 +72,7 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
         if (
           game.state.phase === 'playing' ||
           game.state.phase === 'dying' ||
+          game.state.phase === 'invasion' ||
           game.state.phase === 'waveClear' ||
           game.state.phase === 'playerSwitch' ||
           game.state.phase === 'gameOver'

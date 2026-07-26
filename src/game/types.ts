@@ -6,6 +6,7 @@ export type GamePhase =
   | 'playing'
   | 'waveClear'
   | 'dying'
+  | 'invasion'
   | 'playerSwitch'
   | 'gameOver'
   | 'paused';
@@ -30,6 +31,33 @@ export interface Bullet {
   z: number;
   vz: number;
   fromPlayer: boolean;
+}
+
+export type AlienShotType = 'rolling' | 'plunger' | 'squiggly';
+
+export type AlienShotState = 'idle' | 'active' | 'exploding';
+
+export interface AlienShotSlot {
+  type: AlienShotType;
+  state: AlienShotState;
+  /** Logical playfield coords (224×256) */
+  position: { x: number; y: number };
+  previousPosition: { x: number; y: number };
+  moveCounter: number;
+  animationFrame: number;
+  explosionFramesRemaining: number;
+  sourceColumn: number | null;
+  sourceAlienId: number | null;
+}
+
+export interface AlienShotSystem {
+  rolling: AlienShotSlot;
+  plunger: AlienShotSlot;
+  squiggly: AlienShotSlot;
+  nextSlotToProcess: 0 | 1 | 2;
+  plungerTableIndex: number;
+  squigglyTableIndex: number;
+  squigglySlotLockedByUfo: boolean;
 }
 
 export interface Bunker {
@@ -61,6 +89,7 @@ export type GameEvent =
   | { type: 'ufoHit'; points: number; x: number; z: number }
   | { type: 'playerHit'; x: number; z: number }
   | { type: 'bunkerHit'; x: number; z: number }
+  | { type: 'alienShotHit'; x: number; z: number }
   | { type: 'formationStep'; note: number }
   | { type: 'ufoSpawn' }
   | { type: 'ufoDespawn' }
@@ -101,7 +130,7 @@ export interface GameState {
   aliens: Alien[];
   formation: FormationState;
   playerBullet: Bullet | null;
-  alienBullets: Bullet[];
+  alienShots: AlienShotSystem;
   bunkers: Bunker[];
   ufo: Ufo | null;
   ufoSpawnTimer: number;
@@ -112,7 +141,6 @@ export interface GameState {
   attractTimer: number;
   /** 0 = title, 1 = score table */
   attractScreen: 0 | 1;
-  alienShootTimer: number;
   events: GameEvent[];
   shotCount: number;
   shotCounts: [number, number];

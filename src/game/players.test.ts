@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PLAYER, TICK_DT } from './constants';
 import { createFormation, stepIntervalForCount } from './formation';
-import { createGame, dispatch, step } from './simulation';
+import { createGame, dispatch, injectAlienShotAtPlayer, step } from './simulation';
 
 describe('two player', () => {
   it('starts 2P when two credits and startTwo', () => {
@@ -32,12 +32,7 @@ describe('two player', () => {
     dispatch(game, { type: 'startTwo' });
     game.state.livesByPlayer[0] = 1;
     game.state.scores[0] = 120;
-    game.state.alienBullets.push({
-      x: game.state.player.x,
-      z: game.state.player.z + 0.1,
-      vz: -10,
-      fromPlayer: false,
-    });
+    injectAlienShotAtPlayer(game.state);
     step(game, TICK_DT);
     expect(game.state.phase).toBe('dying');
     game.state.dyingTimer = 0;

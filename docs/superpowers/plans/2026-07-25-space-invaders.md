@@ -1,4 +1,4 @@
-# Space Invaders — implementation plan (historical)
+# Invaders 78 — implementation plan (historical)
 
 > Original v1 task list. **All items below are done.** For ongoing work use [docs/ARCHITECTURE.md](../../ARCHITECTURE.md#backlog) and the updated [design spec](../specs/2026-07-25-space-invaders-design.md).
 

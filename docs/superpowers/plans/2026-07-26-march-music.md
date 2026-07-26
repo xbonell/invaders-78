@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the procedural `formationStep` march sound like the classic descending four-note Space Invaders bass loop (no sample files).
+**Goal:** Make the procedural `formationStep` march sound like the classic descending four-note 1978 arcade invaders bass loop (no sample files).
 
 **Architecture:** Keep sim → `formationStep` → `AudioEngine.handleEvents` wiring. Replace the short SFX `blip()` for march with a dedicated retriggerable square + envelope + lowpass voice that stops the previous note on each step.
 

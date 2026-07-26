@@ -1,6 +1,6 @@
 # AGENTS.md
 
-You are working on a web Space Invaders game (Rsbuild, React, TypeScript, R3F, procedural audio).
+You are working on **Invaders 78**, a web arcade invaders game (Rsbuild, React, TypeScript, R3F, procedural audio).
 
 ## Read first
 

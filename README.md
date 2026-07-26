@@ -1,6 +1,6 @@
-# Space Invaders
+# Invaders 78
 
-Arcade-faithful Space Invaders: 2D dynamics, **voxel** ships (React Three Fiber), procedural Web Audio, keyboard + gamepad.
+1978-style arcade invaders: 2D dynamics, **voxel** ships (React Three Fiber), procedural Web Audio, keyboard + gamepad.
 
 ## Stack
 

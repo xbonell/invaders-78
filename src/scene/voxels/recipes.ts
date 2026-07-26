@@ -204,6 +204,53 @@ export const UFO_RECIPE = parse(
 
 export const BUNKER_COLOR = C_BUNKER;
 
+const C_SHOT = '#f0f0f0';
+const SHOT_CELL = 0.1;
+
+/** Squiggly ×4 — zigzag (Wikimedia strip left group). */
+const SQUIGGLY_FRAMES = [
+  parse(['..#..', '.#...', '..#..', '...#.', '..#..', '.#...', '..#..'], SHOT_CELL, C_SHOT),
+  parse(['.#...', '..#..', '...#.', '..#..', '.#...', '..#..', '...#.'], SHOT_CELL, C_SHOT),
+  parse(['..#..', '...#.', '..#..', '.#...', '..#..', '...#.', '..#..'], SHOT_CELL, C_SHOT),
+  parse(['...#.', '..#..', '.#...', '..#..', '...#.', '..#..', '.#...'], SHOT_CELL, C_SHOT),
+] as const;
+
+/** Rolling ×4 — stem + sliding bar (middle group). */
+const ROLLING_FRAMES = [
+  parse(['..#..', '..#..', '..#..', '..#..', '..#..', '.###.'], SHOT_CELL, C_SHOT),
+  parse(['..#..', '..#..', '..#..', '.###.', '..#..', '..#..'], SHOT_CELL, C_SHOT),
+  parse(['..#..', '..#..', '.###.', '..#..', '..#..', '..#..'], SHOT_CELL, C_SHOT),
+  parse(['.###.', '..#..', '..#..', '..#..', '..#..', '..#..'], SHOT_CELL, C_SHOT),
+] as const;
+
+/** Plunger ×4 — stem / offset bars (right group). */
+const PLUNGER_FRAMES = [
+  parse(['..#..', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'], SHOT_CELL, C_SHOT),
+  parse(['..#..', '..#..', '.##..', '..##.', '..#..', '.##..', '..##.'], SHOT_CELL, C_SHOT),
+  parse(['..#..', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'], SHOT_CELL, C_SHOT),
+  parse(['..##.', '.##..', '..#..', '..##.', '.##..', '..#..', '..#..'], SHOT_CELL, C_SHOT),
+] as const;
+
+const SHOT_EXPLOSION = parse(
+  ['.#.#.', '#.#.#', '.#.#.', '#.#.#'],
+  SHOT_CELL,
+  C_SHOT,
+);
+
+export function alienShotRecipe(
+  type: 'rolling' | 'plunger' | 'squiggly',
+  frame: number,
+): VoxelRecipe {
+  const i = ((frame % 4) + 4) % 4;
+  if (type === 'squiggly') return SQUIGGLY_FRAMES[i]!;
+  if (type === 'rolling') return ROLLING_FRAMES[i]!;
+  return PLUNGER_FRAMES[i]!;
+}
+
+export function alienShotExplosionRecipe(): VoxelRecipe {
+  return SHOT_EXPLOSION;
+}
+
 export function alienRecipe(
   type: 'squid' | 'crab' | 'octopus',
   frame: 0 | 1,

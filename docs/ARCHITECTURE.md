@@ -1,6 +1,6 @@
 # Architecture & agent handoff
 
-Living guide for continuing this repo. Prefer this over older plan checklists when they conflict.
+Living guide for continuing **Invaders 78**. Prefer this over older plan checklists when they conflict.
 
 ## Quick start
 
@@ -18,8 +18,10 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | Path | Role |
 |------|------|
 | `src/game/simulation.ts` | `createGame`, `dispatch`, `step`, `drainEvents` — **source of truth for rules** |
+| `src/game/alienShots.ts` | Rolling / Plunger / Squiggly slots, reload, patterns, collisions |
+| `src/game/logicalSpace.ts` | 224×256 logical ↔ world XZ conversion |
 | `src/game/types.ts` | Phases, entities, `GameEvent`, commands |
-| `src/game/constants.ts` | Tuning (speeds, intervals, UFO table, attract timers) |
+| `src/game/constants.ts` | Tuning (`ALIEN_SHOT`, speeds, UFO table, attract timers) |
 | `src/game/formation.ts` | Grid spawn, march interval, bunker masks |
 | `src/game/collisions.ts` | AABB + bunker cell erosion |
 | `src/game/storage.ts` | Hi-score + mute `localStorage` |
@@ -58,11 +60,11 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 
 ### Tune difficulty
 
-Edit `src/game/constants.ts` (`FORMATION`, `ALIEN_BULLET`, `PLAYER`, `UFO`, `ATTRACT`). Add/adjust tests in `formation.test.ts` / `players.test.ts` if behavior changes.
+Edit `src/game/constants.ts` (`FORMATION`, `ALIEN_SHOT`, `PLAYER`, `UFO`, `ATTRACT`). Alien fire is score-reload + table/targeting in `alienShots.ts`, not a timer interval. Add/adjust tests in `alienShots.test.ts` / `formation.test.ts` / `players.test.ts` if behavior changes.
 
-### Change alien / UFO / player shape
+### Change alien / UFO / player / alien-shot shape
 
-Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). `alienRecipe(type, frame)` selects animation frame. Debris for aliens uses orange override in `DebrisField.tsx`.
+Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). `alienRecipe(type, frame)` / `alienShotRecipe(type, frame)` select animation frames. Debris for aliens uses orange override in `DebrisField.tsx`.
 
 ### Add a new `GameEvent`
 
@@ -82,6 +84,7 @@ Extend `GamePhase`, handle in `dispatch` / `step`, update HUD `Overlay`/`Hud` vi
 4. **Desktop package** — Tauri or Electron for Steam later  
 5. **Polish** — CRT overlay (optional), attract audio policy, pause moves sync from held keys on respawn if still held  
 6. ~~Formation march~~ — descending procedural march voice on `formationStep` (2026-07-26)
+7. ~~Alien shots~~ — arcade Rolling/Plunger/Squiggly slots (2026-07-26)
 
 ## Explicit non-goals
 

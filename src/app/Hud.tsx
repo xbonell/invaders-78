@@ -13,6 +13,7 @@ export function Hud({
   const inSession =
     state.phase === 'playing' ||
     state.phase === 'dying' ||
+    state.phase === 'invasion' ||
     state.phase === 'waveClear' ||
     state.phase === 'paused' ||
     state.phase === 'playerSwitch' ||
@@ -51,7 +52,9 @@ export function Hud({
 
 export function FooterBar({ state }: { state: GameState }) {
   const lives =
-    state.phase === 'attract' || state.phase === 'gameOver'
+    state.phase === 'attract' ||
+    state.phase === 'gameOver' ||
+    state.phase === 'invasion'
       ? 0
       : Math.max(0, state.lives);
 
@@ -82,7 +85,7 @@ export function Overlay({ state }: { state: GameState }) {
         {state.attractScreen === 0 ? (
           <>
             <p className="play-line">Play</p>
-            <h1 className="brand">Space Invaders</h1>
+            <h1 className="brand">Invaders 78</h1>
             <p className="hint pulse">1 / Enter — 1 player</p>
             <p className="hint-sub">2 — 2 players · 5 / C — credit</p>
           </>

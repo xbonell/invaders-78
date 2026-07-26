@@ -39,6 +39,9 @@ export const FORMATION = {
   maxWaveDropSteps: 5,
   /** Extra interval cut per wave */
   waveSpeedBoost: 0.07,
+  /** When aliens reach the player line: formation races off-screen */
+  invasionFlySpeed: 16,
+  invasionDuration: 1.15,
 } as const;
 
 /** Row 0 = top (squid), rows 1-2 crab, rows 3-4 octopus */
@@ -48,12 +51,22 @@ export const ALIEN_POINTS: Record<string, number> = {
   octopus: 10,
 };
 
-export const ALIEN_BULLET = {
-  speed: -11,
-  baseInterval: 0.72,
-  minInterval: 0.18,
-  /** Extra fire-rate boost per wave */
-  waveFireBoost: 0.05,
+/** Arcade-authentic alien shot system (logical overlay). */
+export const ALIEN_SHOT = {
+  simulationHz: 60,
+  normalStepPixels: 4,
+  acceleratedStepPixels: 5,
+  acceleratedAlienCountThreshold: 8,
+  inactiveMoveCounter: 255,
+  explosionFrames: 8,
+  projectileSpawnGap: 0,
+  /** Logical Y at/beyond which shots explode */
+  projectileBottomBoundary: 240,
+  /** Stable logical hitbox (independent of anim frame) */
+  hitboxHalfW: 1,
+  hitboxHalfH: 4,
+  arcadeAuthenticUfoShotSlotSharing: true,
+  resetFiringPatternsEachWave: true,
 } as const;
 
 export const UFO = {
@@ -73,7 +86,8 @@ export const BUNKER = {
   cellSize: 0.14,
   /** Vertical stack reference — keeps original bunker height. */
   stackSize: 0.28,
-  z: -6.5,
+  /** Closer to player — matches arcade lower-playfield shields. */
+  z: -8,
   // 2× nearest-neighbor upscale of the original 8×6 arch
   mask: [
     0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,

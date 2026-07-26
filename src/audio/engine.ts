@@ -89,6 +89,10 @@ export class AudioEngine {
         case 'bunkerHit':
           this.blip(90, 0.05, 'triangle', 0.07);
           break;
+        case 'alienShotHit':
+          this.noiseBurst(0.06, 0.12);
+          this.blip(140, 0.04, 'square', 0.06);
+          break;
         case 'formationStep':
           this.marchNote(e.note);
           break;

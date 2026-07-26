@@ -14,7 +14,7 @@ export function GameCanvas({
   return (
     <Canvas
       orthographic
-      shadows
+      shadows="percentage"
       camera={{ position: [0, 30, 0], near: 0.1, far: 100, zoom: 1 }}
       dpr={[1, 2]}
       gl={{ antialias: true }}

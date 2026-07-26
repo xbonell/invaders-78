@@ -13,14 +13,16 @@ export function GlowBullet({
   fromPlayer: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
+  const elapsed = useRef(0);
   const coreColor = fromPlayer ? '#ffffff' : '#ffb4b4';
   const midColor = fromPlayer ? '#fef08a' : '#fb7185';
   const haloColor = fromPlayer ? '#facc15' : '#e11d48';
   const len = fromPlayer ? 0.85 : 0.7;
 
-  useFrame(({ clock }) => {
+  useFrame((_, dt) => {
     if (!group.current) return;
-    const s = 1 + 0.12 * Math.sin(clock.elapsedTime * 40);
+    elapsed.current += dt;
+    const s = 1 + 0.12 * Math.sin(elapsed.current * 40);
     group.current.scale.set(s, s, 1);
   });
 

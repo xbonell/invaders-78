@@ -1,5 +1,5 @@
-export const HI_SCORE_KEY = 'space-invaders-hi-score';
-export const MUTE_KEY = 'space-invaders-mute';
+export const HI_SCORE_KEY = 'invaders-78-hi-score';
+export const MUTE_KEY = 'invaders-78-mute';
 
 export function loadHighScore(): number {
   try {

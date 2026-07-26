@@ -1,10 +1,10 @@
-# Space Invaders (Web) — Design Spec
+# Invaders 78 (Web) — Design Spec
 
 Date: 2026-07-25 · Updated: 2026-07-26
 
 ## Intent
 
-Arcade-faithful Space Invaders with 2D playfield dynamics, **code-built voxel** ships (no bitmaps / glTF), procedural Web Audio, keyboard + gamepad. Web-first; Steam/desktop packaging is future work.
+**Invaders 78** — a 1978-style arcade invaders game with 2D playfield dynamics, **code-built voxel** ships (no bitmaps / glTF), procedural Web Audio, keyboard + gamepad. Web-first; Steam/desktop packaging is future work. Product name avoids the trademarked “Space Invaders” title.
 
 ## Current status
 

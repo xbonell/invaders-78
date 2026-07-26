@@ -4,7 +4,7 @@ Date: 2026-07-26
 
 ## Intent
 
-Make the in-game “music” recognizable as the classic Space Invaders four-note descending march by tuning the existing procedural `formationStep` voice — no sample files (the Wikipedia OGG is copyrighted reference only).
+Make the in-game “music” recognizable as the classic 1978 arcade invaders four-note descending march by tuning the existing procedural `formationStep` voice — no sample files (the Wikipedia OGG is copyrighted reference only).
 
 ## Decisions
 

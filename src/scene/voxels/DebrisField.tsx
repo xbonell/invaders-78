@@ -81,6 +81,23 @@ function bunkerCellBits(): VoxelBit[] {
 
 /** Hot orange glow for squid / crab / octopus debris */
 const ALIEN_DEBRIS_GLOW = '#ff7a18';
+/** Pink/red matching alien GlowBullet palette */
+const ALIEN_SHOT_DEBRIS = ['#ffb4b4', '#fb7185', '#e11d48', '#fecdd3'] as const;
+
+function alienShotBurstBits(): VoxelBit[] {
+  const bits: VoxelBit[] = [];
+  for (let i = 0; i < 10; i++) {
+    const color = ALIEN_SHOT_DEBRIS[i % ALIEN_SHOT_DEBRIS.length]!;
+    bits.push({
+      x: (Math.random() - 0.5) * 0.15,
+      y: 0.35 + Math.random() * 0.25,
+      z: (Math.random() - 0.5) * 0.15,
+      size: 0.06 + Math.random() * 0.08,
+      color,
+    });
+  }
+  return bits;
+}
 
 function spawnForEvent(pool: Particle[], e: GameEvent): void {
   if (e.type === 'alienHit') {
@@ -97,6 +114,8 @@ function spawnForEvent(pool: Particle[], e: GameEvent): void {
     spawnFromBits(pool, e.x, e.z, recipeToBits(PLAYER_RECIPE));
   } else if (e.type === 'bunkerHit') {
     spawnFromBits(pool, e.x, e.z, bunkerCellBits());
+  } else if (e.type === 'alienShotHit') {
+    spawnFromBits(pool, e.x, e.z, alienShotBurstBits());
   }
 }
 

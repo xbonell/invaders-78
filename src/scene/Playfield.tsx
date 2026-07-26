@@ -2,9 +2,12 @@ import { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { GameState } from '../game/types';
-import { GROUND_LINE, PLAYER, PLAYFIELD } from '../game/constants';
+import { ALIEN_SHOT, GROUND_LINE, PLAYER, PLAYFIELD } from '../game/constants';
+import { allAlienShotSlots } from '../game/alienShots';
 import { alienWorldPos } from '../game/formation';
+import { logicalToWorld } from '../game/logicalSpace';
 import { BunkerMesh } from './meshes/BunkerMesh';
+import { GlowAlienShot } from './meshes/GlowAlienShot';
 import { GlowBullet } from './meshes/GlowBullet';
 import { VoxelBody } from './voxels/VoxelBody';
 import { DebrisField } from './voxels/DebrisField';
@@ -28,6 +31,18 @@ export function Playfield({
       .filter((a) => a.alive)
       .map((a) => ({ a, p: alienWorldPos(a, state.formation) }));
   }, [state.aliens, state.formation, version]);
+
+  const alienShots = useMemo(() => {
+    return allAlienShotSlots(state.alienShots)
+      .filter((s) => s.state === 'active')
+      .map((s) => {
+        const w = logicalToWorld(
+          s.position.x + ALIEN_SHOT.hitboxHalfW,
+          s.position.y + ALIEN_SHOT.hitboxHalfH,
+        );
+        return { s, w };
+      });
+  }, [state.alienShots, version]);
 
   return (
     <group>
@@ -53,16 +68,17 @@ export function Playfield({
         </group>
       )}
 
+      {state.bunkers.map((b, i) => (
+        <BunkerMesh key={i} bunker={b} />
+      ))}
+
+      {/* Above bunker stacks so formation stays visually in front when overlapping */}
       {aliens.map(({ a, p }) => (
-        <group key={a.id} position={[p.x, 0, p.z]}>
+        <group key={a.id} position={[p.x, 0.85, p.z]}>
           <VoxelBody
             recipe={alienRecipe(a.type, state.formation.animFrame)}
           />
         </group>
-      ))}
-
-      {state.bunkers.map((b, i) => (
-        <BunkerMesh key={i} bunker={b} />
       ))}
 
       {state.playerBullet && (
@@ -73,8 +89,14 @@ export function Playfield({
         />
       )}
 
-      {state.alienBullets.map((b, i) => (
-        <GlowBullet key={`ab-${i}`} x={b.x} z={b.z} fromPlayer={false} />
+      {alienShots.map(({ s, w }) => (
+        <GlowAlienShot
+          key={s.type}
+          type={s.type}
+          frame={s.animationFrame}
+          x={w.x}
+          z={w.z}
+        />
       ))}
 
       {state.ufo && (

@@ -1,0 +1,106 @@
+/** Arcade-scaled world units (XZ playfield). */
+
+export const TICK_DT = 1 / 60;
+
+export const PLAYFIELD = {
+  width: 22,
+  depth: 26,
+  minX: -11,
+  maxX: 11,
+  minZ: -12,
+  maxZ: 12,
+} as const;
+
+export const PLAYER = {
+  z: -10,
+  speed: 12,
+  halfWidth: 0.7,
+  halfDepth: 0.35,
+  bulletSpeed: 22,
+  startLives: 3,
+  dyingDuration: 0.85,
+} as const;
+
+export const FORMATION = {
+  cols: 11,
+  rows: 5,
+  colSpacing: 1.6,
+  rowSpacing: 1.4,
+  startOriginX: -8,
+  startOriginZ: 6.2,
+  stepX: 0.4,
+  dropZ: 0.55,
+  /** Initial step period with full formation (seconds) */
+  baseInterval: 0.7,
+  minInterval: 0.045,
+  waveClearDuration: 1.2,
+  /** How much lower each wave starts (world Z) */
+  waveDrop: 0.7,
+  maxWaveDropSteps: 5,
+  /** Extra interval cut per wave */
+  waveSpeedBoost: 0.07,
+} as const;
+
+/** Row 0 = top (squid), rows 1-2 crab, rows 3-4 octopus */
+export const ALIEN_POINTS: Record<string, number> = {
+  squid: 30,
+  crab: 20,
+  octopus: 10,
+};
+
+export const ALIEN_BULLET = {
+  speed: -11,
+  baseInterval: 0.72,
+  minInterval: 0.18,
+  /** Extra fire-rate boost per wave */
+  waveFireBoost: 0.05,
+} as const;
+
+export const UFO = {
+  z: 11,
+  speed: 5.5,
+  halfWidth: 1.1,
+  halfDepth: 0.4,
+  scoreTable: [50, 100, 150, 300] as const,
+  spawnInterval: 12,
+} as const;
+
+export const BUNKER = {
+  count: 4,
+  cols: 16,
+  rows: 12,
+  /** Grid pitch — matches player ship voxel resolution. */
+  cellSize: 0.14,
+  /** Vertical stack reference — keeps original bunker height. */
+  stackSize: 0.28,
+  z: -6.5,
+  // 2× nearest-neighbor upscale of the original 8×6 arch
+  mask: [
+    0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+  ],
+} as const;
+
+export const HIT = {
+  alienHalfW: 0.55,
+  alienHalfD: 0.4,
+  bulletHalfW: 0.08,
+  bulletHalfD: 0.25,
+} as const;
+
+export const ATTRACT = {
+  screenDuration: 5,
+  gameOverDuration: 4,
+  demoFireInterval: 0.55,
+  playerSwitchDuration: 1.6,
+} as const;

@@ -9,10 +9,10 @@ You are working on **Invaders 78**, a web arcade invaders game (Rsbuild, React, 
 
 ## Commands
 
-- `npm run dev` — dev server  
-- `npm test` — Vitest (`src/game/`)  
-- `npm run build` — production build  
-- `npm run preview` — preview production build  
+- `pnpm dev` — dev server  
+- `pnpm test` — Vitest (`src/game/`)  
+- `pnpm build` — production build  
+- `pnpm preview` — preview production build  
 
 ## Rules of thumb
 

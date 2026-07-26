@@ -43,5 +43,5 @@ Invasion rendering: aliens stay at sim-relative `alienWorldPos`; parent group of
 
 - Unit: optional-entity blend (spawn snap, despawn hide, 120 Hz steps)
 - Unit: invasion origin blend within maxBlend; snap when not invading
-- `npm test` / `npm run build`
+- `pnpm test` / `pnpm build`
 - Manual: hold fire while strafing; alien shots descend smoothly; march still steps; invasion flies off smoothly

@@ -83,7 +83,7 @@ it('clamps player so the ship silhouette stays on the green line', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npm test -- src/game/simulation.test.ts`
+Run: `pnpm test -- src/game/simulation.test.ts`
 Expected: FAIL — `playerMaxAbsX` is not exported / clamp still uses playfield edges (right-edge value ≈ `11 - 0.7 = 10.3`, not `10.5 - 0.7 = 9.8`).
 
 - [ ] **Step 3: Add constant + helper**
@@ -136,7 +136,7 @@ In `src/scene/Playfield.tsx`, change the box geometry width arg from `PLAYFIELD.
 
 - [ ] **Step 6: Run tests to verify they pass**
 
-Run: `npm test -- src/game/simulation.test.ts`
+Run: `pnpm test -- src/game/simulation.test.ts`
 Expected: PASS for the new bounds tests (full suite still green).
 
 - [ ] **Step 7: Commit only if user asked**
@@ -280,15 +280,15 @@ Leave bullet spawn / debris / collisions on `state.player.x` (unchanged).
 
 - [ ] **Step 3: Typecheck / tests**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: PASS
 
-Run: `npx tsc --noEmit` (if configured) or `npm run build`
+Run: `pnpm exec tsc --noEmit` (if configured) or `pnpm build`
 Expected: build succeeds with no prop-type errors.
 
 - [ ] **Step 4: Manual check**
 
-Run: `npm run dev`
+Run: `pnpm dev`
 - Hold left/right: motion looks continuous (no 60 Hz stutter on a high-refresh display).
 - Drive into each end: ship outer edge stops on the green line; no overhang.
 - Fire while moving: shots still originate from sim position (may lead/lag display by &lt;1 tick — acceptable per spec).

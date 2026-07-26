@@ -120,14 +120,14 @@ Call `this.stopMarch()` wherever `stopUfo()` is already called on terminal momen
 Run:
 
 ```bash
-npm test && npm run build
+pnpm test && pnpm build
 ```
 
 Expected: all Vitest tests pass; production build succeeds.
 
-- [ ] **Step 5: Manual listen check** (run `npm run dev` — agent cannot hear output)
+- [ ] **Step 5: Manual listen check** (run `pnpm dev` — agent cannot hear output)
 
-Run `npm run dev`, start 1P with sound on:
+Run `pnpm dev`, start 1P with sound on:
 
 1. Descending 4-note loop synced to alien steps
 2. Tempo rises as aliens die

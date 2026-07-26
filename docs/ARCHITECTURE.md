@@ -5,10 +5,10 @@ Living guide for continuing **Invaders 78**. Prefer this over older plan checkli
 ## Quick start
 
 ```bash
-npm install
-npm run dev      # http://localhost (Rsbuild)
-npm test         # Vitest, game sim only
-npm run build
+pnpm install
+pnpm dev      # http://localhost (Rsbuild)
+pnpm test     # Vitest, game sim only
+pnpm build
 ```
 
 Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs/superpowers/specs/2026-07-25-space-invaders-design.md)
@@ -98,7 +98,7 @@ Online multiplayer, ROM assets, glTF pipelines, rewriting sim inside `useFrame`.
 
 ## Verification checklist for agents
 
-- [ ] `npm test` green  
-- [ ] `npm run build` green  
+- [ ] `pnpm test` green  
+- [ ] `pnpm build` green  
 - [ ] Manual: Enter starts with sound; kill shows orange alien debris; die while holding ←/→ then release during death — no slide on respawn  
 - [ ] Attract demo kills still explode  

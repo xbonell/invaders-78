@@ -80,8 +80,8 @@ Steam/Tauri wrapper, online leaderboards, glTF/bitmaps/samples, ROM fonts, netwo
 ## Testing
 
 ```bash
-npm test    # Vitest — src/game/*.test.ts
-npm run build
+pnpm test    # Vitest — src/game/*.test.ts
+pnpm build
 ```
 
 Manual: attract demo explosions, 1P/2P switch, death while holding move, audio on first Enter.

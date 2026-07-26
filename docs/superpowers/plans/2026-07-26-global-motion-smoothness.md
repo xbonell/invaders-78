@@ -43,4 +43,4 @@
 **Files:** `docs/ARCHITECTURE.md`
 
 - [x] Note smoothed movers
-- [x] `npm test` && `npm run build`
+- [x] `pnpm test` && `pnpm build`

@@ -9,10 +9,10 @@ Rsbuild · React · TypeScript · Three.js · React Three Fiber · Web Audio API
 ## Develop
 
 ```bash
-npm install
-npm run dev
-npm test
-npm run build
+pnpm install
+pnpm dev
+pnpm test
+pnpm build
 ```
 
 ## Controls

@@ -1,0 +1,60 @@
+# Player Ship Smooth Motion + Green-Line Bounds — Design Spec
+
+Date: 2026-07-26
+
+## Intent
+
+Keep constant-speed left/right steering (no accel/decel), but remove 60 Hz positional stutter on high-refresh displays. Clamp the cannon so its full silhouette stays within the green ground line.
+
+## Decisions
+
+| Topic | Choice |
+|-------|--------|
+| Smoothness | Render interpolate player X only (`lerp(prevX, x, alpha)`) |
+| Ease in/out | None — `moveDir * PLAYER.speed` unchanged |
+| Bound reference | Green ground line width, not full `PLAYFIELD` X |
+| Clamp geometry | Outer ship edge on line ends (`halfLine − PLAYER.halfWidth`) |
+| Scope | Player cannon only; aliens/UFO/bullets stay discrete-tick |
+
+## Architecture
+
+```
+useGameLoop frame:
+  prevX = player.x                    // capture once, before any ticks this frame
+  while acc >= TICK_DT:
+    step(TICK_DT)
+    acc -= TICK_DT
+  alpha = acc / TICK_DT               // 0..1 leftover toward next tick
+  renderPlayerX = lerp(prevX, player.x, alpha)   // display only
+```
+
+- Sim stays fixed 60 Hz; collisions and bullet spawn use authoritative `state.player.x`.
+- Display path (`Playfield` / canvas) uses `renderPlayerX` for the living ship only.
+- If zero ticks run this frame, `prevX === player.x` so the lerp is a no-op.
+- On death/respawn/reset of `player.x`, next frame’s capture picks up the new value (no special blend).
+- Attract AI and keyboard/gamepad still set `moveDir` as today.
+
+## Bounds
+
+- Add `GROUND_LINE.width = PLAYFIELD.width - 1` (today’s mesh width `21`).
+- Mesh and clamp share that constant.
+- Allowed centre X:
+
+```
+maxAbsX = GROUND_LINE.width / 2 - PLAYER.halfWidth
+player.x = clamp(player.x, -maxAbsX, +maxAbsX)
+```
+
+- Apply in `updatePlayer` (play + attract). `PLAYER.halfWidth` already matches the 10×0.14 voxel recipe.
+
+## Out of scope
+
+- Accel / friction / analog stick curves
+- Interpolating aliens, bunkers, UFO, or projectiles
+- Changing ship voxel recipe or speed constant (unless tests force a named helper)
+
+## Testing
+
+- Unit: after many left/right steps at edges, `|player.x| ≤ GROUND_LINE.width/2 − PLAYER.halfWidth`.
+- Unit: clamp helper (or exported max) matches ground-line geometry, not `PLAYFIELD.minX/maxX`.
+- Manual: hold left/right at 60+ Hz display — motion looks continuous; ship never overhangs green line.

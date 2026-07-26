@@ -5,9 +5,11 @@ import { OrthoCameraRig, Playfield } from './Playfield';
 export function GameCanvas({
   state,
   version,
+  renderPlayerX,
 }: {
   state: GameState;
   version: number;
+  renderPlayerX: number;
 }) {
   return (
     <Canvas
@@ -41,7 +43,7 @@ export function GameCanvas({
         shadow-bias={-0.0002}
       />
       <OrthoCameraRig />
-      <Playfield state={state} version={version} />
+      <Playfield state={state} version={version} renderPlayerX={renderPlayerX} />
     </Canvas>
   );
 }

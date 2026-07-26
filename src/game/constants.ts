@@ -91,6 +91,21 @@ export const BUNKER = {
   ],
 } as const;
 
+/** Green baseline under the cannon — 1 voxel cell thick. */
+export const GROUND_LINE = {
+  /** Shared by mesh and player clamp (was `PLAYFIELD.width - 1` inline in Playfield). */
+  width: PLAYFIELD.width - 1,
+  thickness: BUNKER.cellSize,
+  y: 0.02,
+  /** Offset below PLAYER.z */
+  zOffset: 0.85,
+} as const;
+
+/** Max |player.x| so ship outer edges stay on the green line. */
+export function playerMaxAbsX(): number {
+  return GROUND_LINE.width / 2 - PLAYER.halfWidth;
+}
+
 export const HIT = {
   alienHalfW: 0.55,
   alienHalfD: 0.4,

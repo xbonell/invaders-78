@@ -7,6 +7,7 @@ import {
   PLAYER,
   PLAYFIELD,
   UFO,
+  playerMaxAbsX,
 } from './constants';
 import {
   aabbOverlap,
@@ -246,10 +247,8 @@ function updatePlayer(game: Game, dt: number): void {
   const { state } = game;
   if (!state.player.alive) return;
   state.player.x += game.moveDir * PLAYER.speed * dt;
-  state.player.x = Math.max(
-    PLAYFIELD.minX + PLAYER.halfWidth,
-    Math.min(PLAYFIELD.maxX - PLAYER.halfWidth, state.player.x),
-  );
+  const max = playerMaxAbsX();
+  state.player.x = Math.max(-max, Math.min(max, state.player.x));
 }
 
 function stepFormation(state: GameState, dt: number, emitAudio: boolean): void {

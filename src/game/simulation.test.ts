@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createGame, dispatch, drainEvents, step } from './simulation';
-import { FORMATION, PLAYER, TICK_DT } from './constants';
+import { FORMATION, GROUND_LINE, PLAYER, TICK_DT, playerMaxAbsX } from './constants';
 
 function startGame() {
   const game = createGame(0);
@@ -100,5 +100,26 @@ describe('simulation core', () => {
     step(game, TICK_DT);
     expect(game.state.phase).toBe('playing');
     expect(game.moveDir).toBe(0);
+  });
+
+  it('playerMaxAbsX matches green-line outer-edge geometry', () => {
+    expect(playerMaxAbsX()).toBe(GROUND_LINE.width / 2 - PLAYER.halfWidth);
+    // Must be tighter than full playfield clamp
+    expect(playerMaxAbsX()).toBeLessThan(11 - PLAYER.halfWidth);
+  });
+
+  it('clamps player so the ship silhouette stays on the green line', () => {
+    const game = startGame();
+    const max = playerMaxAbsX();
+    dispatch(game, { type: 'move', dir: 1 });
+    for (let i = 0; i < 200; i++) step(game, TICK_DT);
+    expect(game.state.player.x).toBeCloseTo(max, 5);
+    expect(Math.abs(game.state.player.x) + PLAYER.halfWidth).toBeLessThanOrEqual(
+      GROUND_LINE.width / 2 + 1e-6,
+    );
+
+    dispatch(game, { type: 'move', dir: -1 });
+    for (let i = 0; i < 400; i++) step(game, TICK_DT);
+    expect(game.state.player.x).toBeCloseTo(-max, 5);
   });
 });

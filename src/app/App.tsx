@@ -9,7 +9,7 @@ import './app.css';
 export default function App() {
   const audio = useMemo(() => new AudioEngine(), []);
   const [muted, setMuted] = useState(() => loadMute());
-  const { state, version } = useGameLoop(audio);
+  const { state, version, renderPlayerX } = useGameLoop(audio);
 
   useEffect(() => {
     audio.setMuted(muted);
@@ -31,7 +31,7 @@ export default function App() {
     <div className="shell" onPointerDown={unlock} onKeyDown={unlock}>
       <Hud state={state} muted={muted} onToggleMute={toggleMute} />
       <div className="stage">
-        <GameCanvas state={state} version={version} />
+        <GameCanvas state={state} version={version} renderPlayerX={renderPlayerX} />
         <Overlay state={state} />
       </div>
       <FooterBar state={state} />

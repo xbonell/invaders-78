@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { GameState } from '../game/types';
-import { PLAYER, PLAYFIELD } from '../game/constants';
+import { GROUND_LINE, PLAYER, PLAYFIELD } from '../game/constants';
 import { alienWorldPos } from '../game/formation';
 import { BunkerMesh } from './meshes/BunkerMesh';
 import { GlowBullet } from './meshes/GlowBullet';
@@ -17,9 +17,11 @@ import {
 export function Playfield({
   state,
   version,
+  renderPlayerX,
 }: {
   state: GameState;
   version: number;
+  renderPlayerX: number;
 }) {
   const aliens = useMemo(() => {
     return state.aliens
@@ -38,13 +40,15 @@ export function Playfield({
         <meshLambertMaterial color="#050505" />
       </mesh>
 
-      <mesh position={[0, 0.04, PLAYER.z - 0.85]} castShadow receiveShadow>
-        <boxGeometry args={[PLAYFIELD.width - 1, 0.1, 0.14]} />
+      <mesh position={[0, GROUND_LINE.y, PLAYER.z - GROUND_LINE.zOffset]}>
+        <boxGeometry
+          args={[GROUND_LINE.width, GROUND_LINE.y, GROUND_LINE.thickness]}
+        />
         <meshLambertMaterial color="#3ecf6a" />
       </mesh>
 
       {state.player.alive && (
-        <group position={[state.player.x, 0, state.player.z]}>
+        <group position={[renderPlayerX, 0, state.player.z]}>
           <VoxelBody recipe={PLAYER_RECIPE} />
         </group>
       )}

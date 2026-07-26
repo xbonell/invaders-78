@@ -10,7 +10,7 @@ Keep constant-speed left/right steering (no accel/decel), but remove 60 Hz posit
 
 | Topic | Choice |
 |-------|--------|
-| Smoothness | Render interpolate player X only (`lerp(prevX, x, alpha)`) |
+| Smoothness | Render interpolate player X only (`lerp(prevTickX, x, alpha)`) |
 | Ease in/out | None — `moveDir * PLAYER.speed` unchanged |
 | Bound reference | Green ground line width, not full `PLAYFIELD` X |
 | Clamp geometry | Outer ship edge on line ends (`halfLine − PLAYER.halfWidth`) |
@@ -20,18 +20,18 @@ Keep constant-speed left/right steering (no accel/decel), but remove 60 Hz posit
 
 ```
 useGameLoop frame:
-  prevX = player.x                    // capture once, before any ticks this frame
   while acc >= TICK_DT:
+    prevTickX = player.x          // last authoritative X before this tick
     step(TICK_DT)
     acc -= TICK_DT
-  alpha = acc / TICK_DT               // 0..1 leftover toward next tick
-  renderPlayerX = lerp(prevX, player.x, alpha)   // display only
+  alpha = acc / TICK_DT           // 0..1 leftover toward next tick
+  renderPlayerX = lerp(prevTickX, player.x, alpha)   // display only
 ```
 
 - Sim stays fixed 60 Hz; collisions and bullet spawn use authoritative `state.player.x`.
 - Display path (`Playfield` / canvas) uses `renderPlayerX` for the living ship only.
-- If zero ticks run this frame, `prevX === player.x` so the lerp is a no-op.
-- On death/respawn/reset of `player.x`, next frame’s capture picks up the new value (no special blend).
+- `prevTickX` persists across frames (ref); updated only inside the tick loop before each `step`. Zero-tick frames keep the last tick’s `prevTickX` and use leftover `alpha` to glide toward current — not a no-op.
+- On death/respawn/reset: if `|currentX − prevTickX| > PLAYER.speed × TICK_DT × 1.5`, snap to `currentX` (skip blend) so the ship does not flash at the old position for one frame.
 - Attract AI and keyboard/gamepad still set `moveDir` as today.
 
 ## Bounds

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { TICK_DT } from '../game/constants';
+import { PLAYER, TICK_DT } from '../game/constants';
+import { interpolatePlayerX } from '../game/playerRender';
 import { createGame, drainEvents, step, type Game } from '../game/simulation';
 import { loadHighScore, saveHighScore } from '../game/storage';
 import type { GameEvent, GameState } from '../game/types';
@@ -12,6 +13,8 @@ export interface GameLoopApi {
   game: Game;
   state: GameState;
   version: number;
+  /** Display-only interpolated player X (sim remains authoritative). */
+  renderPlayerX: number;
 }
 
 export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
@@ -22,6 +25,8 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
   const game = gameRef.current;
 
   const [version, setVersion] = useState(0);
+  const [renderPlayerX, setRenderPlayerX] = useState(() => game.state.player.x);
+  const prevTickX = useRef(game.state.player.x);
   const padPrev = useRef({ fire: false, start: false, steering: false });
   const audioRef = useRef(audio);
   audioRef.current = audio;
@@ -45,10 +50,20 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
       if (visible && game.state.phase !== 'paused') {
         acc += raw;
         while (acc >= TICK_DT) {
+          prevTickX.current = game.state.player.x;
           step(game, TICK_DT);
           acc -= TICK_DT;
         }
       }
+
+      const alpha = acc / TICK_DT;
+      const currentX = game.state.player.x;
+      const maxBlend = PLAYER.speed * TICK_DT * 1.5;
+      const drawnX =
+        Math.abs(currentX - prevTickX.current) > maxBlend
+          ? currentX
+          : interpolatePlayerX(prevTickX.current, currentX, alpha);
+      setRenderPlayerX(drawnX);
 
       const events = drainEvents(game);
       if (events.length) {
@@ -89,7 +104,7 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
     };
   }, [game]);
 
-  return { game, state: game.state, version };
+  return { game, state: game.state, version, renderPlayerX };
 }
 
 function maybePersistHi(game: Game, events: GameEvent[]): void {

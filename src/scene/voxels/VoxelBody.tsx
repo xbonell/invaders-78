@@ -4,7 +4,7 @@ import { recipeToBits } from './recipes';
 
 export function VoxelBody({
   recipe,
-  castShadow = true,
+  castShadow = false,
   receiveShadow = false,
 }: {
   recipe: VoxelRecipe;

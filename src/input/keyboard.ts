@@ -8,6 +8,8 @@ export function attachKeyboard(
   game: Game,
   target: Window = window,
   onGesture?: () => void | Promise<void>,
+  /** HUD/overlay sync when input changes state outside the sim tick. */
+  onUi?: () => void,
 ): () => void {
   const down = new Set<string>();
 
@@ -23,9 +25,13 @@ export function attachKeyboard(
   const withAudio = (fn: () => void) => {
     const result = onGesture?.();
     if (result && typeof (result as Promise<void>).then === 'function') {
-      void (result as Promise<void>).then(fn);
+      void (result as Promise<void>).then(() => {
+        fn();
+        onUi?.();
+      });
     } else {
       fn();
+      onUi?.();
     }
   };
 
@@ -67,6 +73,7 @@ export function attachKeyboard(
       e.preventDefault();
       if (game.state.phase === 'playing') dispatch(game, { type: 'pause' });
       else if (game.state.phase === 'paused') dispatch(game, { type: 'resume' });
+      onUi?.();
       return;
     }
     if (moveKeys.has(e.key)) {

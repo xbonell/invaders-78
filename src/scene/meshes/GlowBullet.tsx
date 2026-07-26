@@ -1,16 +1,15 @@
-import { useRef } from 'react';
+import { useRef, type MutableRefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import type { MotionSnapshot } from '../../game/playerRender';
 
-/** Thin, bright cinematic laser bolt (top-down). */
+/** Thin, bright cinematic laser bolt (top-down). Position via snapshot useFrame. */
 export function GlowBullet({
-  x,
-  z,
   fromPlayer,
+  motionSnapshot,
 }: {
-  x: number;
-  z: number;
   fromPlayer: boolean;
+  motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const group = useRef<THREE.Group>(null);
   const elapsed = useRef(0);
@@ -19,16 +18,29 @@ export function GlowBullet({
   const haloColor = fromPlayer ? '#facc15' : '#e11d48';
   const len = fromPlayer ? 0.85 : 0.7;
 
+  const attach = (node: THREE.Group | null) => {
+    group.current = node;
+    if (!node) return;
+    const s = motionSnapshot.current;
+    node.visible = s.playerBulletVisible;
+    node.position.set(s.playerBulletX, 0.5, s.playerBulletZ);
+  };
+
   useFrame((_, dt) => {
-    if (!group.current) return;
+    const g = group.current;
+    if (!g) return;
+    const s = motionSnapshot.current;
+    g.visible = s.playerBulletVisible;
+    if (!s.playerBulletVisible) return;
+    g.position.x = s.playerBulletX;
+    g.position.z = s.playerBulletZ;
     elapsed.current += dt;
-    const s = 1 + 0.12 * Math.sin(elapsed.current * 40);
-    group.current.scale.set(s, s, 1);
+    const scale = 1 + 0.12 * Math.sin(elapsed.current * 40);
+    g.scale.set(scale, scale, 1);
   });
 
   return (
-    <group ref={group} position={[x, 0.5, z]}>
-      {/* Wide soft bloom */}
+    <group ref={attach}>
       <mesh>
         <boxGeometry args={[0.22, 0.22, len * 1.05]} />
         <meshBasicMaterial
@@ -40,7 +52,6 @@ export function GlowBullet({
           toneMapped={false}
         />
       </mesh>
-      {/* Mid glow sheath */}
       <mesh>
         <boxGeometry args={[0.08, 0.08, len]} />
         <meshBasicMaterial
@@ -52,7 +63,6 @@ export function GlowBullet({
           toneMapped={false}
         />
       </mesh>
-      {/* Hot thin core */}
       <mesh>
         <boxGeometry args={[0.035, 0.035, len * 1.02]} />
         <meshBasicMaterial

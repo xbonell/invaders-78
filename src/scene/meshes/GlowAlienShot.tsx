@@ -1,7 +1,8 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, type MutableRefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { AlienShotType } from '../../game/types';
+import type { MotionSnapshot } from '../../game/playerRender';
 import { alienShotRecipe, recipeToBits } from '../voxels/recipes';
 
 /** Per-type additive glow: Rolling red, Plunger blue, Squiggly purple. */
@@ -15,19 +16,17 @@ const SHOT_GLOW: Record<
 };
 
 /**
- * Classic Rolling / Plunger / Squiggly silhouettes with the old laser glow
- * (additive halo + mid + hot core), not Lambert voxels.
+ * Classic Rolling / Plunger / Squiggly silhouettes with additive glow.
+ * Always mounted; visibility + XZ from motion snapshot (avoids remount flashes).
  */
 export function GlowAlienShot({
   type,
   frame,
-  x,
-  z,
+  motionSnapshot,
 }: {
   type: AlienShotType;
   frame: number;
-  x: number;
-  z: number;
+  motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const group = useRef<THREE.Group>(null);
   const elapsed = useRef(0);
@@ -37,15 +36,29 @@ export function GlowAlienShot({
   );
   const { core, mid, halo } = SHOT_GLOW[type];
 
+  const attach = (node: THREE.Group | null) => {
+    group.current = node;
+    if (!node) return;
+    const s = motionSnapshot.current.alienShots[type];
+    node.visible = s.visible;
+    node.position.set(s.x, 0.45, s.z);
+  };
+
   useFrame((_, dt) => {
-    if (!group.current) return;
+    const g = group.current;
+    if (!g) return;
+    const s = motionSnapshot.current.alienShots[type];
+    g.visible = s.visible;
+    if (!s.visible) return;
+    g.position.x = s.x;
+    g.position.z = s.z;
     elapsed.current += dt;
-    const s = 1 + 0.12 * Math.sin(elapsed.current * 40);
-    group.current.scale.set(s, s, 1);
+    const scale = 1 + 0.12 * Math.sin(elapsed.current * 40);
+    g.scale.set(scale, scale, 1);
   });
 
   return (
-    <group ref={group} position={[x, 0.45, z]}>
+    <group ref={attach}>
       {bits.map((b, i) => (
         <group key={i} position={[b.x, b.y * 0.35, b.z]}>
           <mesh>

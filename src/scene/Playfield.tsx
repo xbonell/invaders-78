@@ -1,11 +1,16 @@
-import { useMemo } from 'react';
+import {
+  useMemo,
+  useRef,
+  type MutableRefObject,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { GameState } from '../game/types';
-import { ALIEN_SHOT, GROUND_LINE, PLAYER, PLAYFIELD } from '../game/constants';
-import { allAlienShotSlots } from '../game/alienShots';
+import type { AlienShotType, GameState } from '../game/types';
+import type { MotionSnapshot } from '../game/playerRender';
+import { GROUND_LINE, PLAYER, PLAYFIELD, UFO } from '../game/constants';
 import { alienWorldPos } from '../game/formation';
-import { logicalToWorld } from '../game/logicalSpace';
 import { BunkerMesh } from './meshes/BunkerMesh';
 import { GlowAlienShot } from './meshes/GlowAlienShot';
 import { GlowBullet } from './meshes/GlowBullet';
@@ -17,14 +22,113 @@ import {
   UFO_RECIPE,
 } from './voxels/recipes';
 
+const ALIEN_SHOT_TYPES: AlienShotType[] = ['rolling', 'plunger', 'squiggly'];
+
+/** Runs before mesh useFrames so snapshot matches this display frame. */
+export function GameSimDriver({
+  advanceRef,
+}: {
+  advanceRef: RefObject<(now: number) => void>;
+}) {
+  useFrame(() => {
+    advanceRef.current?.(performance.now());
+  }, -1);
+  return null;
+}
+
+function SmoothPlayer({
+  z,
+  motionSnapshot,
+}: {
+  z: number;
+  motionSnapshot: MutableRefObject<MotionSnapshot>;
+}) {
+  const group = useRef<THREE.Group>(null);
+
+  const attach = (node: THREE.Group | null) => {
+    group.current = node;
+    if (!node) return;
+    node.position.set(motionSnapshot.current.playerX, 0, z);
+  };
+
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    g.position.x = motionSnapshot.current.playerX;
+  });
+
+  return (
+    <group ref={attach}>
+      <VoxelBody recipe={PLAYER_RECIPE} />
+    </group>
+  );
+}
+
+function SmoothUfo({
+  motionSnapshot,
+}: {
+  motionSnapshot: MutableRefObject<MotionSnapshot>;
+}) {
+  const group = useRef<THREE.Group>(null);
+
+  const attach = (node: THREE.Group | null) => {
+    group.current = node;
+    if (!node) return;
+    const s = motionSnapshot.current;
+    node.visible = s.ufoVisible;
+    node.position.set(s.ufoX, 0, UFO.z);
+  };
+
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    const s = motionSnapshot.current;
+    g.visible = s.ufoVisible;
+    if (!s.ufoVisible) return;
+    g.position.x = s.ufoX;
+  });
+
+  return (
+    <group ref={attach}>
+      <VoxelBody recipe={UFO_RECIPE} />
+    </group>
+  );
+}
+
+/** Offsets sim-relative aliens so invasion fly-off can lerp display origin. */
+function InvasionAlienOffset({
+  motionSnapshot,
+  children,
+}: {
+  motionSnapshot: MutableRefObject<MotionSnapshot>;
+  children: ReactNode;
+}) {
+  const group = useRef<THREE.Group>(null);
+
+  useFrame(() => {
+    const g = group.current;
+    if (!g) return;
+    const s = motionSnapshot.current;
+    if (s.invasionSmooth) {
+      g.position.x = s.formationDispX - s.formationSimX;
+      g.position.z = s.formationDispZ - s.formationSimZ;
+    } else {
+      g.position.x = 0;
+      g.position.z = 0;
+    }
+  });
+
+  return <group ref={group}>{children}</group>;
+}
+
 export function Playfield({
   state,
   version,
-  renderPlayerX,
+  motionSnapshot,
 }: {
   state: GameState;
   version: number;
-  renderPlayerX: number;
+  motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const aliens = useMemo(() => {
     return state.aliens
@@ -32,24 +136,11 @@ export function Playfield({
       .map((a) => ({ a, p: alienWorldPos(a, state.formation) }));
   }, [state.aliens, state.formation, version]);
 
-  const alienShots = useMemo(() => {
-    return allAlienShotSlots(state.alienShots)
-      .filter((s) => s.state === 'active')
-      .map((s) => {
-        const w = logicalToWorld(
-          s.position.x + ALIEN_SHOT.hitboxHalfW,
-          s.position.y + ALIEN_SHOT.hitboxHalfH,
-        );
-        return { s, w };
-      });
-  }, [state.alienShots, version]);
-
   return (
     <group>
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.02, 0]}
-        receiveShadow
       >
         <planeGeometry args={[PLAYFIELD.width + 4, PLAYFIELD.depth + 4]} />
         <meshLambertMaterial color="#050505" />
@@ -63,9 +154,7 @@ export function Playfield({
       </mesh>
 
       {state.player.alive && (
-        <group position={[renderPlayerX, 0, state.player.z]}>
-          <VoxelBody recipe={PLAYER_RECIPE} />
-        </group>
+        <SmoothPlayer z={state.player.z} motionSnapshot={motionSnapshot} />
       )}
 
       {state.bunkers.map((b, i) => (
@@ -73,37 +162,29 @@ export function Playfield({
       ))}
 
       {/* Above bunker stacks so formation stays visually in front when overlapping */}
-      {aliens.map(({ a, p }) => (
-        <group key={a.id} position={[p.x, 0.85, p.z]}>
-          <VoxelBody
-            recipe={alienRecipe(a.type, state.formation.animFrame)}
-          />
-        </group>
-      ))}
+      <InvasionAlienOffset motionSnapshot={motionSnapshot}>
+        {aliens.map(({ a, p }) => (
+          <group key={a.id} position={[p.x, 0.85, p.z]}>
+            <VoxelBody
+              recipe={alienRecipe(a.type, state.formation.animFrame)}
+            />
+          </group>
+        ))}
+      </InvasionAlienOffset>
 
-      {state.playerBullet && (
-        <GlowBullet
-          x={state.playerBullet.x}
-          z={state.playerBullet.z}
-          fromPlayer
-        />
-      )}
+      {/* Always mounted — visibility from snapshot avoids remount/origin flashes */}
+      <GlowBullet fromPlayer motionSnapshot={motionSnapshot} />
 
-      {alienShots.map(({ s, w }) => (
+      {ALIEN_SHOT_TYPES.map((type) => (
         <GlowAlienShot
-          key={s.type}
-          type={s.type}
-          frame={s.animationFrame}
-          x={w.x}
-          z={w.z}
+          key={type}
+          type={type}
+          frame={state.alienShots[type].animationFrame}
+          motionSnapshot={motionSnapshot}
         />
       ))}
 
-      {state.ufo && (
-        <group position={[state.ufo.x, 0, state.ufo.z]}>
-          <VoxelBody recipe={UFO_RECIPE} />
-        </group>
-      )}
+      <SmoothUfo motionSnapshot={motionSnapshot} />
 
       <DebrisField />
     </group>
@@ -111,9 +192,12 @@ export function Playfield({
 }
 
 export function OrthoCameraRig() {
+  const lastAspect = useRef(0);
   useFrame(({ camera, size }) => {
     if (!(camera instanceof THREE.OrthographicCamera)) return;
     const aspect = size.width / Math.max(size.height, 1);
+    if (Math.abs(aspect - lastAspect.current) < 1e-6) return;
+    lastAspect.current = aspect;
     const viewH = 28;
     const viewW = viewH * aspect;
     camera.left = -viewW / 2;

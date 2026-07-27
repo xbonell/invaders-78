@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AudioEngine } from '../audio/engine';
-import { playViewDepth, playViewWidth } from '../game/playView';
+import { playViewDepth, playViewInsetXPercent, playViewInsetYPercent, playViewWidth } from '../game/playView';
 import { dispatch } from '../game/simulation';
 import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';
@@ -75,7 +75,9 @@ export default function App() {
         style={{
           aspectRatio: `${viewW} / ${viewD}`,
           width: `min(100%, calc(100dvh * ${viewW} / ${viewD}))`,
-          height: `min(100%, calc(100dvw * ${viewD} / ${viewW}))`,
+          // Inset chrome to align with the green baseline ends.
+          ['--play-inset-x' as any]: `${playViewInsetXPercent()}%`,
+          ['--play-inset-y' as any]: `${playViewInsetYPercent()}%`,
         }}
       >
         <GameCanvas

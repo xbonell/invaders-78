@@ -44,17 +44,17 @@ body,
 .hud {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: var(--play-inset-x, 0%);
+  right: var(--play-inset-x, 0%);
   z-index: 2;
-  padding: 0.85rem 1rem 0.35rem;
+  padding: 0.85rem 0 0.35rem;
   background: transparent;
   pointer-events: none;
 }
 
 .hud-top {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.75rem;
   align-items: start;
   width: 100%;
@@ -77,14 +77,14 @@ body,
 }
 
 .hud-label {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   letter-spacing: 0.04em;
   color: #f5f5f5;
   text-transform: uppercase;
 }
 
 .hud-value {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: #f5f5f5;
 }
 
@@ -95,22 +95,22 @@ body,
 .player-tag {
   margin-left: 0.5rem;
   color: #f5f5f5;
-  font-size: 0.55rem;
+  font-size: 0.75rem;
 }
 
 .footer-bar {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: var(--play-inset-x, 0%);
+  right: var(--play-inset-x, 0%);
   z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.55rem 1.25rem 0.9rem;
+  padding: 0.55rem 0 0.9rem;
   width: 100%;
   color: #3ecf6a;
-  font-size: 0.7rem;
+  font-size: 1rem;
   background: transparent;
   pointer-events: none;
 }
@@ -118,16 +118,17 @@ body,
 .lives {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.65rem;
 }
 
 .lives-count {
-  min-width: 1.2rem;
+  min-width: 1.7rem;
+  padding-top: 0.25rem;
 }
 
 .life-ship {
-  width: 1.1rem;
-  height: 0.7rem;
+  width: 1.6rem;
+  height: 1rem;
   background: #3ecf6a;
   clip-path: polygon(15% 100%, 15% 45%, 40% 45%, 40% 15%, 60% 15%, 60% 45%, 85% 45%, 85% 100%);
   display: inline-block;

@@ -14,3 +14,16 @@ export function playViewDepth(): number {
 export function playViewAspect(): number {
   return playViewWidth() / playViewDepth();
 }
+
+/**
+ * CSS inset (left/right) percentage so chrome aligns with the green baseline ends.
+ * The chrome should align with the inner play-view frame, not the outer margin.
+ */
+export function playViewInsetXPercent(): number {
+  return (PLAY_VIEW_MARGIN / playViewWidth()) * 100;
+}
+
+/** CSS inset (top/bottom) percentage so chrome aligns with the green baseline ends. */
+export function playViewInsetYPercent(): number {
+  return (PLAY_VIEW_MARGIN / playViewDepth()) * 100;
+}

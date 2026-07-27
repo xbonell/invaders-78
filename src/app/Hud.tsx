@@ -1,5 +1,5 @@
 import type { GameState } from '../game/types';
-import { ALIEN_POINTS, ATTRACT } from '../game/constants';
+import { ALIEN_POINTS, ATTRACT, PLAYER } from '../game/constants';
 import { CRAB_A, OCTOPUS_A, SQUID_A, UFO_RECIPE } from '../scene/voxels/recipes';
 import { RecipeSprite } from './RecipeSprite';
 import { PAUSE_ITEMS, type PauseMenuItem } from './pauseMenu';
@@ -40,10 +40,13 @@ export function Hud({ state }: { state: GameState }) {
 }
 
 export function FooterBar({ state }: { state: GameState }) {
+  // Attract/demo shows the starting lives a fresh game would begin with.
   const lives =
-    state.phase === 'attract' || state.phase === 'gameOver' || state.phase === 'invasion'
-      ? 0
-      : Math.max(0, state.lives);
+    state.phase === 'attract'
+      ? PLAYER.startLives
+      : state.phase === 'gameOver' || state.phase === 'invasion'
+        ? 0
+        : Math.max(0, state.lives);
 
   return (
     <div className="footer-bar">

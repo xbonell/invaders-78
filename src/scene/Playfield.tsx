@@ -1,11 +1,10 @@
-import { useMemo, useRef, type MutableRefObject, type ReactNode, type RefObject } from 'react';
+import { useMemo, useRef, useState, type MutableRefObject, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import type { AlienShotType, GameState } from '../game/types';
+import type { Alien, AlienShotType, GameState } from '../game/types';
 import type { MotionSnapshot } from '../game/playerRender';
 import { activeBoard } from '../game/board';
-import { GROUND_LINE, PLAYER, PLAYFIELD, UFO } from '../game/constants';
-import { alienWorldPos } from '../game/formation';
+import { FORMATION, GROUND_LINE, PLAYER, UFO } from '../game/constants';
 import { playViewDepth, playViewWidth } from '../game/playView';
 import { BunkerMesh } from './meshes/BunkerMesh';
 import { GlowAlienShot } from './meshes/GlowAlienShot';
@@ -53,14 +52,10 @@ function SmoothPlayer({
   );
 }
 
-function SmoothUfo({
-  animFrame,
-  motionSnapshot,
-}: {
-  animFrame: 0 | 1 | 2;
-  motionSnapshot: MutableRefObject<MotionSnapshot>;
-}) {
+function SmoothUfo({ motionSnapshot }: { motionSnapshot: MutableRefObject<MotionSnapshot> }) {
   const group = useRef<THREE.Group>(null);
+  const frameRef = useRef<0 | 1 | 2>(0);
+  const [animFrame, setAnimFrame] = useState<0 | 1 | 2>(0);
 
   const attach = (node: THREE.Group | null) => {
     group.current = node;
@@ -77,6 +72,10 @@ function SmoothUfo({
     g.visible = s.ufoVisible;
     if (!s.ufoVisible) return;
     g.position.x = s.ufoX;
+    if (s.ufoAnimFrame !== frameRef.current) {
+      frameRef.current = s.ufoAnimFrame;
+      setAnimFrame(s.ufoAnimFrame);
+    }
   });
 
   return (
@@ -86,30 +85,52 @@ function SmoothUfo({
   );
 }
 
-/** Offsets sim-relative aliens so invasion fly-off can lerp display origin. */
-function InvasionAlienOffset({
+/**
+ * Formation pose via MotionSnapshot (parent snaps/lerps origin; local anim state).
+ * Avoids remounting bunkers/playfield on every march step.
+ */
+function FormationAliens({
+  aliens,
   motionSnapshot,
-  children,
 }: {
+  aliens: Alien[];
   motionSnapshot: MutableRefObject<MotionSnapshot>;
-  children: ReactNode;
 }) {
   const group = useRef<THREE.Group>(null);
+  const frameRef = useRef<0 | 1>(0);
+  const [animFrame, setAnimFrame] = useState<0 | 1>(0);
+
+  const attach = (node: THREE.Group | null) => {
+    group.current = node;
+    if (!node) return;
+    const s = motionSnapshot.current;
+    node.position.set(s.formationDispX, 0, s.formationDispZ);
+  };
 
   useFrame(() => {
     const g = group.current;
     if (!g) return;
     const s = motionSnapshot.current;
-    if (s.invasionSmooth) {
-      g.position.x = s.formationDispX - s.formationSimX;
-      g.position.z = s.formationDispZ - s.formationSimZ;
-    } else {
-      g.position.x = 0;
-      g.position.z = 0;
+    g.position.x = s.formationDispX;
+    g.position.z = s.formationDispZ;
+    if (s.formationAnimFrame !== frameRef.current) {
+      frameRef.current = s.formationAnimFrame;
+      setAnimFrame(s.formationAnimFrame);
     }
   });
 
-  return <group ref={group}>{children}</group>;
+  return (
+    <group ref={attach}>
+      {aliens.map((a) => (
+        <group
+          key={a.id}
+          position={[a.col * FORMATION.colSpacing, 0.85, -a.row * FORMATION.rowSpacing]}
+        >
+          <RecipeMesh recipe={alienRecipe(a.type, animFrame)} />
+        </group>
+      ))}
+    </group>
+  );
 }
 
 export function Playfield({
@@ -122,24 +143,18 @@ export function Playfield({
   motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const board = activeBoard(state);
-  // `version` forces rebuild when sim mutates aliens/formation in place
+  // `version` forces rebuild when sim mutates aliens in place (kills / wave)
   const aliens = useMemo(
-    () =>
-      board.aliens.filter((a) => a.alive).map((a) => ({ a, p: alienWorldPos(a, board.formation) })),
+    () => board.aliens.filter((a) => a.alive),
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- version tracks in-place sim mutations
-    [board.aliens, board.formation, version],
+    [board.aliens, version],
   );
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[GROUND_LINE.width, PLAYFIELD.depth + 4]} />
-        <meshLambertMaterial color="#050505" />
-      </mesh>
-
       <mesh position={[0, GROUND_LINE.y, PLAYER.z - GROUND_LINE.zOffset]}>
         <boxGeometry args={[GROUND_LINE.width, GROUND_LINE.y, GROUND_LINE.thickness]} />
-        <meshLambertMaterial color="#3ecf6a" />
+        <meshLambertMaterial color="#22e35a" />
       </mesh>
 
       {board.player.alive && <SmoothPlayer z={board.player.z} motionSnapshot={motionSnapshot} />}
@@ -149,27 +164,16 @@ export function Playfield({
       ))}
 
       {/* Above bunker stacks so formation stays visually in front when overlapping */}
-      <InvasionAlienOffset motionSnapshot={motionSnapshot}>
-        {aliens.map(({ a, p }) => (
-          <group key={a.id} position={[p.x, 0.85, p.z]}>
-            <RecipeMesh recipe={alienRecipe(a.type, board.formation.animFrame)} castShadow />
-          </group>
-        ))}
-      </InvasionAlienOffset>
+      <FormationAliens aliens={aliens} motionSnapshot={motionSnapshot} />
 
       {/* Always mounted — visibility from snapshot avoids remount/origin flashes */}
       <GlowBullet fromPlayer motionSnapshot={motionSnapshot} />
 
       {ALIEN_SHOT_TYPES.map((type) => (
-        <GlowAlienShot
-          key={type}
-          type={type}
-          frame={board.alienShots[type].animationFrame}
-          motionSnapshot={motionSnapshot}
-        />
+        <GlowAlienShot key={type} type={type} motionSnapshot={motionSnapshot} />
       ))}
 
-      <SmoothUfo animFrame={board.ufo?.animFrame ?? 0} motionSnapshot={motionSnapshot} />
+      <SmoothUfo motionSnapshot={motionSnapshot} />
 
       <DebrisField />
       <ScoreFloatField />

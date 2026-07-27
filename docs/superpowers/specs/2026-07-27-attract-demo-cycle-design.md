@@ -17,7 +17,7 @@ Attract mode cycles between distinct views with a crossfade: an info screen (log
 | Transition | ~0.5s CSS opacity crossfade; sim keeps running (no pause / no wave reset on flip) |
 | Score icons | 2D pixel grids from voxel recipes (same silhouettes as play) |
 | Enter attract | Always starts on `info`; reset wave when entering `demo` |
-| Input | 1P / 2P start unchanged from any attract view |
+| Input | Mode select + confirm from any attract view; `menuSelect` snaps to `info` and resets the carousel timer ([start mode selector](./2026-07-27-start-mode-selector-design.md)) |
 
 ## Cycle
 

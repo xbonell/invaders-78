@@ -1,4 +1,4 @@
-import { useMemo, useRef, type MutableRefObject } from 'react';
+import { useMemo, useRef, useState, type MutableRefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { AlienShotType } from '../../game/types';
@@ -15,17 +15,18 @@ const SHOT_GLOW: Record<AlienShotType, { core: string; mid: string; halo: string
 /**
  * Classic Rolling / Plunger / Squiggly silhouettes with soft additive glow.
  * Cores stay on the shared voxel grid; halo may bleed past one cell.
+ * Anim frame comes from MotionSnapshot (local state) so visualSig stays stable.
  */
 export function GlowAlienShot({
   type,
-  frame,
   motionSnapshot,
 }: {
   type: AlienShotType;
-  frame: number;
   motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const group = useRef<THREE.Group>(null);
+  const frameRef = useRef(0);
+  const [frame, setFrame] = useState(0);
   const bits = useMemo(() => recipeToBits(alienShotRecipe(type, frame)), [type, frame]);
   const { core, mid, halo } = SHOT_GLOW[type];
 
@@ -45,6 +46,10 @@ export function GlowAlienShot({
     if (!s.visible) return;
     g.position.x = s.x;
     g.position.z = s.z;
+    if (s.frame !== frameRef.current) {
+      frameRef.current = s.frame;
+      setFrame(s.frame);
+    }
   });
 
   return (

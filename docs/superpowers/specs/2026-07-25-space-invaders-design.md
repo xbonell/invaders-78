@@ -43,7 +43,7 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 
 ## Gameplay
 
-- **1P / 2P:** `1`/`Enter` = 1P start; `2` = 2P start (alternating turns); no coin/credit gate
+- **1P / 2P:** attract/game-over mode selector (default 1P); ←→ / A D / pad select; Fire / Enter / Start confirm; alternating turns; no coin/credit gate ([start mode selector](./2026-07-27-start-mode-selector-design.md))
 - **2P boards:** each player has an isolated board (formation, bunkers, wave, shots); switch after every death if the other still has lives; invasion ends only the active player’s remaining lives ([alternating 2P boards](./2026-07-27-alternating-2p-boards-design.md))
 - Player: horizontal only; one shot on screen; 3 lives each; bonus life at 1500
 - Invaders: 5×11 at ROM 16×16 pitch; start from ref ($38,$78) + wave Yr table; edge drop + reverse; step cadence = alive/60; last alien 3 px right / 2 px left; ~16-frame freeze on kill
@@ -56,18 +56,20 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 
 ## Visuals
 
-- Visuals: playfield framed by contain-fit ortho camera; black letterbox (see [playfield viewport layout](./2026-07-26-playfield-viewport-layout-design.md))
+- Visuals: playfield framed by contain-fit ortho camera; dimmed backdrop (`src/assets/backdrop.png`) on `.shell` shows through a transparent canvas (see [playfield viewport layout](./2026-07-26-playfield-viewport-layout-design.md))
 - Voxel recipes in `src/scene/voxels/recipes.ts` (sheet-accurate grids; shared square `VOXEL_SIZE` reticle — see [unified voxel grid](./2026-07-27-unified-voxel-grid-design.md))
 - Alien / UFO death debris: **orange** additive glow; full voxel shatter
 - UFO kill: floating points number rises and fades at hit location (scoring hits only)
 - Bullets: grid-locked voxel stacks with soft additive glow (no pulse scale)
-- Lighting: low ambient + hemisphere + angled key; formation casts onto bunkers
-- No camera motion; no texture bitmaps
+- Lighting: low ambient + hemisphere + angled key (no shadow maps — hitch with transparent canvas + backdrop)
+- Palette: aliens/shot voxels `#ffffff`; player/bunkers/HUD accent `#22e35a` (recipes + `--color-accent`; [vivid entity colors](./2026-07-27-vivid-entity-colors-design.md))
+- No camera motion; no bitmap ship art (backdrop + favicon exempt)
 
 ## Input
 
 - Move always updates `moveDir` (even while dying) so releases are not lost; cleared on death/respawn
 - Fire edge-triggered; AudioContext unlock awaited before start/fire when needed
+- Attract / game over: horizontal input selects 1P/2P (`menuPlayerCount`); Fire / Enter / Start confirms; confirm press is consumed until release so it does not fire on frame one
 - Gamepad: first connected pad; D-pad/stick + South fire + Start
 - Pause menu: ↑↓ / pad vertical navigate; Enter / South confirm; Esc / Start always resume ([pause menu design](./2026-07-27-pause-menu-design.md))
 
@@ -89,4 +91,4 @@ pnpm test    # Vitest — src/game/*.test.ts
 pnpm build
 ```
 
-Manual: attract demo explosions, 1P/2P alternating boards after each death, death while holding move, audio on first Enter.
+Manual: attract demo explosions, mode selector → 1P/2P alternating boards after each death, death while holding move, audio on first confirm.

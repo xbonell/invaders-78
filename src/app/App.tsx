@@ -92,16 +92,16 @@ export default function App() {
           advanceRef={advanceRef}
         />
         <Hud state={state} />
-        <Overlay
-          state={state}
-          muted={muted}
-          fullscreen={fullscreen}
-          pauseIndex={pauseIndex}
-          onPauseSelect={setPauseIndex}
-          onPauseActivate={activatePauseItem}
-        />
         <FooterBar state={state} />
       </div>
+      <Overlay
+        state={state}
+        muted={muted}
+        fullscreen={fullscreen}
+        pauseIndex={pauseIndex}
+        onPauseSelect={setPauseIndex}
+        onPauseActivate={activatePauseItem}
+      />
     </div>
   );
 }

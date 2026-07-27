@@ -11,8 +11,8 @@ Remove display stutter for all continuous movers on high-refresh displays, while
 | Topic | Choice |
 |-------|--------|
 | Pattern | Extend `MotionSnapshot` + R3F `useFrame` (same as player/UFO) |
-| Alien march | Discrete (React @ sim ticks) — unchanged |
-| Invasion fly-off | Lerp formation origin; offset group so aliens glide |
+| Alien march | Discrete snap via `MotionSnapshot` parent origin (no React remount) |
+| Invasion fly-off | Lerp formation origin on the same parent group |
 | Player bullet | Lerp X/Z; snap spawn/despawn |
 | Alien shots | Lerp world X/Z between ticks; snap spawn/despawn |
 | Sim / collisions | Authoritative `game.state` only — never display lerp |
@@ -31,7 +31,7 @@ mesh useFrame(0):
   read snap → group.position (no React position props for smoothed axes)
 ```
 
-Invasion rendering: aliens stay at sim-relative `alienWorldPos`; parent group offset `(dispOrigin - simOrigin)` while `phase === 'invasion'`.
+Invasion / march rendering: aliens sit at col/row offsets under a parent at `formationDisp`; anim frame updates local state only.
 
 ## Out of scope
 

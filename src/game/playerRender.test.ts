@@ -144,6 +144,8 @@ describe('writeMotionSnapshot invasion', () => {
         squiggly: null,
       },
       shotFrames: { rolling: 0, plunger: 0, squiggly: 0 },
+      ufoAnimFrame: 0,
+      formationAnimFrame: 0,
       formationOriginX: 0,
       formationOriginZ: 5.4,
       phase: 'invasion',
@@ -155,9 +157,8 @@ describe('writeMotionSnapshot invasion', () => {
       shotMaxBlendZ: 1,
       invasionMaxBlend: 1,
     });
-    expect(snap.invasionSmooth).toBe(true);
     expect(snap.formationDispZ).toBeCloseTo(5.2, 5);
-    expect(snap.formationSimZ).toBeCloseTo(5.4, 5);
+    expect(snap.formationDispX).toBe(0);
   });
 
   it('does not smooth formation when not invading', () => {
@@ -182,6 +183,8 @@ describe('writeMotionSnapshot invasion', () => {
         squiggly: null,
       },
       shotFrames: { rolling: 0, plunger: 0, squiggly: 0 },
+      ufoAnimFrame: 0,
+      formationAnimFrame: 1,
       formationOriginX: 0.4,
       formationOriginZ: 5,
       phase: 'playing',
@@ -193,10 +196,8 @@ describe('writeMotionSnapshot invasion', () => {
       shotMaxBlendZ: 1,
       invasionMaxBlend: 1,
     });
-    expect(snap.invasionSmooth).toBe(false);
     expect(snap.formationDispX).toBe(0.4);
     expect(snap.formationDispZ).toBe(5);
-    expect(snap.formationSimX).toBe(0.4);
-    expect(snap.formationSimZ).toBe(5);
+    expect(snap.formationAnimFrame).toBe(1);
   });
 });

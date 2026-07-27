@@ -192,7 +192,7 @@ export const HIT = {
 } as const;
 
 export const ATTRACT = {
-  screenDuration: 5,
+  screenDuration: 10,
   /** CSS crossfade length (UI); sim flips screen immediately on timer */
   transitionDuration: 0.5,
   /** Active carousel order. Add 'highScores' when online leaderboard ships. */

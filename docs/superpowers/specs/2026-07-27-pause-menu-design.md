@@ -31,7 +31,7 @@ While `phase === 'paused'`:
 4. Confirm on **Back to game** dispatches `resume`.
 5. Esc and Start still resume without needing the Back item. Esc may also leave fullscreen (browser default); use the menu toggle to enter/exit fullscreen explicitly.
 
-While not paused, input behavior is unchanged (Enter still starts 1P from attract/game over; Start still starts or pauses from play).
+While not paused, input behavior is unchanged (attract/game over: ←→ select mode, Fire / Enter / Start confirm; Start still pauses from play).
 
 ## Architecture
 

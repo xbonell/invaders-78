@@ -1,7 +1,7 @@
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import type { PauseMenuInput } from '../app/pauseMenu';
-import { startOnePlayer, startTwoPlayers } from './actions';
+import { confirmMenuStart, isStartable, selectMenu } from './actions';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
 
@@ -14,6 +14,8 @@ export function attachKeyboard(
   pauseMenu?: PauseMenuInput | null,
 ): () => void {
   const down = new Set<string>();
+  /** After confirmStart, ignore fire until Space/Control is released. */
+  let ignoreFireUntilRelease = false;
 
   const syncMove = () => {
     const left = down.has('ArrowLeft') || down.has('a') || down.has('A');
@@ -60,26 +62,34 @@ export function attachKeyboard(
       }
     }
 
+    if (isStartable(game) && moveKeys.has(e.key)) {
+      e.preventDefault();
+      void onGesture?.();
+      const dir: -1 | 1 = e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A' ? 1 : -1;
+      selectMenu(game, dir);
+      onUi?.();
+      return;
+    }
+
     if (e.code === 'Space' || e.key === 'Control') {
       e.preventDefault();
+      if (ignoreFireUntilRelease) return;
+      if (isStartable(game)) {
+        withAudio(() => {
+          if (confirmMenuStart(game)) ignoreFireUntilRelease = true;
+        });
+        return;
+      }
       withAudio(() => dispatch(game, { type: 'fire' }));
-      return;
-    }
-    if (e.key === '2') {
-      e.preventDefault();
-      withAudio(() => startTwoPlayers(game));
-      return;
-    }
-    if (e.key === '1') {
-      e.preventDefault();
-      withAudio(() => startOnePlayer(game));
       return;
     }
     if (e.key === 'Enter') {
       e.preventDefault();
-      withAudio(() => {
-        startOnePlayer(game);
-      });
+      if (isStartable(game)) {
+        withAudio(() => {
+          confirmMenuStart(game);
+        });
+      }
       return;
     }
     if (e.key === 'Escape') {
@@ -98,6 +108,9 @@ export function attachKeyboard(
   };
 
   const onKeyUp = (e: KeyboardEvent) => {
+    if (e.code === 'Space' || e.key === 'Control') {
+      ignoreFireUntilRelease = false;
+    }
     if (moveKeys.has(e.key)) {
       down.delete(e.key);
       syncMove();
@@ -106,6 +119,7 @@ export function attachKeyboard(
 
   const onBlur = () => {
     down.clear();
+    ignoreFireUntilRelease = false;
     dispatch(game, { type: 'move', dir: 0 });
   };
 

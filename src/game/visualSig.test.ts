@@ -20,20 +20,32 @@ describe('visualSig', () => {
     expect(visualSig(game.state)).not.toBe(before);
   });
 
-  it('changes when UFO anim frame advances', () => {
+  it('stays stable when UFO anim frame advances', () => {
     const game = createGame(0);
     game.state.phase = 'playing';
     const ufo = __spawnUfoForTest(game);
     const before = visualSig(game.state);
     ufo.animFrame = 1;
-    expect(visualSig(game.state)).not.toBe(before);
+    expect(visualSig(game.state)).toBe(before);
   });
 
-  it('changes when formation origin steps', () => {
+  it('stays stable when alien shot animation frame advances', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'start' });
+    const slot = activeBoard(game.state).alienShots.rolling;
+    slot.state = 'active';
+    slot.animationFrame = 0;
+    const before = visualSig(game.state);
+    slot.animationFrame = 2;
+    expect(visualSig(game.state)).toBe(before);
+  });
+
+  it('stays stable when formation origin steps', () => {
     const game = createGame(0);
     game.state.phase = 'playing';
     const before = visualSig(game.state);
     activeBoard(game.state).formation.originX += 0.4;
-    expect(visualSig(game.state)).not.toBe(before);
+    activeBoard(game.state).formation.animFrame = 1;
+    expect(visualSig(game.state)).toBe(before);
   });
 });

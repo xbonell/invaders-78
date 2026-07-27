@@ -4,8 +4,8 @@ import { activeBoard } from './board';
 
 /**
  * Discrete visual fingerprint for React re-render gating.
- * Omits continuous motion (player/UFO/bullet/shot world positions) — those
- * live in MotionSnapshot and must not force Playfield reconciliation.
+ * Omits continuous motion and formation pose/anim — those live on MotionSnapshot
+ * (march must not reconcile the whole Playfield; see formationStep audio events).
  */
 export function visualSig(state: GameState): string {
   const board = activeBoard(state);
@@ -23,7 +23,7 @@ export function visualSig(state: GameState): string {
   }
 
   const shots = allAlienShotSlots(board.alienShots)
-    .map((s) => (s.state === 'idle' ? '' : `${s.type[0]}${s.state[0]}${s.animationFrame}`))
+    .map((s) => (s.state === 'idle' ? '' : `${s.type[0]}${s.state[0]}`))
     .join('');
 
   return [
@@ -31,6 +31,7 @@ export function visualSig(state: GameState): string {
     state.attractScreen,
     state.activePlayer,
     state.playerCount,
+    state.menuPlayerCount,
     board.player.alive ? 1 : 0,
     state.scores[0],
     state.scores[1],
@@ -38,10 +39,7 @@ export function visualSig(state: GameState): string {
     state.livesByPlayer[0],
     state.livesByPlayer[1],
     board.wave,
-    board.formation.originX,
-    board.formation.originZ,
-    board.formation.animFrame,
-    board.ufo ? `1${board.ufo.animFrame}` : '',
+    board.ufo ? 1 : 0,
     board.playerBullet ? 1 : 0,
     alive,
     aliveBits,

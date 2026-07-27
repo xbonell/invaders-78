@@ -4,7 +4,7 @@ Date: 2026-07-27
 
 ## Intent
 
-Align HUD, footer, and overlay with the ortho camera’s play rectangle (horizontal and vertical). Letterbox stays black shell background outside that frame.
+Align HUD, footer, and overlay with the ortho camera’s play rectangle (horizontal and vertical). Dimmed backdrop art lives on `.shell` (`src/assets/backdrop.png`); the play canvas clears transparent so the same art shows through empty playfield.
 
 ## Decisions
 
@@ -12,20 +12,20 @@ Align HUD, footer, and overlay with the ortho camera’s play rectangle (horizon
 |-------|--------|
 | Approach | CSS framed `.stage` contain-fitted to play-view aspect |
 | Shared frame | `PLAY_VIEW_MARGIN = 1`; width = `GROUND_LINE.width + 2×margin`; depth = `PLAYFIELD.depth + 2×margin` |
-| Chrome placement | Hud, FooterBar, Overlay nested inside `.stage` with canvas |
+| Chrome placement | Hud + FooterBar inside `.stage`; Overlay is a `.shell` sibling so dim/attract covers the full viewport |
 | Camera | Frustum = ±playViewWidth/2 × ±playViewDepth/2 (stage aspect matches; no GL letterbox) |
 | HUD max-width | Remove hardcoded `52rem`; chrome spans full stage width |
-| Overlay | Same play rectangle as HUD/footer |
+| Overlay | Full-shell coverage (`inset: 0` on `.shell`); content still centered |
 
 ## Layout
 
 ```
-.shell (full viewport, black letterbox)
-  └── .stage (contain-fit play aspect)
-        ├── GameCanvas
-        ├── Hud
-        ├── Overlay
-        └── FooterBar
+.shell (full viewport, dimmed CSS backdrop)
+  ├── .stage (contain-fit play aspect; transparent canvas)
+  │     ├── GameCanvas
+  │     ├── Hud
+  │     └── FooterBar
+  └── Overlay (full-shell dim / attract)
 ```
 
 ## Out of scope
@@ -34,6 +34,6 @@ HUD visual redesign, CRT overlay, changing world sim bounds, stretch-to-fill dis
 
 ## Verification
 
-- Resize wide and tall viewports: stage letterboxes; score/lives edges match green-line column; overlay centered in the same box
+- Resize wide and tall viewports: stage letterboxes; score/lives edges match green-line column; overlay covers full viewport (including letterbox) with content centered
 - `pnpm test` / `pnpm build`
 - Camera shows full playfield + margin (no clipping of UFO/ground)

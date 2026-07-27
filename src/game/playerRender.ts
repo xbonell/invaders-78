@@ -78,16 +78,17 @@ export interface MotionSnapshot {
   playerX: number;
   ufoVisible: boolean;
   ufoX: number;
+  /** Underside lights frame — display-only; do not gate React on this. */
+  ufoAnimFrame: 0 | 1 | 2;
   playerBulletVisible: boolean;
   playerBulletX: number;
   playerBulletZ: number;
   alienShots: Record<AlienShotType, ShotMotionSlot>;
-  /** When true, apply formationDisp − formationSim as alien parent offset. */
-  invasionSmooth: boolean;
+  /** Display formation origin (snapped on march; lerped during invasion). */
   formationDispX: number;
   formationDispZ: number;
-  formationSimX: number;
-  formationSimZ: number;
+  /** March pose frame — display-only; do not gate React on this. */
+  formationAnimFrame: 0 | 1;
 }
 
 const idleShot = (): ShotMotionSlot => ({
@@ -102,6 +103,7 @@ export function createMotionSnapshot(playerX = 0): MotionSnapshot {
     playerX,
     ufoVisible: false,
     ufoX: 0,
+    ufoAnimFrame: 0,
     playerBulletVisible: false,
     playerBulletX: 0,
     playerBulletZ: 0,
@@ -110,11 +112,9 @@ export function createMotionSnapshot(playerX = 0): MotionSnapshot {
       plunger: idleShot(),
       squiggly: idleShot(),
     },
-    invasionSmooth: false,
     formationDispX: 0,
     formationDispZ: 0,
-    formationSimX: 0,
-    formationSimZ: 0,
+    formationAnimFrame: 0,
   };
 }
 
@@ -135,6 +135,8 @@ export interface WriteMotionSnapshotInput {
   bullet: Vec2 | null;
   shots: Record<AlienShotType, Vec2 | null>;
   shotFrames: Record<AlienShotType, number>;
+  ufoAnimFrame: 0 | 1 | 2;
+  formationAnimFrame: 0 | 1;
   formationOriginX: number;
   formationOriginZ: number;
   phase: GamePhase;
@@ -155,6 +157,7 @@ export function writeMotionSnapshot(snap: MotionSnapshot, input: WriteMotionSnap
   const ufo = blendUfoDisplayX(prev.ufoX, input.ufoX, alpha, input.ufoMaxBlend);
   snap.ufoVisible = ufo.visible;
   snap.ufoX = ufo.x;
+  snap.ufoAnimFrame = input.ufoAnimFrame;
 
   const bullet = blendOptionalVec2(
     prev.bullet,
@@ -181,11 +184,9 @@ export function writeMotionSnapshot(snap: MotionSnapshot, input: WriteMotionSnap
     };
   }
 
-  snap.formationSimX = input.formationOriginX;
-  snap.formationSimZ = input.formationOriginZ;
+  snap.formationAnimFrame = input.formationAnimFrame;
 
   if (input.phase === 'invasion') {
-    snap.invasionSmooth = true;
     snap.formationDispX = blendDisplayX(
       prev.formationOriginX,
       input.formationOriginX,
@@ -199,7 +200,6 @@ export function writeMotionSnapshot(snap: MotionSnapshot, input: WriteMotionSnap
       input.invasionMaxBlend,
     );
   } else {
-    snap.invasionSmooth = false;
     snap.formationDispX = input.formationOriginX;
     snap.formationDispZ = input.formationOriginZ;
   }

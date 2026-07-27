@@ -65,10 +65,10 @@ export function recipeToBits(recipe: VoxelRecipe): VoxelBit[] {
   return bits;
 }
 
-const C_ALIEN = '#f0f0f0';
-const C_PLAYER = '#3ecf6a';
+const C_ALIEN = '#ffffff';
+const C_PLAYER = '#22e35a';
 const C_UFO = '#e11d48';
-const C_BUNKER = '#3ecf6a';
+const C_BUNKER = '#22e35a';
 
 /** Player cannon — classic turret silhouette */
 export const PLAYER_RECIPE = parse(
@@ -192,7 +192,7 @@ export const UFO_RECIPE = ufoRecipe(0);
 
 export const BUNKER_COLOR = C_BUNKER;
 
-const C_SHOT = '#f0f0f0';
+const C_SHOT = '#ffffff';
 const SHOT_CELL = VOXEL_SIZE;
 
 /** Squiggly ×4 — zigzag (Wikimedia strip left group). */

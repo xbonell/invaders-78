@@ -75,6 +75,7 @@ function enterAttract(state: GameState): void {
   state.livesByPlayer = [PLAYER.startLives, PLAYER.startLives];
   state.activePlayer = 0;
   state.playerCount = 1;
+  state.menuPlayerCount = 1;
   state.shotCounts = [0, 0];
   state.bonusLifeAwarded = [false, false];
   state.attractTimer = ATTRACT.screenDuration;
@@ -96,6 +97,7 @@ function baseState(highScore: number): GameState {
     lives: PLAYER.startLives,
     livesByPlayer: [PLAYER.startLives, PLAYER.startLives],
     playerCount: 1,
+    menuPlayerCount: 1,
     activePlayer: 0,
     boards,
     dyingTimer: 0,
@@ -165,6 +167,22 @@ export function dispatch(game: Game, cmd: GameCommand): void {
     case 'startTwo':
       if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
         beginPlay(state, 2);
+      }
+      break;
+    case 'confirmStart':
+      if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
+        beginPlay(state, state.menuPlayerCount);
+      }
+      break;
+    case 'menuSelect':
+      if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
+        const idx = state.menuPlayerCount - 1;
+        const next = (idx + cmd.dir + 2) % 2;
+        state.menuPlayerCount = next === 0 ? 1 : 2;
+        if (state.phase === 'attract') {
+          state.attractScreen = 'info';
+          state.attractTimer = ATTRACT.screenDuration;
+        }
       }
       break;
     case 'restart':
@@ -534,6 +552,7 @@ function resolveAfterDeath(game: Game): void {
   game.moveDir = 0;
   game.fireQueued = false;
   state.phase = 'gameOver';
+  state.menuPlayerCount = 1;
   state.gameOverTimer = ATTRACT.gameOverDuration;
   pushEvent(state, { type: 'gameOver' });
 }

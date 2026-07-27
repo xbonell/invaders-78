@@ -92,8 +92,11 @@ export function useGameLoop(
     start: false,
     select: false,
     steering: false,
+    left: false,
+    right: false,
     up: false,
     down: false,
+    ignoreFireUntilRelease: false,
   });
   const audioRef = useRef(audio);
   audioRef.current = audio;
@@ -155,6 +158,8 @@ export function useGameLoop(
         squiggly: activeShotWorld(state, 'squiggly'),
       },
       shotFrames,
+      ufoAnimFrame: board.ufo?.animFrame ?? 0,
+      formationAnimFrame: board.formation.animFrame,
       formationOriginX: board.formation.originX,
       formationOriginZ: board.formation.originZ,
       phase: state.phase,
@@ -188,9 +193,11 @@ export function useGameLoop(
       maybePersistHi(game, events);
     }
 
-    // Reconcile React only for discrete visuals — never for continuous X motion.
+    // Reconcile React only when the discrete visual fingerprint changes.
+    // Do not bump on events alone — formationStep is audio-only and was
+    // remounting the whole Playfield every march.
     const sig = visualSig(game.state);
-    if (events.length || sig !== lastVisualSig.current) {
+    if (sig !== lastVisualSig.current) {
       lastVisualSig.current = sig;
       bumpUiRef.current();
     }

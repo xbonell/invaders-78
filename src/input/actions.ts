@@ -3,16 +3,20 @@ import { dispatch } from '../game/simulation';
 
 const STARTABLE = new Set(['attract', 'ready', 'gameOver']);
 
-/** 1-player start from attract / ready / game over. */
-export function startOnePlayer(game: Game): void {
-  if (STARTABLE.has(game.state.phase)) {
-    dispatch(game, { type: 'start' });
-  }
+export function isStartable(game: Game): boolean {
+  return STARTABLE.has(game.state.phase);
 }
 
-/** 2-player start from attract / ready / game over. */
-export function startTwoPlayers(game: Game): void {
-  if (STARTABLE.has(game.state.phase)) {
-    dispatch(game, { type: 'startTwo' });
+/** Confirm current menuPlayerCount from attract / ready / game over. */
+export function confirmMenuStart(game: Game): boolean {
+  if (!isStartable(game)) return false;
+  dispatch(game, { type: 'confirmStart' });
+  return game.state.phase === 'playing';
+}
+
+/** Move 1P/2P highlight on the start selector. */
+export function selectMenu(game: Game, dir: -1 | 1): void {
+  if (isStartable(game)) {
+    dispatch(game, { type: 'menuSelect', dir });
   }
 }

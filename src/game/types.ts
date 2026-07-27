@@ -145,6 +145,8 @@ export interface GameState {
   lives: number;
   livesByPlayer: [number, number];
   playerCount: 1 | 2;
+  /** Attract / game-over mode selector (1P vs 2P); reset on enter attract */
+  menuPlayerCount: 1 | 2;
   /** 0 = player 1, 1 = player 2 */
   activePlayer: 0 | 1;
   /** Per-player boards; sim mutates boards[activePlayer] */
@@ -166,6 +168,8 @@ export interface GameState {
 export type GameCommand =
   | { type: 'start' }
   | { type: 'startTwo' }
+  | { type: 'confirmStart' }
+  | { type: 'menuSelect'; dir: -1 | 1 }
   | { type: 'restart' }
   | { type: 'pause' }
   | { type: 'resume' }

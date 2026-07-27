@@ -63,6 +63,31 @@ export function FooterBar({ state }: { state: GameState }) {
   );
 }
 
+function ModeSelector({ menuPlayerCount }: { menuPlayerCount: 1 | 2 }) {
+  return (
+    <div className="attract-cta">
+      <p className="mode-select-hint" aria-hidden>
+        ← Select →
+      </p>
+      <div className="mode-selector" role="group" aria-label="Player mode">
+        <span className={`mode-option${menuPlayerCount === 1 ? ' selected' : ''}`}>
+          <span className="mode-cursor" aria-hidden>
+            {menuPlayerCount === 1 ? '>' : '\u00A0'}
+          </span>
+          1 Player
+        </span>
+        <span className={`mode-option${menuPlayerCount === 2 ? ' selected' : ''}`}>
+          <span className="mode-cursor" aria-hidden>
+            {menuPlayerCount === 2 ? '>' : '\u00A0'}
+          </span>
+          2 Players
+        </span>
+      </div>
+      <p className="hint pulse">PRESS FIRE</p>
+    </div>
+  );
+}
+
 export function Overlay({
   state,
   muted = false,
@@ -92,10 +117,7 @@ export function Overlay({
           <h1 className="brand">Invaders 78</h1>
         </div>
         <ScoreTable />
-        <div className="attract-cta">
-          <p className="hint pulse">1P — 1 / Enter / Start</p>
-          <p className="hint-sub">2P — 2 / Select</p>
-        </div>
+        <ModeSelector menuPlayerCount={state.menuPlayerCount} />
       </div>
     );
   }
@@ -144,10 +166,7 @@ export function Overlay({
         ) : (
           <p className="tagline">Score {pad(state.scores[0])}</p>
         )}
-        <div className="attract-cta">
-          <p className="hint pulse">1P — 1 / Enter / Start</p>
-          <p className="hint-sub">2P — 2 / Select</p>
-        </div>
+        <ModeSelector menuPlayerCount={state.menuPlayerCount} />
       </div>
     );
   }

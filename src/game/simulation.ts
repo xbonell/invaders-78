@@ -32,6 +32,7 @@ import {
   formationWouldHitEdge,
   stepIntervalForCount,
 } from './formation';
+import { demoMoveDir, demoShouldFire, pickDemoAim } from './demoAi';
 import type {
   Alien,
   GameCommand,
@@ -91,7 +92,7 @@ function enterAttract(state: GameState): void {
   state.bonusLifeAwarded = [false, false];
   state.alienHitFreezeTimer = 0;
   state.attractTimer = ATTRACT.screenDuration;
-  state.attractScreen = 0;
+  state.attractScreen = ATTRACT.enabledScreens[0] ?? 'info';
   state.gameOverTimer = 0;
   state.switchTimer = 0;
   startWave(state, 1);
@@ -123,7 +124,7 @@ function baseState(highScore: number): GameState {
     gameOverTimer: 0,
     switchTimer: 0,
     attractTimer: ATTRACT.screenDuration,
-    attractScreen: 0,
+    attractScreen: ATTRACT.enabledScreens[0] ?? 'info',
     events: emptyEvents(),
     shotCount: 0,
     shotCounts: [0, 0],
@@ -158,7 +159,7 @@ export function createGame(highScore = 0): Game {
     state,
     moveDir: 0,
     fireQueued: false,
-    demoFireTimer: ATTRACT.demoFireInterval,
+    demoFireTimer: ATTRACT.demoFireCooldown,
     getAlienWorldPos: (alien) => alienWorldPos(alien, game.state.formation),
   };
   return game;
@@ -381,6 +382,8 @@ function spawnUfo(state: GameState): void {
     z: UFO.z,
     vx: fromLeft ? UFO.speed : -UFO.speed,
     scoreIndex: index,
+    animFrame: 0,
+    animTicks: 0,
   };
   pushEvent(state, { type: 'ufoSpawn' });
 }
@@ -406,6 +409,13 @@ function updateUfo(state: GameState, dt: number): void {
     return;
   }
   state.ufo.x = Math.max(-edge, Math.min(edge, state.ufo.x));
+
+  state.ufo.animTicks += 1;
+  while (state.ufo.animTicks >= UFO.animIntervalTicks) {
+    state.ufo.animTicks -= UFO.animIntervalTicks;
+    const stepDir = state.ufo.vx > 0 ? 1 : 2;
+    state.ufo.animFrame = ((state.ufo.animFrame + stepDir) % 3) as 0 | 1 | 2;
+  }
 }
 
 function collidePlayerBullet(state: GameState, scoring: boolean): void {
@@ -433,11 +443,12 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
     ) {
       const ux = state.ufo.x;
       const uz = state.ufo.z;
+      const animFrame = state.ufo.animFrame;
       // Score from current pointer at hit (ROM); then shot removal advances it
       const index = mysteryScoreIndex(state.shotCount);
       const points = scoring ? UFO.scoreTable[index]! : 0;
       if (scoring) addScore(state, points);
-      pushEvent(state, { type: 'ufoHit', points, x: ux, z: uz });
+      pushEvent(state, { type: 'ufoHit', points, x: ux, z: uz, animFrame });
       state.ufo = null;
       clearPlayerBullet(state);
       return;
@@ -571,37 +582,47 @@ function resolveAfterDeath(game: Game): void {
   pushEvent(state, { type: 'gameOver' });
 }
 
+function nextAttractScreen(
+  current: GameState['attractScreen'],
+): GameState['attractScreen'] {
+  const screens = ATTRACT.enabledScreens;
+  const idx = screens.indexOf(current as (typeof screens)[number]);
+  const nextIdx = idx < 0 ? 0 : (idx + 1) % screens.length;
+  return screens[nextIdx] ?? 'info';
+}
+
 function updateAttract(game: Game, dt: number): void {
   const { state } = game;
   state.attractTimer -= dt;
   if (state.attractTimer <= 0) {
     state.attractTimer = ATTRACT.screenDuration;
-    state.attractScreen = state.attractScreen === 0 ? 1 : 0;
+    state.attractScreen = nextAttractScreen(state.attractScreen);
   }
 
-  let targetX = 0;
-  let found = false;
-  let bestDist = Infinity;
-  for (const a of state.aliens) {
-    if (!a.alive) continue;
-    const p = alienWorldPos(a, state.formation);
-    const d = Math.abs(p.x - state.player.x);
-    if (d < bestDist) {
-      bestDist = d;
-      targetX = p.x;
-      found = true;
-    }
-  }
-  if (found) {
-    const dx = targetX - state.player.x;
-    game.moveDir = dx < -0.15 ? -1 : dx > 0.15 ? 1 : 0;
-  } else {
-    game.moveDir = 0;
-  }
+  const { aimX, targetZ, found } = pickDemoAim(
+    state.aliens,
+    state.formation,
+    state.player.x,
+    state.player.z,
+    state.ufo,
+    state.bunkers,
+  );
+  game.moveDir = found ? demoMoveDir(state.player.x, aimX) : 0;
 
   game.demoFireTimer -= dt;
-  if (game.demoFireTimer <= 0) {
-    game.demoFireTimer = ATTRACT.demoFireInterval;
+  if (
+    found &&
+    demoShouldFire(
+      state.player.x,
+      aimX,
+      targetZ,
+      state.player.z,
+      state.bunkers,
+      state.playerBullet !== null,
+      game.demoFireTimer <= 0,
+    )
+  ) {
+    game.demoFireTimer = ATTRACT.demoFireCooldown;
     game.fireQueued = true;
     tryPlayerFire(game);
   }

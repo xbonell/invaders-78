@@ -70,7 +70,7 @@ Edit `src/game/constants.ts` (`FORMATION`, `ALIEN_SHOT`, `PLAYER`, `UFO`, `ATTRA
 
 ### Change alien / UFO / player / alien-shot shape
 
-Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). `alienRecipe(type, frame)` / `alienShotRecipe(type, frame)` select animation frames. Debris for aliens uses orange override in `DebrisField.tsx`.
+Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). `alienRecipe(type, frame)` / `alienShotRecipe(type, frame)` / `ufoRecipe(frame)` select animation frames. Debris for aliens uses orange override in `DebrisField.tsx`.
 
 ### Add a new `GameEvent`
 

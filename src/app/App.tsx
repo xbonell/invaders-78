@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AudioEngine } from '../audio/engine';
+import { playViewDepth, playViewWidth } from '../game/playView';
 import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { GameCanvas } from '../scene/GameCanvas';
@@ -27,19 +28,29 @@ export default function App() {
     void audio.unlock();
   };
 
+  const viewW = playViewWidth();
+  const viewD = playViewDepth();
+
   return (
     <div className="shell" onPointerDown={unlock} onKeyDown={unlock}>
-      <Hud state={state} muted={muted} onToggleMute={toggleMute} />
-      <div className="stage">
+      <div
+        className="stage"
+        style={{
+          aspectRatio: `${viewW} / ${viewD}`,
+          width: `min(100%, calc(100dvh * ${viewW} / ${viewD}))`,
+          height: `min(100%, calc(100dvw * ${viewD} / ${viewW}))`,
+        }}
+      >
         <GameCanvas
           state={state}
           version={version}
           motionSnapshot={motionSnapshot}
           advanceRef={advanceRef}
         />
+        <Hud state={state} muted={muted} onToggleMute={toggleMute} />
         <Overlay state={state} />
+        <FooterBar state={state} />
       </div>
-      <FooterBar state={state} />
     </div>
   );
 }

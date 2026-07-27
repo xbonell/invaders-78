@@ -42,7 +42,7 @@ export function visualSig(state: GameState): string {
     state.formation.originX,
     state.formation.originZ,
     state.formation.animFrame,
-    state.ufo ? 1 : 0,
+    state.ufo ? `1${state.ufo.animFrame}` : '',
     state.playerBullet ? 1 : 0,
     alive,
     aliveBits,

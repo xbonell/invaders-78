@@ -13,6 +13,9 @@ export type GamePhase =
 
 export type AlienType = 'squid' | 'crab' | 'octopus';
 
+/** Attract carousel views; enable via ATTRACT.enabledScreens */
+export type AttractScreen = 'info' | 'demo' | 'highScores';
+
 export interface Vec2 {
   x: number;
   z: number;
@@ -74,6 +77,10 @@ export interface Ufo {
   z: number;
   vx: number;
   scoreIndex: number;
+  /** Underside lights chase frame (0–2). */
+  animFrame: 0 | 1 | 2;
+  /** Sim ticks accumulated toward next frame advance. */
+  animTicks: number;
 }
 
 export type GameEvent =
@@ -86,7 +93,7 @@ export type GameEvent =
       alienType: AlienType;
       animFrame: 0 | 1;
     }
-  | { type: 'ufoHit'; points: number; x: number; z: number }
+  | { type: 'ufoHit'; points: number; x: number; z: number; animFrame: 0 | 1 | 2 }
   | { type: 'playerHit'; x: number; z: number }
   | { type: 'bunkerHit'; x: number; z: number }
   | { type: 'alienShotHit'; x: number; z: number }
@@ -139,8 +146,8 @@ export interface GameState {
   gameOverTimer: number;
   switchTimer: number;
   attractTimer: number;
-  /** 0 = title, 1 = score table */
-  attractScreen: 0 | 1;
+  /** Attract carousel view; see ATTRACT.enabledScreens */
+  attractScreen: AttractScreen;
   events: GameEvent[];
   shotCount: number;
   shotCounts: [number, number];

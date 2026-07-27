@@ -11,6 +11,7 @@ import type { AlienShotType, GameState } from '../game/types';
 import type { MotionSnapshot } from '../game/playerRender';
 import { GROUND_LINE, PLAYER, PLAYFIELD, UFO } from '../game/constants';
 import { alienWorldPos } from '../game/formation';
+import { playViewDepth, playViewWidth } from '../game/playView';
 import { BunkerMesh } from './meshes/BunkerMesh';
 import { GlowAlienShot } from './meshes/GlowAlienShot';
 import { GlowBullet } from './meshes/GlowBullet';
@@ -19,7 +20,7 @@ import { DebrisField } from './voxels/DebrisField';
 import {
   alienRecipe,
   PLAYER_RECIPE,
-  UFO_RECIPE,
+  ufoRecipe,
 } from './voxels/recipes';
 
 const ALIEN_SHOT_TYPES: AlienShotType[] = ['rolling', 'plunger', 'squiggly'];
@@ -65,8 +66,10 @@ function SmoothPlayer({
 }
 
 function SmoothUfo({
+  animFrame,
   motionSnapshot,
 }: {
+  animFrame: 0 | 1 | 2;
   motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const group = useRef<THREE.Group>(null);
@@ -90,7 +93,7 @@ function SmoothUfo({
 
   return (
     <group ref={attach}>
-      <RecipeMesh recipe={UFO_RECIPE} />
+      <RecipeMesh recipe={ufoRecipe(animFrame)} />
     </group>
   );
 }
@@ -184,7 +187,10 @@ export function Playfield({
         />
       ))}
 
-      <SmoothUfo motionSnapshot={motionSnapshot} />
+      <SmoothUfo
+        animFrame={state.ufo?.animFrame ?? 0}
+        motionSnapshot={motionSnapshot}
+      />
 
       <DebrisField />
     </group>
@@ -199,10 +205,9 @@ export function OrthoCameraRig() {
     if (Math.abs(aspect - lastAspect.current) < 1e-6) return;
     lastAspect.current = aspect;
 
-    const margin = 1;
-    const halfW = GROUND_LINE.width / 2 + margin;
-    const halfD = PLAYFIELD.depth / 2 + margin;
-    // Contain-fit playfield: show full width+depth with letterbox as needed.
+    const halfW = playViewWidth() / 2;
+    const halfD = playViewDepth() / 2;
+    // Stage CSS matches play aspect; contain-fit covers 1px canvas drift.
     let viewH = halfD * 2;
     let viewW = viewH * aspect;
     if (viewW < halfW * 2) {

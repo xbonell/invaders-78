@@ -115,6 +115,8 @@ export const UFO = {
   spawnInterval: 0x600 / 60,
   /** Saucer only while ≥8 aliens remain */
   minAliensToSpawn: 8,
+  /** Underside lights: one frame every N sim ticks (~5 swaps/sec @ 60 Hz) */
+  animIntervalTicks: 12,
 } as const;
 
 /** Arcade shields: 22×16 px footprint; mask is stylized arch on that grid. */
@@ -190,7 +192,18 @@ export const HIT = {
 
 export const ATTRACT = {
   screenDuration: 5,
+  /** CSS crossfade length (UI); sim flips screen immediately on timer */
+  transitionDuration: 0.5,
+  /** Active carousel order. Add 'highScores' when online leaderboard ships. */
+  enabledScreens: ['info', 'demo'] as const,
   gameOverDuration: 4,
-  demoFireInterval: 0.55,
+  /** Min time between demo fire attempts after a shot is taken */
+  demoFireCooldown: 0.35,
+  /** Aim X deadzone before moveDir goes idle */
+  demoMoveDeadzone: 0.12,
+  /** Fire only when |player.x - aimX| is below this */
+  demoAlignTol: 0.25,
+  /** Lead aim point along formation march direction */
+  demoLead: 0.28,
   playerSwitchDuration: 1.6,
 } as const;

@@ -196,25 +196,62 @@ describe('ufo', () => {
     expect(game.state.ufo).toBeNull();
   });
 
-  it('spawns UFO from the left on odd shot count and stays in the game area', () => {
+  it('advances light frames every 12 ticks in travel direction', () => {
     const game = createGame(0);
     dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     game.state.shotCount = 1;
     const ufo = __spawnUfoForTest(game);
     expect(ufo.vx).toBeGreaterThan(0);
-    const edge = playfieldMaxAbsCenterX(UFO.halfWidth);
-    expect(Math.abs(ufo.x)).toBeLessThanOrEqual(edge + 1e-6);
-    expect(Math.abs(ufo.x) + UFO.halfWidth).toBeLessThanOrEqual(
-      GROUND_LINE.width / 2 + 1e-6,
-    );
-    ufo.x = edge - 0.01;
+    expect(ufo.animFrame).toBe(0);
+
+    for (let i = 0; i < 11; i++) step(game, TICK_DT);
+    expect(game.state.ufo!.animFrame).toBe(0);
+
     step(game, TICK_DT);
-    if (game.state.ufo) {
-      expect(Math.abs(game.state.ufo.x) + UFO.halfWidth).toBeLessThanOrEqual(
-        GROUND_LINE.width / 2 + 1e-6,
-      );
-    }
+    expect(game.state.ufo!.animFrame).toBe(1);
+
+    for (let i = 0; i < 12; i++) step(game, TICK_DT);
+    expect(game.state.ufo!.animFrame).toBe(2);
+
+    for (let i = 0; i < 12; i++) step(game, TICK_DT);
+    expect(game.state.ufo!.animFrame).toBe(0);
+  });
+
+  it('reverses light chase when flying left', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'credit' });
+    dispatch(game, { type: 'start' });
+    game.state.shotCount = 0;
+    const ufo = __spawnUfoForTest(game);
+    expect(ufo.vx).toBeLessThan(0);
+    expect(ufo.animFrame).toBe(0);
+
+    for (let i = 0; i < 12; i++) step(game, TICK_DT);
+    expect(game.state.ufo!.animFrame).toBe(2);
+
+    for (let i = 0; i < 12; i++) step(game, TICK_DT);
+    expect(game.state.ufo!.animFrame).toBe(1);
+  });
+
+  it('includes animFrame on ufoHit', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'credit' });
+    dispatch(game, { type: 'start' });
+    game.state.shotCount = 1;
+    const ufo = __spawnUfoForTest(game);
+    ufo.animFrame = 2;
+    game.state.playerBullet = {
+      x: ufo.x,
+      z: ufo.z,
+      vz: 10,
+      fromPlayer: true,
+    };
+    step(game, TICK_DT);
+    const hit = drainEvents(game).find((e) => e.type === 'ufoHit');
+    expect(hit).toEqual(
+      expect.objectContaining({ type: 'ufoHit', animFrame: 2 }),
+    );
   });
 });
 

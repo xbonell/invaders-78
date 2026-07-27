@@ -1,5 +1,12 @@
 import type { GameState } from '../game/types';
-import { ALIEN_POINTS } from '../game/constants';
+import { ALIEN_POINTS, ATTRACT } from '../game/constants';
+import {
+  CRAB_A,
+  OCTOPUS_A,
+  SQUID_A,
+  UFO_RECIPE,
+} from '../scene/voxels/recipes';
+import { RecipeSprite } from './RecipeSprite';
 
 export function Hud({
   state,
@@ -80,18 +87,19 @@ export function FooterBar({ state }: { state: GameState }) {
 
 export function Overlay({ state }: { state: GameState }) {
   if (state.phase === 'attract') {
+    const showInfo = state.attractScreen === 'info';
     return (
-      <div className="overlay overlay-attract">
-        {state.attractScreen === 0 ? (
-          <>
-            <p className="play-line">Play</p>
-            <h1 className="brand">Invaders 78</h1>
-            <p className="hint pulse">1 / Enter — 1 player</p>
-            <p className="hint-sub">2 — 2 players · 5 / C — credit</p>
-          </>
-        ) : (
-          <ScoreTable />
-        )}
+      <div
+        className={`overlay overlay-attract${showInfo ? ' attract-visible' : ' attract-hidden'}`}
+        style={{
+          transitionDuration: `${ATTRACT.transitionDuration}s`,
+        }}
+      >
+        <p className="play-line">Play</p>
+        <h1 className="brand">Invaders 78</h1>
+        <ScoreTable />
+        <p className="hint pulse">1 / Enter — 1 player</p>
+        <p className="hint-sub">2 — 2 players · 5 / C — credit</p>
       </div>
     );
   }
@@ -138,28 +146,36 @@ export function Overlay({ state }: { state: GameState }) {
 }
 
 function ScoreTable() {
+  const px = 2;
   return (
     <div className="score-table">
       <p className="score-table-title">*Score Advance Table*</p>
       <ul>
         <li>
-          <span className="st-icon st-ufo" />
-          <span>= ? Mystery</span>
-        </li>
-        <li>
-          <span className="st-icon st-squid" />
+          <span className="st-icon-slot">
+            <RecipeSprite recipe={SQUID_A} pixelSize={px} />
+          </span>
           <span>= {ALIEN_POINTS.squid} Points</span>
         </li>
         <li>
-          <span className="st-icon st-crab" />
+          <span className="st-icon-slot">
+            <RecipeSprite recipe={CRAB_A} pixelSize={px} />
+          </span>
           <span>= {ALIEN_POINTS.crab} Points</span>
         </li>
         <li>
-          <span className="st-icon st-octopus" />
+          <span className="st-icon-slot">
+            <RecipeSprite recipe={OCTOPUS_A} pixelSize={px} />
+          </span>
           <span>= {ALIEN_POINTS.octopus} Points</span>
         </li>
+        <li>
+          <span className="st-icon-slot">
+            <RecipeSprite recipe={UFO_RECIPE} pixelSize={px} />
+          </span>
+          <span>= ? Mystery</span>
+        </li>
       </ul>
-      <p className="hint pulse">1 / Enter — 1 player · 2 — 2 players</p>
     </div>
   );
 }

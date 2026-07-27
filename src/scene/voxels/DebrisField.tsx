@@ -9,7 +9,7 @@ import {
   BUNKER_COLOR,
   PLAYER_RECIPE,
   recipeToBits,
-  UFO_RECIPE,
+  ufoRecipe,
   type VoxelBit,
 } from './recipes';
 
@@ -109,7 +109,7 @@ function spawnForEvent(pool: Particle[], e: GameEvent): void {
       ALIEN_DEBRIS_GLOW,
     );
   } else if (e.type === 'ufoHit') {
-    spawnFromBits(pool, e.x, e.z, recipeToBits(UFO_RECIPE));
+    spawnFromBits(pool, e.x, e.z, recipeToBits(ufoRecipe(e.animFrame)));
   } else if (e.type === 'playerHit') {
     spawnFromBits(pool, e.x, e.z, recipeToBits(PLAYER_RECIPE));
   } else if (e.type === 'bunkerHit') {

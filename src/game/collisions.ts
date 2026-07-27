@@ -36,6 +36,30 @@ export function bulletHitsPoint(
   );
 }
 
+/** True if a vertical shot at shotX from fromZ→toZ would hit a solid bunker cell. */
+export function shotBlockedByBunker(
+  bunkers: Bunker[],
+  shotX: number,
+  fromZ: number,
+  toZ: number,
+): boolean {
+  const zLo = Math.min(fromZ, toZ);
+  const zHi = Math.max(fromZ, toZ);
+  const halfW = BUNKER.cellSize * 0.55;
+  const halfD = BUNKER.cellDepth * 0.55;
+  for (const bunker of bunkers) {
+    for (let i = 0; i < bunker.cells.length; i++) {
+      const cell = bunkerCellWorld(bunker, i);
+      if (!cell) continue;
+      if (cell.z + halfD < zLo || cell.z - halfD > zHi) continue;
+      if (Math.abs(shotX - cell.x) <= HIT.bulletHalfW + halfW) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /** Erase first overlapping bunker cell; returns true if hit. */
 export function erodeBunkerAt(bunker: Bunker, bullet: Bullet): boolean {
   const halfW = BUNKER.cellSize * 0.55;

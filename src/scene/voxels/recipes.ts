@@ -189,20 +189,34 @@ export const OCTOPUS_B = parse(
 /**
  * Mystery UFO — sheet top-left saucer.
  * Dome pixels taller (H) for a clearer 3D disc.
+ * Three frames: underside lights chase (window row only).
  */
-export const UFO_RECIPE = parse(
-  [
-    '.....HHHHHH.....',
-    '...##########...',
-    '..############..',
-    '.##.##.##.##.##.',
-    '################',
-    '..###..##..###..',
-    '...#........#...',
-  ],
-  0.12,
-  C_UFO,
+const UFO_BODY = [
+  '.....HHHHHH.....',
+  '...##########...',
+  '..############..',
+] as const;
+const UFO_BELLY = [
+  '################',
+  '..###..##..###..',
+  '...#........#...',
+] as const;
+const UFO_WINDOW_FRAMES = [
+  '.##.##.##.##.##.',
+  '#.##.##.##.##.##',
+  '##.##.##.##.##.#',
+] as const;
+
+const UFO_FRAMES = UFO_WINDOW_FRAMES.map((windows) =>
+  parse([...UFO_BODY, windows, ...UFO_BELLY], 0.12, C_UFO),
 );
+
+export function ufoRecipe(frame: 0 | 1 | 2): VoxelRecipe {
+  return UFO_FRAMES[frame]!;
+}
+
+/** Alias of frame 0 for callers that do not animate. */
+export const UFO_RECIPE = ufoRecipe(0);
 
 export const BUNKER_COLOR = C_BUNKER;
 

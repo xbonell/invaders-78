@@ -166,6 +166,15 @@ export class AudioEngine {
   }
 
   private stopMarch(): void {
+    const ctx = this.ctx;
+    if (this.marchGain && ctx) {
+      try {
+        this.marchGain.gain.cancelScheduledValues(ctx.currentTime);
+        this.marchGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      } catch {
+        /* node already gone */
+      }
+    }
     try {
       this.marchOsc?.stop();
     } catch {

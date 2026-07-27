@@ -87,11 +87,15 @@ export function Overlay({
           transitionDuration: `${ATTRACT.transitionDuration}s`,
         }}
       >
-        <p className="play-line">Play</p>
-        <h1 className="brand">Invaders 78</h1>
+        <div className="attract-logo">
+          <p className="play-line">Play</p>
+          <h1 className="brand">Invaders 78</h1>
+        </div>
         <ScoreTable />
-        <p className="hint pulse">1 / Enter — 1 player</p>
-        <p className="hint-sub">2 — 2 players</p>
+        <div className="attract-cta">
+          <p className="hint pulse">1P — 1 / Enter / Start</p>
+          <p className="hint-sub">2P — 2 / Select</p>
+        </div>
       </div>
     );
   }
@@ -140,7 +144,10 @@ export function Overlay({
         ) : (
           <p className="tagline">Score {pad(state.scores[0])}</p>
         )}
-        <p className="hint pulse">1 / Enter — play again · 2 — two players</p>
+        <div className="attract-cta">
+          <p className="hint pulse">1P — 1 / Enter / Start</p>
+          <p className="hint-sub">2P — 2 / Select</p>
+        </div>
       </div>
     );
   }

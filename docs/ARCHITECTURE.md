@@ -65,7 +65,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 - **Audio unlock:** first gesture must `await audio.unlock()` before start/fire that should make sound.
 - **Camera:** ortho, `camera.up.set(0,0,1)`; contain-fits `PLAYFIELD` (+ margin); player at negative Z (screen bottom). Left key → `moveDir = 1`.
 - **No bitmap game art:** recipes/code geometry only (favicon exempt). All playfield voxels share square `VOXEL_SIZE` (= `SCALE_X`).
-- **Controls:** see README; 2P is key `2`, not gamepad yet.
+- **Controls:** see README; gamepad Start = 1P, Select/Back = 2P.
 
 ## How to…
 
@@ -91,11 +91,11 @@ Extend `GamePhase`, handle in `dispatch` / `step`, update HUD `Overlay`/`Hud` vi
 
 1. **Playtest / balance** — wave 1 feel, bunker chew, UFO rate  
 2. **Settings** — volume slider, key rebind (pause menu: mute + fullscreen — 2026-07-27)  
-3. **Gamepad 2P start** — mirror keyboard `2`  
-4. **Desktop package** — Tauri or Electron for Steam later  
-5. **Polish** — CRT overlay (optional), attract audio policy, pause moves sync from held keys on respawn if still held  
-6. ~~Formation march~~ — descending procedural march voice on `formationStep` (2026-07-26)
-7. ~~Alien shots~~ — arcade Rolling/Plunger/Squiggly slots (2026-07-26)
+3. **Desktop package** — Tauri or Electron for Steam later  
+4. **Polish** — CRT overlay (optional), attract audio policy, pause moves sync from held keys on respawn if still held  
+5. ~~Formation march~~ — descending procedural march voice on `formationStep` (2026-07-26)
+6. ~~Alien shots~~ — arcade Rolling/Plunger/Squiggly slots (2026-07-26)
+7. ~~Gamepad 2P start~~ — Select/Back mirrors keyboard `2` (2026-07-27)
 
 ## Explicit non-goals
 

@@ -50,7 +50,7 @@ dispatch({ type: 'resume' })
 
 ## Out of scope
 
-Volume slider, key rebind, auto-reenter fullscreen on load, gamepad 2P start.
+Volume slider, key rebind, auto-reenter fullscreen on load.
 
 ## Testing
 

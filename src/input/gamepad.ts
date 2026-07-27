@@ -1,11 +1,12 @@
 import type { PauseMenuInput } from '../app/pauseMenu';
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
-import { startOnePlayer } from './actions';
+import { startOnePlayer, startTwoPlayers } from './actions';
 
 export type GamepadPrev = {
   fire: boolean;
   start: boolean;
+  select: boolean;
   steering: boolean;
   up: boolean;
   down: boolean;
@@ -68,7 +69,7 @@ export function pollGamepad(
   }
   prev.fire = fireBtn;
 
-  const startBtn = (pad.buttons[9]?.pressed ?? false) || (pad.buttons[8]?.pressed ?? false);
+  const startBtn = pad.buttons[9]?.pressed ?? false;
   if (startBtn && !prev.start) {
     withAudio(() => {
       if (
@@ -85,4 +86,10 @@ export function pollGamepad(
     });
   }
   prev.start = startBtn;
+
+  const selectBtn = pad.buttons[8]?.pressed ?? false;
+  if (selectBtn && !prev.select) {
+    withAudio(() => startTwoPlayers(game));
+  }
+  prev.select = selectBtn;
 }

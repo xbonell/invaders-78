@@ -22,7 +22,7 @@ pnpm build
 | Action     | Keyboard     | Gamepad              |
 | ---------- | ------------ | -------------------- |
 | Start 1P   | 1 / Enter    | Start                |
-| 2 players  | 2            | —                    |
+| 2 players  | 2            | Select / Back        |
 | Move       | ← → / A D    | D-pad / left stick   |
 | Fire       | Space / Ctrl | South (A / ×)        |
 | Pause      | Esc          | Start (in play)      |

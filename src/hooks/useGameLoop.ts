@@ -87,7 +87,14 @@ export function useGameLoop(
   const motionSnapshot = useRef(createMotionSnapshot(activeBoard(game.state).player.x));
   const prevCapture = useRef<MotionPrevCapture>(emptyPrev(game.state));
   const lastVisualSig = useRef(visualSig(game.state));
-  const padPrev = useRef({ fire: false, start: false, steering: false, up: false, down: false });
+  const padPrev = useRef({
+    fire: false,
+    start: false,
+    select: false,
+    steering: false,
+    up: false,
+    down: false,
+  });
   const audioRef = useRef(audio);
   audioRef.current = audio;
   const pauseMenuRefHold = useRef(pauseMenuRef);

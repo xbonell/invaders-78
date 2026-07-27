@@ -5,8 +5,7 @@ import { visualSig } from './visualSig';
 describe('visualSig', () => {
   it('stays stable when only player X moves', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
-    dispatch(game, { type: 'start', players: 1 });
+    dispatch(game, { type: 'start' });
     expect(game.state.phase).toBe('playing');
     const before = visualSig(game.state);
     game.state.player.x += 0.25;

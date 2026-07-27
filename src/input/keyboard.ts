@@ -1,7 +1,7 @@
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import type { PauseMenuInput } from '../app/pauseMenu';
-import { addCredit, insertCoinAndStart, insertCoinsAndStartTwo } from './actions';
+import { startOnePlayer, startTwoPlayers } from './actions';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
 
@@ -65,25 +65,20 @@ export function attachKeyboard(
       withAudio(() => dispatch(game, { type: 'fire' }));
       return;
     }
-    if (e.key === '5' || e.key === 'c' || e.key === 'C') {
-      e.preventDefault();
-      withAudio(() => addCredit(game));
-      return;
-    }
     if (e.key === '2') {
       e.preventDefault();
-      withAudio(() => insertCoinsAndStartTwo(game));
+      withAudio(() => startTwoPlayers(game));
       return;
     }
     if (e.key === '1') {
       e.preventDefault();
-      withAudio(() => insertCoinAndStart(game));
+      withAudio(() => startOnePlayer(game));
       return;
     }
     if (e.key === 'Enter') {
       e.preventDefault();
       withAudio(() => {
-        insertCoinAndStart(game);
+        startOnePlayer(game);
       });
       return;
     }

@@ -133,10 +133,6 @@ body,
   display: inline-block;
 }
 
-.credit {
-  color: #3ecf6a;
-}
-
 .overlay {
   position: absolute;
   inset: 0;

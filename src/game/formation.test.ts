@@ -36,7 +36,6 @@ describe('formation', () => {
 
   it('reverses and drops before aliens leave the game area', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     const beforeZ = game.state.formation.originZ;
     const beforeDir = game.state.formation.dir;
@@ -57,7 +56,6 @@ describe('formation', () => {
 
   it('clears wave when all aliens die', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     for (const a of game.state.aliens) a.alive = false;
     step(game, TICK_DT);
@@ -68,7 +66,6 @@ describe('formation', () => {
 
   it('freezes formation briefly after an alien kill', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     const alien = game.state.aliens.find((a) => a.alive)!;
     const pos = game.getAlienWorldPos(alien);
@@ -88,7 +85,6 @@ describe('formation', () => {
 
   it('keeps alien shots moving during kill freeze', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     const alien = game.state.aliens.find((a) => a.alive)!;
     const pos = game.getAlienWorldPos(alien);
@@ -154,7 +150,6 @@ describe('ufo', () => {
 
   it('awards mystery table score on hit from shot pointer', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     game.state.shotCount = 1;
     game.state.shotCounts[0] = 1;
@@ -174,7 +169,6 @@ describe('ufo', () => {
 
   it('scores 300 when shot pointer is at index 8', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     game.state.shotCount = 8;
     game.state.shotCounts[0] = 8;
@@ -191,7 +185,6 @@ describe('ufo', () => {
 
   it('does not spawn when fewer than 8 aliens remain', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     for (const a of game.state.aliens) a.alive = false;
     for (let i = 0; i < 7; i++) game.state.aliens[i].alive = true;
@@ -202,7 +195,6 @@ describe('ufo', () => {
 
   it('advances light frames every 12 ticks in travel direction', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     game.state.shotCount = 1;
     const ufo = __spawnUfoForTest(game);
@@ -224,7 +216,6 @@ describe('ufo', () => {
 
   it('reverses light chase when flying left', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     game.state.shotCount = 0;
     const ufo = __spawnUfoForTest(game);
@@ -240,7 +231,6 @@ describe('ufo', () => {
 
   it('includes animFrame on ufoHit', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     game.state.shotCount = 1;
     const ufo = __spawnUfoForTest(game);
@@ -260,7 +250,6 @@ describe('ufo', () => {
 describe('bonus life', () => {
   it('grants an extra life at 1500', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     expect(game.state.lives).toBe(PLAYER.startLives);
     const alien = game.state.aliens.find((a) => a.type === 'squid' && a.alive)!;

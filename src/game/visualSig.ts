@@ -35,7 +35,6 @@ export function visualSig(state: GameState): string {
     state.highScore,
     state.livesByPlayer[0],
     state.livesByPlayer[1],
-    state.credits,
     state.wave,
     state.formation.originX,
     state.formation.originZ,

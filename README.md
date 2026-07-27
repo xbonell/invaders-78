@@ -21,9 +21,8 @@ pnpm build
 
 | Action           | Keyboard     | Gamepad              |
 | ---------------- | ------------ | -------------------- |
-| Insert coin & 1P | 1 / Enter    | Start                |
+| Start 1P         | 1 / Enter    | Start                |
 | 2 players        | 2            | —                    |
-| Add credit       | 5 / C        | —                    |
 | Move             | ← → / A D    | D-pad / left stick   |
 | Fire             | Space / Ctrl | South (A / ×)        |
 | Pause            | Esc          | Start (in play)      |
@@ -40,5 +39,5 @@ pnpm build
 
 ## Status
 
-Shipped: core loop, attract/credits, 1P/2P, voxel art + FX, laser bullets, procedural audio.  
+Shipped: core loop, attract mode, free 1P/2P start, voxel art + FX, laser bullets, procedural audio.  
 Next: playtest/balance, settings, or desktop/Steam packaging (see architecture backlog).

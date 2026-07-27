@@ -1,7 +1,7 @@
 import type { PauseMenuInput } from '../app/pauseMenu';
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
-import { insertCoinAndStart } from './actions';
+import { startOnePlayer } from './actions';
 
 export type GamepadPrev = {
   fire: boolean;
@@ -76,7 +76,7 @@ export function pollGamepad(
         game.state.phase === 'ready' ||
         game.state.phase === 'gameOver'
       ) {
-        insertCoinAndStart(game);
+        startOnePlayer(game);
       } else if (game.state.phase === 'playing') {
         dispatch(game, { type: 'pause' });
       } else if (game.state.phase === 'paused') {

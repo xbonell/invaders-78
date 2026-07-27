@@ -2,33 +2,24 @@ import { describe, expect, it } from 'vitest';
 import { ATTRACT, PLAYER, TICK_DT } from './constants';
 import { createGame, dispatch, step } from './simulation';
 
-describe('attract and credits', () => {
+describe('attract mode', () => {
   it('boots in attract with a live formation', () => {
     const game = createGame(100);
     expect(game.state.phase).toBe('attract');
     expect(game.state.attractScreen).toBe('info');
     expect(game.state.aliens.some((a) => a.alive)).toBe(true);
-    expect(game.state.credits).toBe(0);
   });
 
-  it('adds a credit and starts only when credits remain', () => {
+  it('starts 1P freely from attract', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });
-    expect(game.state.phase).toBe('attract');
-
-    dispatch(game, { type: 'credit' });
-    expect(game.state.credits).toBe(1);
-
-    dispatch(game, { type: 'start' });
     expect(game.state.phase).toBe('playing');
-    expect(game.state.credits).toBe(0);
     expect(game.state.score).toBe(0);
     expect(game.state.lives).toBe(PLAYER.startLives);
   });
 
   it('returns to attract after game over delay', () => {
     const game = createGame(0);
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     game.state.livesByPlayer[0] = 0;
     game.state.lives = 0;
@@ -83,10 +74,9 @@ describe('attract and credits', () => {
     expect(game.state.attractScreen).not.toBe('highScores');
   });
 
-  it('starts from demo when credits remain', () => {
+  it('starts from demo without prior setup', () => {
     const game = createGame(0);
     game.state.attractScreen = 'demo';
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     expect(game.state.phase).toBe('playing');
   });

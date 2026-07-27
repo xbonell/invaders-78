@@ -117,7 +117,6 @@ function baseState(highScore: number): GameState {
     shotCounts: [0, 0],
     bonusLifeAwarded: [false, false],
     alienHitFreezeTimer: 0,
-    credits: 0,
   };
   startWave(state, 1);
   state.phase = 'attract';
@@ -163,9 +162,6 @@ function pushEvent(state: GameState, event: GameEvent): void {
 }
 
 function beginPlay(state: GameState, playerCount: 1 | 2): void {
-  const cost = playerCount;
-  if (state.credits < cost) return;
-  state.credits -= cost;
   state.playerCount = playerCount;
   state.activePlayer = 0;
   state.scores = [0, 0];
@@ -180,9 +176,6 @@ function beginPlay(state: GameState, playerCount: 1 | 2): void {
 export function dispatch(game: Game, cmd: GameCommand): void {
   const { state } = game;
   switch (cmd.type) {
-    case 'credit':
-      state.credits = Math.min(99, state.credits + 1);
-      break;
     case 'start':
       if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
         beginPlay(state, 1);

@@ -34,6 +34,6 @@ HUD visual redesign, CRT overlay, changing world sim bounds, stretch-to-fill dis
 
 ## Verification
 
-- Resize wide and tall viewports: stage letterboxes; score/lives/credit edges match green-line column; overlay centered in the same box
+- Resize wide and tall viewports: stage letterboxes; score/lives edges match green-line column; overlay centered in the same box
 - `pnpm test` / `pnpm build`
 - Camera shows full playfield + margin (no clipping of UFO/ground)

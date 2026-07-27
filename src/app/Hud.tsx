@@ -56,7 +56,6 @@ export function FooterBar({ state }: { state: GameState }) {
           <span className="player-tag">P{state.activePlayer + 1}</span>
         )}
       </div>
-      <div className="credit">Credit {String(state.credits).padStart(2, '0')}</div>
     </div>
   );
 }
@@ -89,7 +88,7 @@ export function Overlay({
         <h1 className="brand">Invaders 78</h1>
         <ScoreTable />
         <p className="hint pulse">1 / Enter — 1 player</p>
-        <p className="hint-sub">2 — 2 players · 5 / C — credit</p>
+        <p className="hint-sub">2 — 2 players</p>
       </div>
     );
   }

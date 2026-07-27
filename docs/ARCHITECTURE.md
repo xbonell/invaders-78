@@ -30,7 +30,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/game/*.test.ts` | Unit tests — extend when changing rules |
 | `src/hooks/useGameLoop.ts` | Fixed timestep + motion snapshot; advanced from R3F `GameSimDriver` (shared display clock) |
 | `src/game/playerRender.ts` | Display lerp helpers + `MotionSnapshot` (R3F `useFrame` applies X) |
-| `src/input/` | Keyboard, gamepad, credit/start helpers |
+| `src/input/` | Keyboard, gamepad, start helpers |
 | `src/audio/engine.ts` | Procedural Web Audio (SFX + descending formation march) |
 | `src/scene/GameCanvas.tsx` | R3F canvas, lights, shadows |
 | `src/scene/Playfield.tsx` | Syncs sim snapshot → meshes |

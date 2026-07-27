@@ -24,16 +24,14 @@ import { createGame, dispatch, drainEvents, injectAlienShotAtPlayer, step } from
 
 function startGame() {
   const game = createGame(0);
-  dispatch(game, { type: 'credit' });
   dispatch(game, { type: 'start' });
   return game;
 }
 
 describe('simulation core', () => {
-  it('boots in attract and enters playing after credit + start', () => {
+  it('boots in attract and enters playing after start', () => {
     const game = createGame(0);
     expect(game.state.phase).toBe('attract');
-    dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     expect(game.state.phase).toBe('playing');
     expect(game.state.lives).toBe(PLAYER.startLives);

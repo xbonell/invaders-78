@@ -155,14 +155,12 @@ export interface GameState {
   bonusLifeAwarded: [boolean, boolean];
   /** Countdown while formation freezes after a kill (in-flight shots keep moving) */
   alienHitFreezeTimer: number;
-  credits: number;
 }
 
 export type GameCommand =
   | { type: 'start' }
   | { type: 'startTwo' }
   | { type: 'restart' }
-  | { type: 'credit' }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'move'; dir: -1 | 0 | 1 }

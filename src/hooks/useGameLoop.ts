@@ -12,6 +12,7 @@ import { createGame, drainEvents, step, type Game } from '../game/simulation';
 import { loadHighScore, saveHighScore } from '../game/storage';
 import type { AlienShotType, GameEvent, GameState } from '../game/types';
 import { visualSig } from '../game/visualSig';
+import type { PauseMenuInput } from '../app/pauseMenu';
 import { attachKeyboard } from '../input/keyboard';
 import { pollGamepad } from '../input/gamepad';
 import type { AudioEngine } from '../audio/engine';
@@ -26,6 +27,8 @@ export interface GameLoopApi {
   /** Called from R3F useFrame so sim + display share one clock. */
   advanceRef: RefObject<(now: number) => void>;
 }
+
+export type PauseMenuInputRef = MutableRefObject<PauseMenuInput | null>;
 
 function activeShotWorld(state: GameState, type: AlienShotType): Vec2 | null {
   const slot = state.alienShots[type];
@@ -66,7 +69,10 @@ function emptyPrev(state: GameState): MotionPrevCapture {
   };
 }
 
-export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
+export function useGameLoop(
+  audio: AudioEngine | null,
+  pauseMenuRef?: PauseMenuInputRef,
+): GameLoopApi {
   const gameRef = useRef<Game | null>(null);
   if (!gameRef.current) {
     gameRef.current = createGame(loadHighScore());
@@ -74,12 +80,18 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
   const game = gameRef.current;
 
   const [version, setVersion] = useState(0);
-  const motionSnapshot = useRef<MotionSnapshot>(createMotionSnapshot(game.state.player.x));
+  const motionSnapshot = useRef(createMotionSnapshot(game.state.player.x));
   const prevCapture = useRef<MotionPrevCapture>(emptyPrev(game.state));
   const lastVisualSig = useRef(visualSig(game.state));
-  const padPrev = useRef({ fire: false, start: false, steering: false });
+  const padPrev = useRef({ fire: false, start: false, steering: false, up: false, down: false });
   const audioRef = useRef(audio);
   audioRef.current = audio;
+  const pauseMenuRefHold = useRef(pauseMenuRef);
+  pauseMenuRefHold.current = pauseMenuRef;
+  const pauseBridge = useRef<PauseMenuInput>({
+    navigate: (dir) => pauseMenuRefHold.current?.current?.navigate(dir),
+    confirm: () => pauseMenuRefHold.current?.current?.confirm(),
+  }).current;
 
   const clockRef = useRef({ acc: 0, last: 0, primed: false });
   const advanceRef = useRef<(now: number) => void>(() => {});
@@ -99,7 +111,7 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
     clock.last = now;
 
     const unlock = () => audioRef.current?.unlock() ?? Promise.resolve();
-    pollGamepad(game, padPrev.current, unlock);
+    pollGamepad(game, padPrev.current, unlock, pauseBridge);
 
     const visible = document.visibilityState === 'visible';
     if (visible && game.state.phase !== 'paused') {
@@ -169,7 +181,7 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
 
   useEffect(() => {
     const unlock = () => audioRef.current?.unlock() ?? Promise.resolve();
-    const detach = attachKeyboard(game, window, unlock, () => bumpUiRef.current());
+    const detach = attachKeyboard(game, window, unlock, () => bumpUiRef.current(), pauseBridge);
 
     const onVis = () => {
       if (document.visibilityState === 'hidden') {
@@ -185,7 +197,7 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
       detach();
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [game]);
+  }, [game, pauseBridge]);
 
   return { game, state: game.state, version, motionSnapshot, advanceRef };
 }

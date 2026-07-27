@@ -1,6 +1,6 @@
 # Invaders 78 (Web) — Design Spec
 
-Date: 2026-07-25 · Updated: 2026-07-26
+Date: 2026-07-25 · Updated: 2026-07-27
 
 ## Intent
 
@@ -67,13 +67,14 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 - Move always updates `moveDir` (even while dying) so releases are not lost; cleared on death/respawn
 - Fire edge-triggered; AudioContext unlock awaited before start/fire when needed
 - Gamepad: first connected pad; D-pad/stick + South fire + Start
+- Pause menu: ↑↓ / pad vertical navigate; Enter / South confirm; Esc / Start always resume ([pause menu design](./2026-07-27-pause-menu-design.md))
 
 ## Audio
 
 - Unlock + silent buffer prime on gesture
 - March on `formationStep`: four **descending** procedural square tones (dedicated voice, sustained per step), tempo = formation cadence; SFX on hits; muted in attract for kill spam (FX still run)
 - No sample assets — tune against classic reference by ear ([march music design](./2026-07-26-march-music-design.md))
-- Mute toggle persisted; suspend when tab hidden
+- Mute toggle persisted (pause menu); suspend when tab hidden
 
 ## Out of scope (still)
 

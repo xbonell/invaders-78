@@ -42,7 +42,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/scene/voxels/fxQueue.ts` | Destruction events queue (not React state) |
 | `src/scene/meshes/GlowBullet.tsx` | Laser bolt visuals |
 | `src/scene/meshes/BunkerMesh.tsx` | Erodable bunker cells (per-cell boxes) |
-| `src/app/` | Shell, HUD, overlays, CSS |
+| `src/app/` | Shell, HUD, overlays, pause menu, CSS |
 
 ## Data flow
 
@@ -87,7 +87,7 @@ Extend `GamePhase`, handle in `dispatch` / `step`, update HUD `Overlay`/`Hud` vi
 ## Backlog (suggested)
 
 1. **Playtest / balance** — wave 1 feel, bunker chew, UFO rate  
-2. **Settings** — volume slider, mute default, key rebind, fullscreen  
+2. **Settings** — volume slider, key rebind (pause menu: mute + fullscreen — 2026-07-27)  
 3. **Gamepad 2P start** — mirror keyboard `2`  
 4. **Desktop package** — Tauri or Electron for Steam later  
 5. **Polish** — CRT overlay (optional), attract audio policy, pause moves sync from held keys on respawn if still held  

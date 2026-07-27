@@ -1,5 +1,6 @@
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
+import type { PauseMenuInput } from '../app/pauseMenu';
 import { addCredit, insertCoinAndStart, insertCoinsAndStartTwo } from './actions';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
@@ -10,6 +11,7 @@ export function attachKeyboard(
   onGesture?: () => void | Promise<void>,
   /** HUD/overlay sync when input changes state outside the sim tick. */
   onUi?: () => void,
+  pauseMenu?: PauseMenuInput | null,
 ): () => void {
   const down = new Set<string>();
 
@@ -38,6 +40,26 @@ export function attachKeyboard(
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.repeat && (e.code === 'Space' || e.key === 'Control')) return;
 
+    if (game.state.phase === 'paused' && pauseMenu) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        pauseMenu.navigate(e.key === 'ArrowUp' ? -1 : 1);
+        onUi?.();
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        withAudio(() => pauseMenu.confirm());
+        return;
+      }
+      if (e.key === 'Escape') {
+        // Do not preventDefault — allow the UA to leave fullscreen if active.
+        dispatch(game, { type: 'resume' });
+        onUi?.();
+        return;
+      }
+    }
+
     if (e.code === 'Space' || e.key === 'Control') {
       e.preventDefault();
       withAudio(() => dispatch(game, { type: 'fire' }));
@@ -61,16 +83,12 @@ export function attachKeyboard(
     if (e.key === 'Enter') {
       e.preventDefault();
       withAudio(() => {
-        if (game.state.phase === 'paused') {
-          dispatch(game, { type: 'resume' });
-        } else {
-          insertCoinAndStart(game);
-        }
+        insertCoinAndStart(game);
       });
       return;
     }
     if (e.key === 'Escape') {
-      e.preventDefault();
+      // Do not preventDefault — allow the UA to leave fullscreen if active.
       if (game.state.phase === 'playing') dispatch(game, { type: 'pause' });
       else if (game.state.phase === 'paused') dispatch(game, { type: 'resume' });
       onUi?.();

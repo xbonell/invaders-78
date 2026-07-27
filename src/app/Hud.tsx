@@ -2,16 +2,9 @@ import type { GameState } from '../game/types';
 import { ALIEN_POINTS, ATTRACT } from '../game/constants';
 import { CRAB_A, OCTOPUS_A, SQUID_A, UFO_RECIPE } from '../scene/voxels/recipes';
 import { RecipeSprite } from './RecipeSprite';
+import { PAUSE_ITEMS, type PauseMenuItem } from './pauseMenu';
 
-export function Hud({
-  state,
-  muted,
-  onToggleMute,
-}: {
-  state: GameState;
-  muted: boolean;
-  onToggleMute: () => void;
-}) {
+export function Hud({ state }: { state: GameState }) {
   const inSession =
     state.phase === 'playing' ||
     state.phase === 'dying' ||
@@ -41,9 +34,6 @@ export function Hud({
           <span className="hud-label">Score&lt;2&gt;</span>
           <span className="hud-value">{pad(score2)}</span>
         </div>
-        <button type="button" className="hud-mute" onClick={onToggleMute}>
-          {muted ? 'Sound Off' : 'Sound On'}
-        </button>
       </div>
     </div>
   );
@@ -71,7 +61,21 @@ export function FooterBar({ state }: { state: GameState }) {
   );
 }
 
-export function Overlay({ state }: { state: GameState }) {
+export function Overlay({
+  state,
+  muted = false,
+  fullscreen = false,
+  pauseIndex = 0,
+  onPauseSelect,
+  onPauseActivate,
+}: {
+  state: GameState;
+  muted?: boolean;
+  fullscreen?: boolean;
+  pauseIndex?: number;
+  onPauseSelect?: (index: number) => void;
+  onPauseActivate?: (index: number) => void;
+}) {
   if (state.phase === 'attract') {
     const showInfo = state.attractScreen === 'info';
     return (
@@ -101,7 +105,24 @@ export function Overlay({ state }: { state: GameState }) {
     return (
       <div className="overlay overlay-dim">
         <h2>Paused</h2>
-        <p className="hint">Esc / Start to resume</p>
+        <ul className="pause-menu">
+          {PAUSE_ITEMS.map((id, index) => (
+            <li key={id}>
+              <button
+                type="button"
+                className={`pause-menu-item${index === pauseIndex ? ' selected' : ''}`}
+                onMouseEnter={() => onPauseSelect?.(index)}
+                onClick={() => onPauseActivate?.(index)}
+              >
+                <span className="pause-menu-cursor" aria-hidden>
+                  {index === pauseIndex ? '>' : '\u00A0'}
+                </span>
+                {pauseLabel(id, muted, fullscreen)}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="hint-sub">Esc / Start — resume · Enter / A — select</p>
       </div>
     );
   }
@@ -131,12 +152,24 @@ export function Overlay({ state }: { state: GameState }) {
   return null;
 }
 
+function pauseLabel(id: PauseMenuItem, muted: boolean, fullscreen: boolean): string {
+  if (id === 'sound') return muted ? 'Sound Off' : 'Sound On';
+  if (id === 'fullscreen') return fullscreen ? 'Fullscreen On' : 'Fullscreen Off';
+  return 'Back to game';
+}
+
 function ScoreTable() {
   const px = 2;
   return (
     <div className="score-table">
       <p className="score-table-title">*Score Advance Table*</p>
       <ul>
+        <li>
+          <span className="st-icon-slot">
+            <RecipeSprite recipe={UFO_RECIPE} pixelSize={px} />
+          </span>
+          <span>= ? Mystery</span>
+        </li>
         <li>
           <span className="st-icon-slot">
             <RecipeSprite recipe={SQUID_A} pixelSize={px} />
@@ -154,12 +187,6 @@ function ScoreTable() {
             <RecipeSprite recipe={OCTOPUS_A} pixelSize={px} />
           </span>
           <span>= {ALIEN_POINTS.octopus} Points</span>
-        </li>
-        <li>
-          <span className="st-icon-slot">
-            <RecipeSprite recipe={UFO_RECIPE} pixelSize={px} />
-          </span>
-          <span>= ? Mystery</span>
         </li>
       </ul>
     </div>

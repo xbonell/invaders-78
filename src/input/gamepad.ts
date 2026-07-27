@@ -1,12 +1,22 @@
+import type { PauseMenuInput } from '../app/pauseMenu';
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import { insertCoinAndStart } from './actions';
 
+export type GamepadPrev = {
+  fire: boolean;
+  start: boolean;
+  steering: boolean;
+  up: boolean;
+  down: boolean;
+};
+
 /** Poll first connected gamepad each call. */
 export function pollGamepad(
   game: Game,
-  prev: { fire: boolean; start: boolean; steering: boolean },
+  prev: GamepadPrev,
   onGesture?: () => void | Promise<void>,
+  pauseMenu?: PauseMenuInput | null,
 ): void {
   const pads = navigator.getGamepads?.() ?? [];
   const pad = pads.find((p) => p && p.connected);
@@ -38,9 +48,23 @@ export function pollGamepad(
     prev.steering = false;
   }
 
+  const up = pad.buttons[12]?.pressed || (pad.axes[1] ?? 0) < -0.4 || (pad.axes[7] ?? 0) < -0.4;
+  const down = pad.buttons[13]?.pressed || (pad.axes[1] ?? 0) > 0.4 || (pad.axes[7] ?? 0) > 0.4;
+
+  if (game.state.phase === 'paused' && pauseMenu) {
+    if (up && !prev.up) pauseMenu.navigate(-1);
+    if (down && !prev.down) pauseMenu.navigate(1);
+  }
+  prev.up = up;
+  prev.down = down;
+
   const fireBtn = pad.buttons[0]?.pressed ?? false;
   if (fireBtn && !prev.fire) {
-    withAudio(() => dispatch(game, { type: 'fire' }));
+    if (game.state.phase === 'paused' && pauseMenu) {
+      withAudio(() => pauseMenu.confirm());
+    } else {
+      withAudio(() => dispatch(game, { type: 'fire' }));
+    }
   }
   prev.fire = fireBtn;
 

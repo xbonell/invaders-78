@@ -98,25 +98,6 @@ body,
   font-size: 0.55rem;
 }
 
-.hud-mute {
-  font-family: inherit;
-  font-size: 0.45rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #888;
-  background: transparent;
-  border: 1px solid #333;
-  padding: 0.4rem 0.45rem;
-  cursor: pointer;
-  align-self: start;
-  pointer-events: auto;
-}
-
-.hud-mute:hover {
-  color: #fff;
-  border-color: #666;
-}
-
 .footer-bar {
   position: absolute;
   bottom: 0;
@@ -191,6 +172,45 @@ body,
 
 .overlay-dim {
   background: rgba(0, 0, 0, 0.5);
+}
+
+.pause-menu {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: 12rem;
+  pointer-events: auto;
+}
+
+.pause-menu-item {
+  font-family: inherit;
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+  background: transparent;
+  border: none;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-align: left;
+}
+
+.pause-menu-item:hover,
+.pause-menu-item.selected {
+  color: #3ecf6a;
+}
+
+.pause-menu-cursor {
+  display: inline-block;
+  width: 0.7rem;
+  color: #3ecf6a;
 }
 
 .brand {

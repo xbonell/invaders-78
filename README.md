@@ -19,14 +19,16 @@ pnpm build
 
 ## Controls
 
-| Action           | Keyboard     | Gamepad            |
-| ---------------- | ------------ | ------------------ |
-| Insert coin & 1P | 1 / Enter    | Start              |
-| 2 players        | 2            | —                  |
-| Add credit       | 5 / C        | —                  |
-| Move             | ← → / A D    | D-pad / left stick |
-| Fire             | Space / Ctrl | South (A / ×)      |
-| Pause            | Esc          | Start (in play)    |
+| Action           | Keyboard     | Gamepad              |
+| ---------------- | ------------ | -------------------- |
+| Insert coin & 1P | 1 / Enter    | Start                |
+| 2 players        | 2            | —                    |
+| Add credit       | 5 / C        | —                    |
+| Move             | ← → / A D    | D-pad / left stick   |
+| Fire             | Space / Ctrl | South (A / ×)        |
+| Pause            | Esc          | Start (in play)      |
+| Pause menu       | ↑↓ · Enter   | D-pad/stick Y · A    |
+| Resume           | Esc          | Start (while paused) |
 
 ## Docs for contributors / agents
 

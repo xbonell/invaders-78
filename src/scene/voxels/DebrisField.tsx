@@ -110,7 +110,7 @@ function spawnForEvent(pool: Particle[], e: GameEvent): void {
       ALIEN_DEBRIS_GLOW,
     );
   } else if (e.type === 'ufoHit') {
-    spawnFromBits(pool, e.x, e.z, recipeToBits(ufoRecipe(e.animFrame)));
+    spawnFromBits(pool, e.x, e.z, recipeToBits(ufoRecipe(e.animFrame)), ALIEN_DEBRIS_GLOW);
   } else if (e.type === 'playerHit') {
     spawnFromBits(pool, e.x, e.z, recipeToBits(PLAYER_RECIPE));
   } else if (e.type === 'bunkerHit') {

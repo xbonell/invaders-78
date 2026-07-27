@@ -40,6 +40,8 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/scene/voxels/VoxelBody.tsx` | Per-box meshes (unused by Playfield; bits still for FX) |
 | `src/scene/voxels/DebrisField.tsx` | Instanced additive debris |
 | `src/scene/voxels/fxQueue.ts` | Destruction events queue (not React state) |
+| `src/scene/voxels/scoreFloatQueue.ts` | UFO score popup spawn queue |
+| `src/scene/meshes/ScoreFloatField.tsx` | World-space rising/fading points text |
 | `src/scene/meshes/GlowBullet.tsx` | Laser bolt visuals |
 | `src/scene/meshes/BunkerMesh.tsx` | Erodable bunker cells (per-cell boxes) |
 | `src/app/` | Shell, HUD, overlays, pause menu, CSS |
@@ -48,7 +50,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 
 1. R3F `GameSimDriver` (`useFrame` priority -1) calls `advanceRef` so fixed-step `step(game, TICK_DT)` shares the display clock (no second `requestAnimationFrame`).
 2. `drainEvents(game)` → `enqueueFx(events)` always for hits; `AudioEngine.handleEvents` when not in pure attract demo kills.
-3. `DebrisField` `useFrame` calls `drainFxQueue()` and spawns particles.
+3. `DebrisField` `useFrame` calls `drainFxQueue()` and spawns particles. `ScoreFloatField` drains `scoreFloatQueue` for UFO points popups.
 4. React `version` bumps when `visualSig(state)` changes or events fire — continuous player/UFO/bullet motion does **not** reconcile React.
 5. Continuous movers (player, UFO, player bullet, alien shots): advance lerps into `motionSnapshot`; meshes set transforms in `useFrame` with **no** React position props for those axes. Alien march stays discrete; invasion fly-off lerps formation origin via an offset group.
 6. Selective shadow maps: formation `RecipeMesh` casts; bunker cells receive (`shadows="percentage"`). Player/UFO/ground do not participate — avoids the old per-voxel shadow hitch.
@@ -72,7 +74,7 @@ Edit `src/game/constants.ts` (`FORMATION`, `ALIEN_SHOT`, `PLAYER`, `UFO`, `ATTRA
 
 ### Change alien / UFO / player / alien-shot shape
 
-Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). All recipes use shared `VOXEL_SIZE` pitch (square cubes). `alienRecipe(type, frame)` / `alienShotRecipe(type, frame)` / `ufoRecipe(frame)` select animation frames. Debris for aliens uses orange override in `DebrisField.tsx`.
+Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). All recipes use shared `VOXEL_SIZE` pitch (square cubes). `alienRecipe(type, frame)` / `alienShotRecipe(type, frame)` / `ufoRecipe(frame)` select animation frames. Debris for aliens and UFO uses orange override in `DebrisField.tsx`. Scoring UFO kills also enqueue a floating points popup via `scoreFloatQueue`.
 
 ### Add a new `GameEvent`
 
@@ -104,5 +106,5 @@ Online multiplayer, ROM assets, glTF pipelines, rewriting sim inside `useFrame`.
 - [ ] `pnpm lint` green  
 - [ ] `pnpm format:check` green  
 - [ ] `pnpm build` green  
-- [ ] Manual: Enter starts with sound; kill shows orange alien debris; die while holding ←/→ then release during death — no slide on respawn  
+- [ ] Manual: Enter starts with sound; kill shows orange alien debris; UFO kill shows orange debris + floating points; die while holding ←/→ then release during death — no slide on respawn  
 - [ ] Attract demo kills still explode  

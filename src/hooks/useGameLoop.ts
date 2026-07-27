@@ -17,6 +17,7 @@ import { attachKeyboard } from '../input/keyboard';
 import { pollGamepad } from '../input/gamepad';
 import type { AudioEngine } from '../audio/engine';
 import { enqueueFx } from '../scene/voxels/fxQueue';
+import { enqueueScoreFloats } from '../scene/voxels/scoreFloatQueue';
 
 export interface GameLoopApi {
   game: Game;
@@ -158,6 +159,11 @@ export function useGameLoop(
     const events = drainEvents(game);
     if (events.length) {
       enqueueFx(events);
+      enqueueScoreFloats(
+        events
+          .filter((e): e is Extract<GameEvent, { type: 'ufoHit' }> => e.type === 'ufoHit')
+          .map((e) => ({ points: e.points, x: e.x, z: e.z })),
+      );
       if (
         game.state.phase === 'playing' ||
         game.state.phase === 'dying' ||

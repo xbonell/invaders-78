@@ -10,6 +10,7 @@ import { BunkerMesh } from './meshes/BunkerMesh';
 import { GlowAlienShot } from './meshes/GlowAlienShot';
 import { GlowBullet } from './meshes/GlowBullet';
 import { RecipeMesh } from './voxels/RecipeMesh';
+import { ScoreFloatField } from './meshes/ScoreFloatField';
 import { DebrisField } from './voxels/DebrisField';
 import { alienRecipe, PLAYER_RECIPE, ufoRecipe } from './voxels/recipes';
 
@@ -169,6 +170,7 @@ export function Playfield({
       <SmoothUfo animFrame={state.ufo?.animFrame ?? 0} motionSnapshot={motionSnapshot} />
 
       <DebrisField />
+      <ScoreFloatField />
     </group>
   );
 }

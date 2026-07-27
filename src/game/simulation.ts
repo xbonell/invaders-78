@@ -14,25 +14,21 @@ import { bulletHitsPoint, erodeBunkerAt } from './collisions';
 import {
   alienShotContextFromGameState,
   clearAlienShots,
-  createAlienShotSystem,
   injectAlienShotAtPlayer,
-  resetAlienShotSystemForWave,
   updateAlienShots,
 } from './alienShots';
+import { activeBoard, createEmptyBoard, resetBoardWave } from './board';
 import {
   alienWorldPos,
   aliveCount,
-  createAliens,
-  createBunkers,
-  createFormation,
   formationStepX,
   formationWouldHitEdge,
   stepIntervalForCount,
 } from './formation';
 import { demoMoveDir, demoShouldFire, pickDemoAim } from './demoAi';
-import type { Alien, GameCommand, GameEvent, GameState, Ufo } from './types';
+import type { Alien, BoardState, GameCommand, GameEvent, GameState, Ufo } from './types';
 
-export { injectAlienShotAtPlayer };
+export { injectAlienShotAtPlayer, activeBoard };
 
 export interface Game {
   state: GameState;
@@ -70,6 +66,10 @@ function addScore(state: GameState, points: number): void {
   }
 }
 
+function startWave(board: BoardState, wave: number): void {
+  resetBoardWave(board, wave);
+}
+
 function enterAttract(state: GameState): void {
   state.scores = [0, 0];
   state.livesByPlayer = [PLAYER.startLives, PLAYER.startLives];
@@ -77,17 +77,17 @@ function enterAttract(state: GameState): void {
   state.playerCount = 1;
   state.shotCounts = [0, 0];
   state.bonusLifeAwarded = [false, false];
-  state.alienHitFreezeTimer = 0;
   state.attractTimer = ATTRACT.screenDuration;
   state.attractScreen = ATTRACT.enabledScreens[0] ?? 'info';
   state.gameOverTimer = 0;
   state.switchTimer = 0;
-  startWave(state, 1);
+  startWave(activeBoard(state), 1);
   state.phase = 'attract';
   syncActive(state);
 }
 
 function baseState(highScore: number): GameState {
+  const boards: [BoardState, BoardState] = [createEmptyBoard(), createEmptyBoard()];
   const state: GameState = {
     phase: 'attract',
     score: 0,
@@ -95,17 +95,9 @@ function baseState(highScore: number): GameState {
     highScore,
     lives: PLAYER.startLives,
     livesByPlayer: [PLAYER.startLives, PLAYER.startLives],
-    wave: 1,
     playerCount: 1,
     activePlayer: 0,
-    player: { x: 0, z: PLAYER.z, alive: true },
-    aliens: [],
-    formation: createFormation(1),
-    playerBullet: null,
-    alienShots: createAlienShotSystem(),
-    bunkers: [],
-    ufo: null,
-    ufoSpawnTimer: UFO.spawnInterval * 0.5,
+    boards,
     dyingTimer: 0,
     waveClearTimer: 0,
     gameOverTimer: 0,
@@ -116,27 +108,11 @@ function baseState(highScore: number): GameState {
     shotCount: 0,
     shotCounts: [0, 0],
     bonusLifeAwarded: [false, false],
-    alienHitFreezeTimer: 0,
   };
-  startWave(state, 1);
+  startWave(activeBoard(state), 1);
   state.phase = 'attract';
   syncActive(state);
   return state;
-}
-
-function startWave(state: GameState, wave: number): void {
-  state.wave = wave;
-  state.aliens = createAliens();
-  state.formation = createFormation(wave);
-  state.playerBullet = null;
-  resetAlienShotSystemForWave(state.alienShots);
-  state.bunkers = createBunkers();
-  state.ufo = null;
-  state.ufoSpawnTimer = UFO.spawnInterval;
-  state.alienHitFreezeTimer = 0;
-  state.player.x = 0;
-  state.player.z = PLAYER.z;
-  state.player.alive = true;
 }
 
 export function createGame(highScore = 0): Game {
@@ -146,7 +122,7 @@ export function createGame(highScore = 0): Game {
     moveDir: 0,
     fireQueued: false,
     demoFireTimer: ATTRACT.demoFireCooldown,
-    getAlienWorldPos: (alien) => alienWorldPos(alien, game.state.formation),
+    getAlienWorldPos: (alien) => alienWorldPos(alien, activeBoard(game.state).formation),
   };
   return game;
 }
@@ -168,7 +144,12 @@ function beginPlay(state: GameState, playerCount: 1 | 2): void {
   state.livesByPlayer = [PLAYER.startLives, playerCount === 2 ? PLAYER.startLives : 0];
   state.shotCounts = [0, 0];
   state.bonusLifeAwarded = [false, false];
-  startWave(state, 1);
+  startWave(state.boards[0], 1);
+  if (playerCount === 2) {
+    startWave(state.boards[1], 1);
+  } else {
+    resetBoardWave(state.boards[1], 1);
+  }
   state.phase = 'playing';
   syncActive(state);
 }
@@ -212,13 +193,14 @@ function tryPlayerFire(game: Game): void {
   if (!game.fireQueued) return;
   game.fireQueued = false;
   const { state } = game;
-  if ((state.phase !== 'playing' && state.phase !== 'attract') || !state.player.alive) {
+  const board = activeBoard(state);
+  if ((state.phase !== 'playing' && state.phase !== 'attract') || !board.player.alive) {
     return;
   }
-  if (state.playerBullet) return;
-  state.playerBullet = {
-    x: state.player.x,
-    z: state.player.z + PLAYER.bulletSpawnOffsetZ,
+  if (board.playerBullet) return;
+  board.playerBullet = {
+    x: board.player.x,
+    z: board.player.z + PLAYER.bulletSpawnOffsetZ,
     vz: PLAYER.bulletSpeed,
     fromPlayer: true,
   };
@@ -236,50 +218,52 @@ function onPlayerShotRemoved(state: GameState): void {
 }
 
 function clearPlayerBullet(state: GameState): void {
-  if (!state.playerBullet) return;
-  state.playerBullet = null;
+  const board = activeBoard(state);
+  if (!board.playerBullet) return;
+  board.playerBullet = null;
   onPlayerShotRemoved(state);
 }
 
 function updatePlayer(game: Game, dt: number): void {
-  const { state } = game;
-  if (!state.player.alive) return;
-  state.player.x += game.moveDir * PLAYER.speed * dt;
+  const board = activeBoard(game.state);
+  if (!board.player.alive) return;
+  board.player.x += game.moveDir * PLAYER.speed * dt;
   const max = playerMaxAbsX();
-  state.player.x = Math.max(-max, Math.min(max, state.player.x));
+  board.player.x = Math.max(-max, Math.min(max, board.player.x));
 }
 
 function stepFormation(game: Game, dt: number, emitAudio: boolean): void {
   const { state } = game;
-  const alive = aliveCount(state.aliens);
+  const board = activeBoard(state);
+  const alive = aliveCount(board.aliens);
   if (alive === 0) return;
 
-  state.formation.stepInterval = stepIntervalForCount(alive, state.wave);
-  state.formation.stepTimer += dt;
-  if (state.formation.stepTimer < state.formation.stepInterval) return;
-  state.formation.stepTimer = 0;
+  board.formation.stepInterval = stepIntervalForCount(alive, board.wave);
+  board.formation.stepTimer += dt;
+  if (board.formation.stepTimer < board.formation.stepInterval) return;
+  board.formation.stepTimer = 0;
 
-  const stepX = formationStepX(alive, state.formation.dir);
-  if (formationWouldHitEdge(state.aliens, state.formation, stepX)) {
-    state.formation.dir = state.formation.dir === 1 ? -1 : 1;
-    state.formation.originZ -= FORMATION.dropZ;
+  const stepX = formationStepX(alive, board.formation.dir);
+  if (formationWouldHitEdge(board.aliens, board.formation, stepX)) {
+    board.formation.dir = board.formation.dir === 1 ? -1 : 1;
+    board.formation.originZ -= FORMATION.dropZ;
   } else {
-    state.formation.originX += state.formation.dir * stepX;
+    board.formation.originX += board.formation.dir * stepX;
   }
 
-  state.formation.animFrame = state.formation.animFrame === 0 ? 1 : 0;
-  const note = state.formation.marchNote % 4;
-  state.formation.marchNote = (state.formation.marchNote + 1) % 4;
+  board.formation.animFrame = board.formation.animFrame === 0 ? 1 : 0;
+  const note = board.formation.marchNote % 4;
+  board.formation.marchNote = (board.formation.marchNote + 1) % 4;
   if (emitAudio) {
     pushEvent(state, { type: 'formationStep', note });
   }
 
   if (state.phase === 'attract') {
-    for (const a of state.aliens) {
+    for (const a of board.aliens) {
       if (!a.alive) continue;
-      const p = alienWorldPos(a, state.formation);
+      const p = alienWorldPos(a, board.formation);
       if (p.z <= PLAYER.z + 2.5) {
-        startWave(state, 1);
+        startWave(board, 1);
         state.phase = 'attract';
         return;
       }
@@ -287,9 +271,9 @@ function stepFormation(game: Game, dt: number, emitAudio: boolean): void {
     return;
   }
 
-  for (const a of state.aliens) {
+  for (const a of board.aliens) {
     if (!a.alive) continue;
-    const p = alienWorldPos(a, state.formation);
+    const p = alienWorldPos(a, board.formation);
     if (p.z <= PLAYER.z + 0.8) {
       beginInvasion(game);
       return;
@@ -297,21 +281,22 @@ function stepFormation(game: Game, dt: number, emitAudio: boolean): void {
   }
 }
 
-/** Aliens reached the player line: ship explodes, formation flies off-screen, then game over. */
+/** Aliens reached the player line: ship explodes, formation flies off, then resolve turn. */
 function beginInvasion(game: Game): void {
   const { state } = game;
   if (state.phase !== 'playing') return;
-  const px = state.player.x;
-  const pz = state.player.z;
-  state.player.alive = false;
-  if (state.playerBullet) clearPlayerBullet(state);
-  clearAlienShots(state.alienShots);
-  state.ufo = null;
-  state.alienHitFreezeTimer = 0;
+  const board = activeBoard(state);
+  const px = board.player.x;
+  const pz = board.player.z;
+  board.player.alive = false;
+  if (board.playerBullet) clearPlayerBullet(state);
+  clearAlienShots(board.alienShots);
+  board.ufo = null;
+  board.alienHitFreezeTimer = 0;
   game.moveDir = 0;
   game.fireQueued = false;
-  state.livesByPlayer[0] = 0;
-  state.livesByPlayer[1] = 0;
+  const i = state.activePlayer;
+  state.livesByPlayer[i] = 0;
   syncActive(state);
   state.phase = 'invasion';
   state.dyingTimer = FORMATION.invasionDuration;
@@ -320,15 +305,12 @@ function beginInvasion(game: Game): void {
 
 function updateInvasion(game: Game, dt: number): void {
   const { state } = game;
-  state.formation.originZ -= FORMATION.invasionFlySpeed * dt;
+  const board = activeBoard(state);
+  board.formation.originZ -= FORMATION.invasionFlySpeed * dt;
   state.dyingTimer -= dt;
 
   if (state.dyingTimer <= 0) {
-    game.moveDir = 0;
-    game.fireQueued = false;
-    state.phase = 'gameOver';
-    state.gameOverTimer = ATTRACT.gameOverDuration;
-    pushEvent(state, { type: 'gameOver' });
+    resolveAfterDeath(game);
   }
 }
 
@@ -337,13 +319,14 @@ function mysteryScoreIndex(shotCount: number): number {
 }
 
 function spawnUfo(state: GameState): void {
-  if (state.ufo) return;
-  if (aliveCount(state.aliens) < UFO.minAliensToSpawn) return;
+  const board = activeBoard(state);
+  if (board.ufo) return;
+  if (aliveCount(board.aliens) < UFO.minAliensToSpawn) return;
   // Odd completed-shot count → from left (ROM LSB of shot counter)
   const fromLeft = (state.shotCount & 1) === 1;
   const index = mysteryScoreIndex(state.shotCount);
   const off = ufoOffscreenAbsX();
-  state.ufo = {
+  board.ufo = {
     x: fromLeft ? -off : off,
     z: UFO.z,
     vx: fromLeft ? UFO.speed : -UFO.speed,
@@ -355,40 +338,42 @@ function spawnUfo(state: GameState): void {
 }
 
 function updateUfo(state: GameState, dt: number): void {
-  state.ufoSpawnTimer -= dt;
-  if (state.ufoSpawnTimer <= 0) {
-    state.ufoSpawnTimer = UFO.spawnInterval;
+  const board = activeBoard(state);
+  board.ufoSpawnTimer -= dt;
+  if (board.ufoSpawnTimer <= 0) {
+    board.ufoSpawnTimer = UFO.spawnInterval;
     spawnUfo(state);
   }
-  if (!state.ufo) return;
-  state.ufo.x += state.ufo.vx * dt;
+  if (!board.ufo) return;
+  board.ufo.x += board.ufo.vx * dt;
   const off = ufoOffscreenAbsX();
   // Scroll fully past the far rim before despawn (stay shootable while partially visible)
-  if (state.ufo.vx > 0 && state.ufo.x >= off) {
-    state.ufo = null;
+  if (board.ufo.vx > 0 && board.ufo.x >= off) {
+    board.ufo = null;
     pushEvent(state, { type: 'ufoDespawn' });
     return;
   }
-  if (state.ufo.vx < 0 && state.ufo.x <= -off) {
-    state.ufo = null;
+  if (board.ufo.vx < 0 && board.ufo.x <= -off) {
+    board.ufo = null;
     pushEvent(state, { type: 'ufoDespawn' });
     return;
   }
 
-  state.ufo.animTicks += 1;
-  while (state.ufo.animTicks >= UFO.animIntervalTicks) {
-    state.ufo.animTicks -= UFO.animIntervalTicks;
-    const stepDir = state.ufo.vx > 0 ? 1 : 2;
-    const nextFrame = (state.ufo.animFrame + stepDir) % 3;
-    state.ufo.animFrame = nextFrame === 0 ? 0 : nextFrame === 1 ? 1 : 2;
+  board.ufo.animTicks += 1;
+  while (board.ufo.animTicks >= UFO.animIntervalTicks) {
+    board.ufo.animTicks -= UFO.animIntervalTicks;
+    const stepDir = board.ufo.vx > 0 ? 1 : 2;
+    const nextFrame = (board.ufo.animFrame + stepDir) % 3;
+    board.ufo.animFrame = nextFrame === 0 ? 0 : nextFrame === 1 ? 1 : 2;
   }
 }
 
 function collidePlayerBullet(state: GameState, scoring: boolean): void {
-  const b = state.playerBullet;
+  const board = activeBoard(state);
+  const b = board.playerBullet;
   if (!b) return;
 
-  for (const bunker of state.bunkers) {
+  for (const bunker of board.bunkers) {
     if (erodeBunkerAt(bunker, b)) {
       clearPlayerBullet(state);
       // Always emit FX (attract demo kills need explosions too)
@@ -397,32 +382,32 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
     }
   }
 
-  if (state.ufo) {
-    if (bulletHitsPoint(b, state.ufo.x, state.ufo.z, UFO.halfWidth, UFO.halfDepth)) {
-      const ux = state.ufo.x;
-      const uz = state.ufo.z;
-      const animFrame = state.ufo.animFrame;
+  if (board.ufo) {
+    if (bulletHitsPoint(b, board.ufo.x, board.ufo.z, UFO.halfWidth, UFO.halfDepth)) {
+      const ux = board.ufo.x;
+      const uz = board.ufo.z;
+      const animFrame = board.ufo.animFrame;
       // Score from current pointer at hit (ROM); then shot removal advances it
       const index = mysteryScoreIndex(state.shotCount);
       const points = scoring ? UFO.scoreTable[index] : 0;
       if (scoring) addScore(state, points);
       pushEvent(state, { type: 'ufoHit', points, x: ux, z: uz, animFrame });
-      state.ufo = null;
+      board.ufo = null;
       clearPlayerBullet(state);
       return;
     }
   }
 
-  for (const alien of state.aliens) {
+  for (const alien of board.aliens) {
     if (!alien.alive) continue;
-    const p = alienWorldPos(alien, state.formation);
+    const p = alienWorldPos(alien, board.formation);
     if (bulletHitsPoint(b, p.x, p.z, HIT.alienHalfW, HIT.alienHalfD)) {
       alien.alive = false;
       clearPlayerBullet(state);
       const points = scoring ? (ALIEN_POINTS[alien.type] ?? 10) : 0;
       if (scoring) addScore(state, points);
       if (scoring) {
-        state.alienHitFreezeTimer = FORMATION.alienHitFreeze;
+        board.alienHitFreezeTimer = FORMATION.alienHitFreeze;
       }
       pushEvent(state, {
         type: 'alienHit',
@@ -430,7 +415,7 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
         x: p.x,
         z: p.z,
         alienType: alien.type,
-        animFrame: state.formation.animFrame,
+        animFrame: board.formation.animFrame,
       });
       return;
     }
@@ -440,13 +425,14 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
 function hitPlayer(game: Game): void {
   const { state } = game;
   if (state.phase !== 'playing') return;
-  const px = state.player.x;
-  const pz = state.player.z;
-  state.player.alive = false;
-  if (state.playerBullet) clearPlayerBullet(state);
-  clearAlienShots(state.alienShots);
-  state.ufo = null;
-  state.alienHitFreezeTimer = 0;
+  const board = activeBoard(state);
+  const px = board.player.x;
+  const pz = board.player.z;
+  board.player.alive = false;
+  if (board.playerBullet) clearPlayerBullet(state);
+  clearAlienShots(board.alienShots);
+  board.ufo = null;
+  board.alienHitFreezeTimer = 0;
   game.moveDir = 0;
   game.fireQueued = false;
   const i = state.activePlayer;
@@ -458,39 +444,42 @@ function hitPlayer(game: Game): void {
 }
 
 function updatePlayerBullet(state: GameState, dt: number): void {
-  if (state.playerBullet) {
-    state.playerBullet.z += state.playerBullet.vz * dt;
-    if (state.playerBullet.z > PLAYFIELD.maxZ + 1) {
+  const board = activeBoard(state);
+  if (board.playerBullet) {
+    board.playerBullet.z += board.playerBullet.vz * dt;
+    if (board.playerBullet.z > PLAYFIELD.maxZ + 1) {
       clearPlayerBullet(state);
     }
   }
 }
 
-function syncAlienShotUfoLock(state: GameState): void {
-  state.alienShots.squigglySlotLockedByUfo =
-    ALIEN_SHOT.arcadeAuthenticUfoShotSlotSharing && state.ufo !== null;
+function syncAlienShotUfoLock(board: BoardState): void {
+  board.alienShots.squigglySlotLockedByUfo =
+    ALIEN_SHOT.arcadeAuthenticUfoShotSlotSharing && board.ufo !== null;
 }
 
 function stepAlienShots(game: Game): void {
   const { state } = game;
-  syncAlienShotUfoLock(state);
+  const board = activeBoard(state);
+  syncAlienShotUfoLock(board);
   const ctx = alienShotContextFromGameState(
     state,
     () => hitPlayer(game),
     undefined,
     () => clearPlayerBullet(state),
   );
-  updateAlienShots(state.alienShots, ctx);
+  updateAlienShots(board.alienShots, ctx);
 }
 
 function checkWaveClear(state: GameState): void {
-  if (aliveCount(state.aliens) > 0) return;
+  const board = activeBoard(state);
+  if (aliveCount(board.aliens) > 0) return;
   state.phase = 'waveClear';
   state.waveClearTimer = FORMATION.waveClearDuration;
-  if (state.playerBullet) clearPlayerBullet(state);
-  clearAlienShots(state.alienShots);
-  state.ufo = null;
-  state.alienHitFreezeTimer = 0;
+  if (board.playerBullet) clearPlayerBullet(state);
+  clearAlienShots(board.alienShots);
+  board.ufo = null;
+  board.alienHitFreezeTimer = 0;
   pushEvent(state, { type: 'waveClear' });
 }
 
@@ -498,39 +487,48 @@ function otherPlayer(i: 0 | 1): 0 | 1 {
   return i === 0 ? 1 : 0;
 }
 
+function switchToPlayer(game: Game, next: 0 | 1): void {
+  const { state } = game;
+  state.activePlayer = next;
+  syncActive(state);
+  const board = activeBoard(state);
+  board.player.alive = true;
+  board.player.x = 0;
+  board.playerBullet = null;
+  clearAlienShots(board.alienShots);
+  board.ufo = null;
+  board.alienHitFreezeTimer = 0;
+  game.moveDir = 0;
+  game.fireQueued = false;
+  state.phase = 'playerSwitch';
+  state.switchTimer = ATTRACT.playerSwitchDuration;
+  pushEvent(state, {
+    type: 'playerSwitch',
+    player: next === 0 ? 1 : 2,
+  });
+}
+
 function resolveAfterDeath(game: Game): void {
   const { state } = game;
   const i = state.activePlayer;
+
+  if (state.playerCount === 2) {
+    const o = otherPlayer(i);
+    if (state.livesByPlayer[o] > 0) {
+      switchToPlayer(game, o);
+      return;
+    }
+  }
+
   if (state.livesByPlayer[i] > 0) {
-    state.player.alive = true;
-    state.player.x = 0;
+    const board = activeBoard(state);
+    board.player.alive = true;
+    board.player.x = 0;
     game.moveDir = 0;
     game.fireQueued = false;
     state.phase = 'playing';
     syncActive(state);
     return;
-  }
-
-  if (state.playerCount === 2) {
-    const o = otherPlayer(i);
-    if (state.livesByPlayer[o] > 0) {
-      state.activePlayer = o;
-      syncActive(state);
-      state.player.alive = true;
-      state.player.x = 0;
-      state.playerBullet = null;
-      clearAlienShots(state.alienShots);
-      state.ufo = null;
-      game.moveDir = 0;
-      game.fireQueued = false;
-      state.phase = 'playerSwitch';
-      state.switchTimer = ATTRACT.playerSwitchDuration;
-      pushEvent(state, {
-        type: 'playerSwitch',
-        player: o === 0 ? 1 : 2,
-      });
-      return;
-    }
   }
 
   game.moveDir = 0;
@@ -549,6 +547,7 @@ function nextAttractScreen(current: GameState['attractScreen']): GameState['attr
 
 function updateAttract(game: Game, dt: number): void {
   const { state } = game;
+  const board = activeBoard(state);
   state.attractTimer -= dt;
   if (state.attractTimer <= 0) {
     state.attractTimer = ATTRACT.screenDuration;
@@ -556,25 +555,25 @@ function updateAttract(game: Game, dt: number): void {
   }
 
   const { aimX, targetZ, found } = pickDemoAim(
-    state.aliens,
-    state.formation,
-    state.player.x,
-    state.player.z,
-    state.ufo,
-    state.bunkers,
+    board.aliens,
+    board.formation,
+    board.player.x,
+    board.player.z,
+    board.ufo,
+    board.bunkers,
   );
-  game.moveDir = found ? demoMoveDir(state.player.x, aimX) : 0;
+  game.moveDir = found ? demoMoveDir(board.player.x, aimX) : 0;
 
   game.demoFireTimer -= dt;
   if (
     found &&
     demoShouldFire(
-      state.player.x,
+      board.player.x,
       aimX,
       targetZ,
-      state.player.z,
-      state.bunkers,
-      state.playerBullet !== null,
+      board.player.z,
+      board.bunkers,
+      board.playerBullet !== null,
       game.demoFireTimer <= 0,
     )
   ) {
@@ -588,8 +587,8 @@ function updateAttract(game: Game, dt: number): void {
   updatePlayerBullet(state, dt);
   collidePlayerBullet(state, false);
 
-  if (aliveCount(state.aliens) === 0) {
-    startWave(state, 1);
+  if (aliveCount(board.aliens) === 0) {
+    startWave(board, 1);
     state.phase = 'attract';
   }
 }
@@ -634,7 +633,8 @@ export function step(game: Game, dt: number): void {
   if (state.phase === 'waveClear') {
     state.waveClearTimer -= dt;
     if (state.waveClearTimer <= 0) {
-      startWave(state, state.wave + 1);
+      const board = activeBoard(state);
+      startWave(board, board.wave + 1);
       state.phase = 'playing';
     }
     return;
@@ -642,11 +642,12 @@ export function step(game: Game, dt: number): void {
 
   if (state.phase !== 'playing') return;
 
+  const board = activeBoard(state);
   tryPlayerFire(game);
   updatePlayer(game, dt);
 
-  if (state.alienHitFreezeTimer > 0) {
-    state.alienHitFreezeTimer -= dt;
+  if (board.alienHitFreezeTimer > 0) {
+    board.alienHitFreezeTimer -= dt;
   }
 
   updateUfo(state, dt);
@@ -654,7 +655,7 @@ export function step(game: Game, dt: number): void {
   collidePlayerBullet(state, true);
   if (state.phase !== 'playing') return;
 
-  if (state.alienHitFreezeTimer <= 0) {
+  if (board.alienHitFreezeTimer <= 0) {
     stepFormation(game, dt, true);
     if (state.phase !== 'playing') return;
   }
@@ -665,5 +666,5 @@ export function step(game: Game, dt: number): void {
 /** Test helper: expose UFO spawn */
 export function __spawnUfoForTest(game: Game): Ufo {
   spawnUfo(game.state);
-  return game.state.ufo!;
+  return activeBoard(game.state).ufo!;
 }

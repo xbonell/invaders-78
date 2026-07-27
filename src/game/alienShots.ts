@@ -564,19 +564,20 @@ export function alienShotContextFromGameState(
   debugEvents?: AlienShotDebugEvent[],
   onClearPlayerBullet?: () => void,
 ): AlienShotContext {
+  const board = state.boards[state.activePlayer];
   return {
     playerScore: state.score,
-    remainingAlienCount: aliveCount(state.aliens),
-    playerCenterX: state.player.x,
-    aliens: state.aliens,
-    formation: state.formation,
-    bunkers: state.bunkers,
-    playerBullet: state.playerBullet,
+    remainingAlienCount: aliveCount(board.aliens),
+    playerCenterX: board.player.x,
+    aliens: board.aliens,
+    formation: board.formation,
+    bunkers: board.bunkers,
+    playerBullet: board.playerBullet,
     clearPlayerBullet: () => {
       if (onClearPlayerBullet) onClearPlayerBullet();
-      else state.playerBullet = null;
+      else board.playerBullet = null;
     },
-    player: state.player,
+    player: board.player,
     onPlayerHit,
     onBunkerHit: (x, z) => {
       state.events.push({ type: 'bunkerHit', x, z });
@@ -584,15 +585,16 @@ export function alienShotContextFromGameState(
     onAlienShotExplode: (x, z) => {
       state.events.push({ type: 'alienShotHit', x, z });
     },
-    squigglySlotLockedByUfo: state.alienShots.squigglySlotLockedByUfo,
+    squigglySlotLockedByUfo: board.alienShots.squigglySlotLockedByUfo,
     debugEvents,
   };
 }
 
 /** Place an active rolling shot just above the player so the next process sweep hits. */
 export function injectAlienShotAtPlayer(state: GameState): void {
-  const logical = worldToLogical(state.player.x, state.player.z);
+  const board = state.boards[state.activePlayer];
+  const logical = worldToLogical(board.player.x, board.player.z);
   // One normal step is 4px; start above so sweep covers player centre.
-  forceActivateShot(state.alienShots.rolling, logical.x, Math.max(0, logical.y - 3));
-  state.alienShots.nextSlotToProcess = 0;
+  forceActivateShot(board.alienShots.rolling, logical.x, Math.max(0, logical.y - 3));
+  board.alienShots.nextSlotToProcess = 0;
 }

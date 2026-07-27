@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { AlienShotType, GameState } from '../game/types';
 import type { MotionSnapshot } from '../game/playerRender';
+import { activeBoard } from '../game/board';
 import { GROUND_LINE, PLAYER, PLAYFIELD, UFO } from '../game/constants';
 import { alienWorldPos } from '../game/formation';
 import { playViewDepth, playViewWidth } from '../game/playView';
@@ -120,12 +121,13 @@ export function Playfield({
   version: number;
   motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
+  const board = activeBoard(state);
   // `version` forces rebuild when sim mutates aliens/formation in place
   const aliens = useMemo(
     () =>
-      state.aliens.filter((a) => a.alive).map((a) => ({ a, p: alienWorldPos(a, state.formation) })),
+      board.aliens.filter((a) => a.alive).map((a) => ({ a, p: alienWorldPos(a, board.formation) })),
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- version tracks in-place sim mutations
-    [state.aliens, state.formation, version],
+    [board.aliens, board.formation, version],
   );
 
   return (
@@ -140,9 +142,9 @@ export function Playfield({
         <meshLambertMaterial color="#3ecf6a" />
       </mesh>
 
-      {state.player.alive && <SmoothPlayer z={state.player.z} motionSnapshot={motionSnapshot} />}
+      {board.player.alive && <SmoothPlayer z={board.player.z} motionSnapshot={motionSnapshot} />}
 
-      {state.bunkers.map((b, i) => (
+      {board.bunkers.map((b, i) => (
         <BunkerMesh key={i} bunker={b} />
       ))}
 
@@ -150,7 +152,7 @@ export function Playfield({
       <InvasionAlienOffset motionSnapshot={motionSnapshot}>
         {aliens.map(({ a, p }) => (
           <group key={a.id} position={[p.x, 0.85, p.z]}>
-            <RecipeMesh recipe={alienRecipe(a.type, state.formation.animFrame)} castShadow />
+            <RecipeMesh recipe={alienRecipe(a.type, board.formation.animFrame)} castShadow />
           </group>
         ))}
       </InvasionAlienOffset>
@@ -162,12 +164,12 @@ export function Playfield({
         <GlowAlienShot
           key={type}
           type={type}
-          frame={state.alienShots[type].animationFrame}
+          frame={board.alienShots[type].animationFrame}
           motionSnapshot={motionSnapshot}
         />
       ))}
 
-      <SmoothUfo animFrame={state.ufo?.animFrame ?? 0} motionSnapshot={motionSnapshot} />
+      <SmoothUfo animFrame={board.ufo?.animFrame ?? 0} motionSnapshot={motionSnapshot} />
 
       <DebrisField />
       <ScoreFloatField />

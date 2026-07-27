@@ -22,7 +22,8 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/game/simulation.ts` | `createGame`, `dispatch`, `step`, `drainEvents` — **source of truth for rules** |
 | `src/game/alienShots.ts` | Rolling / Plunger / Squiggly slots, reload, patterns, collisions |
 | `src/game/logicalSpace.ts` | 224×256 logical ↔ world XZ conversion; `VOXEL_SIZE` (= `SCALE_X`) shared art reticle |
-| `src/game/types.ts` | Phases, entities, `GameEvent`, commands |
+| `src/game/types.ts` | Phases, entities, `BoardState`, `GameEvent`, commands |
+| `src/game/board.ts` | `createBoard`, `activeBoard` — per-player playfield slots for 2P |
 | `src/game/constants.ts` | Tuning (`ALIEN_SHOT`, speeds, UFO table, attract timers) |
 | `src/game/formation.ts` | Grid spawn, march interval, bunker masks |
 | `src/game/collisions.ts` | AABB + bunker cell erosion |

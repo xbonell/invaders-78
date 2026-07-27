@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { ATTRACT, PLAYER, TICK_DT } from './constants';
-import { createGame, dispatch, step } from './simulation';
+import { activeBoard, createGame, dispatch, step } from './simulation';
 
 describe('attract mode', () => {
   it('boots in attract with a live formation', () => {
     const game = createGame(100);
     expect(game.state.phase).toBe('attract');
     expect(game.state.attractScreen).toBe('info');
-    expect(game.state.aliens.some((a) => a.alive)).toBe(true);
+    expect(activeBoard(game.state).aliens.some((a) => a.alive)).toBe(true);
   });
 
   it('starts 1P freely from attract', () => {
@@ -46,10 +46,13 @@ describe('attract mode', () => {
     for (const screen of ['info', 'demo'] as const) {
       const game = createGame(0);
       game.state.attractScreen = screen;
-      const before = game.state.formation.originX;
-      game.state.formation.stepTimer = game.state.formation.stepInterval;
+      const before = activeBoard(game.state).formation.originX;
+      activeBoard(game.state).formation.stepTimer = activeBoard(game.state).formation.stepInterval;
       step(game, TICK_DT);
-      expect(game.state.formation.originX !== before || game.state.formation.dir === -1).toBe(true);
+      expect(
+        activeBoard(game.state).formation.originX !== before ||
+          activeBoard(game.state).formation.dir === -1,
+      ).toBe(true);
     }
   });
 
@@ -57,7 +60,7 @@ describe('attract mode', () => {
     const game = createGame(0);
     expect(game.state.attractScreen).toBe('info');
     // Kill one alien while dimmed so a wave reset would revive it
-    const victim = game.state.aliens.find((a) => a.alive)!;
+    const victim = activeBoard(game.state).aliens.find((a) => a.alive)!;
     victim.alive = false;
     game.state.attractTimer = 0;
     step(game, TICK_DT);

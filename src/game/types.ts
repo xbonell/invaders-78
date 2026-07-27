@@ -120,6 +120,21 @@ export interface FormationState {
   marchNote: number;
 }
 
+/** Per-player playfield; 2P keeps two suspended boards. */
+export interface BoardState {
+  wave: number;
+  player: PlayerState;
+  aliens: Alien[];
+  formation: FormationState;
+  playerBullet: Bullet | null;
+  alienShots: AlienShotSystem;
+  bunkers: Bunker[];
+  ufo: Ufo | null;
+  ufoSpawnTimer: number;
+  /** Countdown while formation freezes after a kill (in-flight shots keep moving) */
+  alienHitFreezeTimer: number;
+}
+
 export interface GameState {
   phase: GamePhase;
   /** Active player's score (mirrors scores[activePlayer]) */
@@ -129,18 +144,11 @@ export interface GameState {
   /** Active player's lives */
   lives: number;
   livesByPlayer: [number, number];
-  wave: number;
   playerCount: 1 | 2;
   /** 0 = player 1, 1 = player 2 */
   activePlayer: 0 | 1;
-  player: PlayerState;
-  aliens: Alien[];
-  formation: FormationState;
-  playerBullet: Bullet | null;
-  alienShots: AlienShotSystem;
-  bunkers: Bunker[];
-  ufo: Ufo | null;
-  ufoSpawnTimer: number;
+  /** Per-player boards; sim mutates boards[activePlayer] */
+  boards: [BoardState, BoardState];
   dyingTimer: number;
   waveClearTimer: number;
   gameOverTimer: number;
@@ -153,8 +161,6 @@ export interface GameState {
   shotCounts: [number, number];
   /** Per-player: bonus life at 1500 already granted */
   bonusLifeAwarded: [boolean, boolean];
-  /** Countdown while formation freezes after a kill (in-flight shots keep moving) */
-  alienHitFreezeTimer: number;
 }
 
 export type GameCommand =

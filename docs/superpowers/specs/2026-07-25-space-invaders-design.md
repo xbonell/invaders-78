@@ -44,6 +44,7 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 ## Gameplay
 
 - **1P / 2P:** `1`/`Enter` = 1P start; `2` = 2P start (alternating turns); no coin/credit gate
+- **2P boards:** each player has an isolated board (formation, bunkers, wave, shots); switch after every death if the other still has lives; invasion ends only the active player’s remaining lives ([alternating 2P boards](./2026-07-27-alternating-2p-boards-design.md))
 - Player: horizontal only; one shot on screen; 3 lives each; bonus life at 1500
 - Invaders: 5×11 at ROM 16×16 pitch; start from ref ($38,$78) + wave Yr table; edge drop + reverse; step cadence = alive/60; last alien 3 px right / 2 px left; ~16-frame freeze on kill
 - Points: squid 30, crab 20, octopus 10; UFO ROM table (15 values); spawn ~25.6 s when ≥8 aliens; direction from shot LSB; scrolls on/off past the green-line rim (shootable while partially visible); UFO kill shows floating points at hit location
@@ -88,4 +89,4 @@ pnpm test    # Vitest — src/game/*.test.ts
 pnpm build
 ```
 
-Manual: attract demo explosions, 1P/2P switch, death while holding move, audio on first Enter.
+Manual: attract demo explosions, 1P/2P alternating boards after each death, death while holding move, audio on first Enter.

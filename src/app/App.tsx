@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AudioEngine } from '../audio/engine';
-import { playViewDepth, playViewInsetXPercent, playViewInsetYPercent, playViewWidth } from '../game/playView';
+import {
+  playViewDepth,
+  playViewInsetXPercent,
+  playViewInsetYPercent,
+  playViewWidth,
+} from '../game/playView';
 import { dispatch } from '../game/simulation';
 import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';

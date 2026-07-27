@@ -19,15 +19,15 @@ pnpm build
 
 ## Controls
 
-| Action           | Keyboard     | Gamepad              |
-| ---------------- | ------------ | -------------------- |
-| Start 1P         | 1 / Enter    | Start                |
-| 2 players        | 2            | —                    |
-| Move             | ← → / A D    | D-pad / left stick   |
-| Fire             | Space / Ctrl | South (A / ×)        |
-| Pause            | Esc          | Start (in play)      |
-| Pause menu       | ↑↓ · Enter   | D-pad/stick Y · A    |
-| Resume           | Esc          | Start (while paused) |
+| Action     | Keyboard     | Gamepad              |
+| ---------- | ------------ | -------------------- |
+| Start 1P   | 1 / Enter    | Start                |
+| 2 players  | 2            | —                    |
+| Move       | ← → / A D    | D-pad / left stick   |
+| Fire       | Space / Ctrl | South (A / ×)        |
+| Pause      | Esc          | Start (in play)      |
+| Pause menu | ↑↓ · Enter   | D-pad/stick Y · A    |
+| Resume     | Esc          | Start (while paused) |
 
 ## Docs for contributors / agents
 

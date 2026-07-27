@@ -8,6 +8,7 @@ import {
   type Vec2,
 } from '../game/playerRender';
 import { logicalToWorld, SCALE_X, SCALE_Z } from '../game/logicalSpace';
+import { activeBoard } from '../game/board';
 import { createGame, drainEvents, step, type Game } from '../game/simulation';
 import { loadHighScore, saveHighScore } from '../game/storage';
 import type { AlienShotType, GameEvent, GameState } from '../game/types';
@@ -32,7 +33,7 @@ export interface GameLoopApi {
 export type PauseMenuInputRef = MutableRefObject<PauseMenuInput | null>;
 
 function activeShotWorld(state: GameState, type: AlienShotType): Vec2 | null {
-  const slot = state.alienShots[type];
+  const slot = activeBoard(state).alienShots[type];
   if (slot.state !== 'active') return null;
   return logicalToWorld(
     slot.position.x + ALIEN_SHOT.hitboxHalfW,
@@ -41,32 +42,34 @@ function activeShotWorld(state: GameState, type: AlienShotType): Vec2 | null {
 }
 
 function capturePrev(state: GameState): MotionPrevCapture {
+  const board = activeBoard(state);
   return {
-    playerX: state.player.x,
-    ufoX: state.ufo?.x ?? null,
-    bullet: state.playerBullet ? { x: state.playerBullet.x, z: state.playerBullet.z } : null,
+    playerX: board.player.x,
+    ufoX: board.ufo?.x ?? null,
+    bullet: board.playerBullet ? { x: board.playerBullet.x, z: board.playerBullet.z } : null,
     shots: {
       rolling: activeShotWorld(state, 'rolling'),
       plunger: activeShotWorld(state, 'plunger'),
       squiggly: activeShotWorld(state, 'squiggly'),
     },
-    formationOriginX: state.formation.originX,
-    formationOriginZ: state.formation.originZ,
+    formationOriginX: board.formation.originX,
+    formationOriginZ: board.formation.originZ,
   };
 }
 
 function emptyPrev(state: GameState): MotionPrevCapture {
+  const board = activeBoard(state);
   return {
-    playerX: state.player.x,
-    ufoX: state.ufo?.x ?? null,
-    bullet: state.playerBullet ? { x: state.playerBullet.x, z: state.playerBullet.z } : null,
+    playerX: board.player.x,
+    ufoX: board.ufo?.x ?? null,
+    bullet: board.playerBullet ? { x: board.playerBullet.x, z: board.playerBullet.z } : null,
     shots: {
       rolling: activeShotWorld(state, 'rolling'),
       plunger: activeShotWorld(state, 'plunger'),
       squiggly: activeShotWorld(state, 'squiggly'),
     },
-    formationOriginX: state.formation.originX,
-    formationOriginZ: state.formation.originZ,
+    formationOriginX: board.formation.originX,
+    formationOriginZ: board.formation.originZ,
   };
 }
 
@@ -81,7 +84,7 @@ export function useGameLoop(
   const game = gameRef.current;
 
   const [version, setVersion] = useState(0);
-  const motionSnapshot = useRef(createMotionSnapshot(game.state.player.x));
+  const motionSnapshot = useRef(createMotionSnapshot(activeBoard(game.state).player.x));
   const prevCapture = useRef<MotionPrevCapture>(emptyPrev(game.state));
   const lastVisualSig = useRef(visualSig(game.state));
   const padPrev = useRef({ fire: false, start: false, steering: false, up: false, down: false });
@@ -126,26 +129,27 @@ export function useGameLoop(
 
     const alpha = clock.acc / TICK_DT;
     const state = game.state;
+    const board = activeBoard(state);
     const shotFrames = {
-      rolling: state.alienShots.rolling.animationFrame,
-      plunger: state.alienShots.plunger.animationFrame,
-      squiggly: state.alienShots.squiggly.animationFrame,
+      rolling: board.alienShots.rolling.animationFrame,
+      plunger: board.alienShots.plunger.animationFrame,
+      squiggly: board.alienShots.squiggly.animationFrame,
     };
 
     writeMotionSnapshot(motionSnapshot.current, {
       alpha,
       prev: prevCapture.current,
-      playerX: state.player.x,
-      ufoX: state.ufo?.x ?? null,
-      bullet: state.playerBullet ? { x: state.playerBullet.x, z: state.playerBullet.z } : null,
+      playerX: board.player.x,
+      ufoX: board.ufo?.x ?? null,
+      bullet: board.playerBullet ? { x: board.playerBullet.x, z: board.playerBullet.z } : null,
       shots: {
         rolling: activeShotWorld(state, 'rolling'),
         plunger: activeShotWorld(state, 'plunger'),
         squiggly: activeShotWorld(state, 'squiggly'),
       },
       shotFrames,
-      formationOriginX: state.formation.originX,
-      formationOriginZ: state.formation.originZ,
+      formationOriginX: board.formation.originX,
+      formationOriginZ: board.formation.originZ,
       phase: state.phase,
       playerMaxBlend: PLAYER.speed * TICK_DT * 1.5,
       ufoMaxBlend: UFO.speed * TICK_DT * 1.5,

@@ -20,7 +20,14 @@ import {
 } from './arcadeLayout';
 import { allAlienShotSlots, clearAlienShots } from './alienShots';
 import { SCALE_X, SCALE_Z } from './logicalSpace';
-import { createGame, dispatch, drainEvents, injectAlienShotAtPlayer, step } from './simulation';
+import {
+  activeBoard,
+  createGame,
+  dispatch,
+  drainEvents,
+  injectAlienShotAtPlayer,
+  step,
+} from './simulation';
 
 function startGame() {
   const game = createGame(0);
@@ -35,23 +42,25 @@ describe('simulation core', () => {
     dispatch(game, { type: 'start' });
     expect(game.state.phase).toBe('playing');
     expect(game.state.lives).toBe(PLAYER.startLives);
-    expect(game.state.aliens.filter((a) => a.alive)).toHaveLength(FORMATION.cols * FORMATION.rows);
+    expect(activeBoard(game.state).aliens.filter((a) => a.alive)).toHaveLength(
+      FORMATION.cols * FORMATION.rows,
+    );
   });
 
   it('allows only one player shot at a time', () => {
     const game = startGame();
     dispatch(game, { type: 'fire' });
-    expect(game.state.playerBullet).not.toBeNull();
-    const first = game.state.playerBullet;
+    expect(activeBoard(game.state).playerBullet).not.toBeNull();
+    const first = activeBoard(game.state).playerBullet;
     dispatch(game, { type: 'fire' });
-    expect(game.state.playerBullet).toBe(first);
+    expect(activeBoard(game.state).playerBullet).toBe(first);
   });
 
   it('awards points when player bullet hits an alien', () => {
     const game = startGame();
-    const alien = game.state.aliens.find((a) => a.alive)!;
+    const alien = activeBoard(game.state).aliens.find((a) => a.alive)!;
     const pos = game.getAlienWorldPos(alien);
-    game.state.playerBullet = {
+    activeBoard(game.state).playerBullet = {
       x: pos.x,
       z: pos.z - 0.2,
       vz: 20,
@@ -60,7 +69,7 @@ describe('simulation core', () => {
     step(game, TICK_DT);
     expect(alien.alive).toBe(false);
     expect(game.state.score).toBeGreaterThan(0);
-    expect(game.state.playerBullet).toBeNull();
+    expect(activeBoard(game.state).playerBullet).toBeNull();
     const events = drainEvents(game);
     expect(events.some((e) => e.type === 'alienHit')).toBe(true);
   });
@@ -117,23 +126,23 @@ describe('simulation core', () => {
   it('clamps player so the ship silhouette stays on the green line', () => {
     const game = startGame();
     // Freeze rack; park shot slots so alien fire cannot reset the ship
-    game.state.alienHitFreezeTimer = 999;
-    clearAlienShots(game.state.alienShots);
-    for (const slot of allAlienShotSlots(game.state.alienShots)) {
+    activeBoard(game.state).alienHitFreezeTimer = 999;
+    clearAlienShots(activeBoard(game.state).alienShots);
+    for (const slot of allAlienShotSlots(activeBoard(game.state).alienShots)) {
       slot.state = 'exploding';
       slot.explosionFramesRemaining = 10_000;
     }
     const max = playerMaxAbsX();
     dispatch(game, { type: 'move', dir: 1 });
     for (let i = 0; i < 400; i++) step(game, TICK_DT);
-    expect(game.state.player.x).toBeCloseTo(max, 5);
-    expect(Math.abs(game.state.player.x) + PLAYER.halfWidth).toBeLessThanOrEqual(
+    expect(activeBoard(game.state).player.x).toBeCloseTo(max, 5);
+    expect(Math.abs(activeBoard(game.state).player.x) + PLAYER.halfWidth).toBeLessThanOrEqual(
       GROUND_LINE.width / 2 + 1e-6,
     );
 
     dispatch(game, { type: 'move', dir: -1 });
     for (let i = 0; i < 800; i++) step(game, TICK_DT);
-    expect(game.state.player.x).toBeCloseTo(-max, 5);
+    expect(activeBoard(game.state).player.x).toBeCloseTo(-max, 5);
   });
 
   it('playerMaxAbsX matches green-line outer-edge geometry', () => {
@@ -144,18 +153,18 @@ describe('simulation core', () => {
   it('invasion: player explodes, formation flies away, then game over', () => {
     const game = startGame();
     drainEvents(game);
-    game.state.formation.originZ = PLAYER.z;
-    game.state.formation.stepTimer = game.state.formation.stepInterval;
-    const originBefore = game.state.formation.originZ;
+    activeBoard(game.state).formation.originZ = PLAYER.z;
+    activeBoard(game.state).formation.stepTimer = activeBoard(game.state).formation.stepInterval;
+    const originBefore = activeBoard(game.state).formation.originZ;
     step(game, TICK_DT);
     expect(game.state.phase).toBe('invasion');
-    expect(game.state.player.alive).toBe(false);
+    expect(activeBoard(game.state).player.alive).toBe(false);
     expect(game.state.lives).toBe(0);
     const events = drainEvents(game);
     expect(events.some((e) => e.type === 'playerHit')).toBe(true);
 
     step(game, TICK_DT);
-    expect(game.state.formation.originZ).toBeLessThan(originBefore);
+    expect(activeBoard(game.state).formation.originZ).toBeLessThan(originBefore);
     expect(game.state.phase).toBe('invasion');
 
     game.state.dyingTimer = 0;

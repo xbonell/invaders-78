@@ -19,7 +19,14 @@ import {
 } from './formation';
 import { forceActivateShot } from './alienShots';
 import { erodeBunkerAt } from './collisions';
-import { __spawnUfoForTest, createGame, dispatch, drainEvents, step } from './simulation';
+import {
+  activeBoard,
+  __spawnUfoForTest,
+  createGame,
+  dispatch,
+  drainEvents,
+  step,
+} from './simulation';
 
 describe('formation', () => {
   it('shortens step interval as aliens die (1/N frames)', () => {
@@ -38,17 +45,19 @@ describe('formation', () => {
   it('reverses and drops before aliens leave the game area', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });
-    const beforeZ = game.state.formation.originZ;
-    const beforeDir = game.state.formation.dir;
+    const beforeZ = activeBoard(game.state).formation.originZ;
+    const beforeDir = activeBoard(game.state).formation.dir;
     const limit = playfieldMaxAbsCenterX(HIT.alienHalfW);
     // Current rim OK; next step would push past
-    game.state.formation.originX = limit - 10 * FORMATION.colSpacing;
-    expect(formationWouldHitEdge(game.state.aliens, game.state.formation)).toBe(true);
-    game.state.formation.stepTimer = game.state.formation.stepInterval;
+    activeBoard(game.state).formation.originX = limit - 10 * FORMATION.colSpacing;
+    expect(
+      formationWouldHitEdge(activeBoard(game.state).aliens, activeBoard(game.state).formation),
+    ).toBe(true);
+    activeBoard(game.state).formation.stepTimer = activeBoard(game.state).formation.stepInterval;
     step(game, TICK_DT);
-    expect(game.state.formation.dir).toBe(beforeDir === 1 ? -1 : 1);
-    expect(game.state.formation.originZ).toBeLessThan(beforeZ);
-    for (const a of game.state.aliens) {
+    expect(activeBoard(game.state).formation.dir).toBe(beforeDir === 1 ? -1 : 1);
+    expect(activeBoard(game.state).formation.originZ).toBeLessThan(beforeZ);
+    for (const a of activeBoard(game.state).aliens) {
       if (!a.alive) continue;
       const p = game.getAlienWorldPos(a);
       expect(Math.abs(p.x) + HIT.alienHalfW).toBeLessThanOrEqual(GROUND_LINE.width / 2 + 1e-6);
@@ -58,7 +67,7 @@ describe('formation', () => {
   it('clears wave when all aliens die', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });
-    for (const a of game.state.aliens) a.alive = false;
+    for (const a of activeBoard(game.state).aliens) a.alive = false;
     step(game, TICK_DT);
     expect(game.state.phase).toBe('waveClear');
     const events = drainEvents(game);
@@ -68,47 +77,49 @@ describe('formation', () => {
   it('freezes formation briefly after an alien kill', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });
-    const alien = game.state.aliens.find((a) => a.alive)!;
+    const alien = activeBoard(game.state).aliens.find((a) => a.alive)!;
     const pos = game.getAlienWorldPos(alien);
-    game.state.playerBullet = {
+    activeBoard(game.state).playerBullet = {
       x: pos.x,
       z: pos.z,
       vz: 20,
       fromPlayer: true,
     };
-    const originX = game.state.formation.originX;
-    game.state.formation.stepTimer = game.state.formation.stepInterval;
+    const originX = activeBoard(game.state).formation.originX;
+    activeBoard(game.state).formation.stepTimer = activeBoard(game.state).formation.stepInterval;
     step(game, TICK_DT);
     expect(alien.alive).toBe(false);
-    expect(game.state.alienHitFreezeTimer).toBeGreaterThan(0);
-    expect(game.state.formation.originX).toBe(originX);
+    expect(activeBoard(game.state).alienHitFreezeTimer).toBeGreaterThan(0);
+    expect(activeBoard(game.state).formation.originX).toBe(originX);
   });
 
   it('keeps alien shots moving during kill freeze', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });
-    const alien = game.state.aliens.find((a) => a.alive)!;
+    const alien = activeBoard(game.state).aliens.find((a) => a.alive)!;
     const pos = game.getAlienWorldPos(alien);
-    game.state.playerBullet = {
+    activeBoard(game.state).playerBullet = {
       x: pos.x,
       z: pos.z,
       vz: 20,
       fromPlayer: true,
     };
     step(game, TICK_DT);
-    expect(game.state.alienHitFreezeTimer).toBeGreaterThan(0);
+    expect(activeBoard(game.state).alienHitFreezeTimer).toBeGreaterThan(0);
 
-    forceActivateShot(game.state.alienShots.rolling, 100, 40);
-    game.state.alienShots.nextSlotToProcess = 0;
-    const shotY = game.state.alienShots.rolling.position.y;
-    const originX = game.state.formation.originX;
-    game.state.formation.stepTimer = game.state.formation.stepInterval;
+    forceActivateShot(activeBoard(game.state).alienShots.rolling, 100, 40);
+    activeBoard(game.state).alienShots.nextSlotToProcess = 0;
+    const shotY = activeBoard(game.state).alienShots.rolling.position.y;
+    const originX = activeBoard(game.state).formation.originX;
+    activeBoard(game.state).formation.stepTimer = activeBoard(game.state).formation.stepInterval;
 
     step(game, TICK_DT);
 
-    expect(game.state.alienHitFreezeTimer).toBeGreaterThan(0);
-    expect(game.state.formation.originX).toBe(originX);
-    expect(game.state.alienShots.rolling.position.y).toBe(shotY + ALIEN_SHOT.normalStepPixels);
+    expect(activeBoard(game.state).alienHitFreezeTimer).toBeGreaterThan(0);
+    expect(activeBoard(game.state).formation.originX).toBe(originX);
+    expect(activeBoard(game.state).alienShots.rolling.position.y).toBe(
+      shotY + ALIEN_SHOT.normalStepPixels,
+    );
   });
 });
 
@@ -155,14 +166,14 @@ describe('ufo', () => {
     game.state.shotCount = 1;
     game.state.shotCounts[0] = 1;
     const ufo = __spawnUfoForTest(game);
-    game.state.playerBullet = {
+    activeBoard(game.state).playerBullet = {
       x: ufo.x,
       z: ufo.z,
       vz: 10,
       fromPlayer: true,
     };
     step(game, TICK_DT);
-    expect(game.state.ufo).toBeNull();
+    expect(activeBoard(game.state).ufo).toBeNull();
     expect(game.state.score).toBe(UFO.scoreTable[1]);
     const events = drainEvents(game);
     expect(events.some((e) => e.type === 'ufoHit')).toBe(true);
@@ -174,7 +185,7 @@ describe('ufo', () => {
     game.state.shotCount = 8;
     game.state.shotCounts[0] = 8;
     const ufo = __spawnUfoForTest(game);
-    game.state.playerBullet = {
+    activeBoard(game.state).playerBullet = {
       x: ufo.x,
       z: ufo.z,
       vz: 10,
@@ -187,11 +198,11 @@ describe('ufo', () => {
   it('does not spawn when fewer than 8 aliens remain', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });
-    for (const a of game.state.aliens) a.alive = false;
-    for (let i = 0; i < 7; i++) game.state.aliens[i].alive = true;
-    game.state.ufoSpawnTimer = 0;
+    for (const a of activeBoard(game.state).aliens) a.alive = false;
+    for (let i = 0; i < 7; i++) activeBoard(game.state).aliens[i].alive = true;
+    activeBoard(game.state).ufoSpawnTimer = 0;
     step(game, TICK_DT);
-    expect(game.state.ufo).toBeNull();
+    expect(activeBoard(game.state).ufo).toBeNull();
   });
 
   it('advances light frames every 12 ticks in travel direction', () => {
@@ -203,16 +214,16 @@ describe('ufo', () => {
     expect(ufo.animFrame).toBe(0);
 
     for (let i = 0; i < 11; i++) step(game, TICK_DT);
-    expect(game.state.ufo!.animFrame).toBe(0);
+    expect(activeBoard(game.state).ufo!.animFrame).toBe(0);
 
     step(game, TICK_DT);
-    expect(game.state.ufo!.animFrame).toBe(1);
+    expect(activeBoard(game.state).ufo!.animFrame).toBe(1);
 
     for (let i = 0; i < 12; i++) step(game, TICK_DT);
-    expect(game.state.ufo!.animFrame).toBe(2);
+    expect(activeBoard(game.state).ufo!.animFrame).toBe(2);
 
     for (let i = 0; i < 12; i++) step(game, TICK_DT);
-    expect(game.state.ufo!.animFrame).toBe(0);
+    expect(activeBoard(game.state).ufo!.animFrame).toBe(0);
   });
 
   it('reverses light chase when flying left', () => {
@@ -224,10 +235,10 @@ describe('ufo', () => {
     expect(ufo.animFrame).toBe(0);
 
     for (let i = 0; i < 12; i++) step(game, TICK_DT);
-    expect(game.state.ufo!.animFrame).toBe(2);
+    expect(activeBoard(game.state).ufo!.animFrame).toBe(2);
 
     for (let i = 0; i < 12; i++) step(game, TICK_DT);
-    expect(game.state.ufo!.animFrame).toBe(1);
+    expect(activeBoard(game.state).ufo!.animFrame).toBe(1);
   });
 
   it('includes animFrame on ufoHit', () => {
@@ -236,7 +247,7 @@ describe('ufo', () => {
     game.state.shotCount = 1;
     const ufo = __spawnUfoForTest(game);
     ufo.animFrame = 2;
-    game.state.playerBullet = {
+    activeBoard(game.state).playerBullet = {
       x: ufo.x,
       z: ufo.z,
       vz: 10,
@@ -265,9 +276,9 @@ describe('ufo', () => {
     const inner = playfieldMaxAbsCenterX(UFO.halfWidth);
     ufo.x = off - UFO.speed * TICK_DT * 1.5;
     step(game, TICK_DT);
-    expect(game.state.ufo).not.toBeNull();
-    expect(game.state.ufo!.x).toBeGreaterThan(inner);
-    expect(game.state.ufo!.x).toBeLessThan(off);
+    expect(activeBoard(game.state).ufo).not.toBeNull();
+    expect(activeBoard(game.state).ufo!.x).toBeGreaterThan(inner);
+    expect(activeBoard(game.state).ufo!.x).toBeLessThan(off);
   });
 
   it('despawns once fully past the far rim', () => {
@@ -279,7 +290,7 @@ describe('ufo', () => {
     ufo.x = off - UFO.speed * TICK_DT * 0.25;
     drainEvents(game);
     step(game, TICK_DT);
-    expect(game.state.ufo).toBeNull();
+    expect(activeBoard(game.state).ufo).toBeNull();
     expect(drainEvents(game).some((e) => e.type === 'ufoDespawn')).toBe(true);
   });
 });
@@ -289,11 +300,11 @@ describe('bonus life', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });
     expect(game.state.lives).toBe(PLAYER.startLives);
-    const alien = game.state.aliens.find((a) => a.type === 'squid' && a.alive)!;
+    const alien = activeBoard(game.state).aliens.find((a) => a.type === 'squid' && a.alive)!;
     game.state.scores[0] = PLAYER.bonusLifeAt - 10;
     game.state.score = PLAYER.bonusLifeAt - 10;
     const pos = game.getAlienWorldPos(alien);
-    game.state.playerBullet = {
+    activeBoard(game.state).playerBullet = {
       x: pos.x,
       z: pos.z,
       vz: 20,

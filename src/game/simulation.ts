@@ -8,7 +8,7 @@ import {
   PLAYFIELD,
   UFO,
   playerMaxAbsX,
-  playfieldMaxAbsCenterX,
+  ufoOffscreenAbsX,
 } from './constants';
 import { bulletHitsPoint, erodeBunkerAt } from './collisions';
 import {
@@ -342,9 +342,9 @@ function spawnUfo(state: GameState): void {
   // Odd completed-shot count → from left (ROM LSB of shot counter)
   const fromLeft = (state.shotCount & 1) === 1;
   const index = mysteryScoreIndex(state.shotCount);
-  const edge = playfieldMaxAbsCenterX(UFO.halfWidth);
+  const off = ufoOffscreenAbsX();
   state.ufo = {
-    x: fromLeft ? -edge : edge,
+    x: fromLeft ? -off : off,
     z: UFO.z,
     vx: fromLeft ? UFO.speed : -UFO.speed,
     scoreIndex: index,
@@ -362,19 +362,18 @@ function updateUfo(state: GameState, dt: number): void {
   }
   if (!state.ufo) return;
   state.ufo.x += state.ufo.vx * dt;
-  const edge = playfieldMaxAbsCenterX(UFO.halfWidth);
-  // Keep saucer inside the game area; despawn once it reaches the far rim
-  if (state.ufo.vx > 0 && state.ufo.x >= edge) {
+  const off = ufoOffscreenAbsX();
+  // Scroll fully past the far rim before despawn (stay shootable while partially visible)
+  if (state.ufo.vx > 0 && state.ufo.x >= off) {
     state.ufo = null;
     pushEvent(state, { type: 'ufoDespawn' });
     return;
   }
-  if (state.ufo.vx < 0 && state.ufo.x <= -edge) {
+  if (state.ufo.vx < 0 && state.ufo.x <= -off) {
     state.ufo = null;
     pushEvent(state, { type: 'ufoDespawn' });
     return;
   }
-  state.ufo.x = Math.max(-edge, Math.min(edge, state.ufo.x));
 
   state.ufo.animTicks += 1;
   while (state.ufo.animTicks >= UFO.animIntervalTicks) {

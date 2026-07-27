@@ -9,6 +9,7 @@ import {
   TICK_DT,
   UFO,
   playfieldMaxAbsCenterX,
+  ufoOffscreenAbsX,
 } from './constants';
 import {
   createBunkers,
@@ -244,6 +245,42 @@ describe('ufo', () => {
     step(game, TICK_DT);
     const hit = drainEvents(game).find((e) => e.type === 'ufoHit');
     expect(hit).toEqual(expect.objectContaining({ type: 'ufoHit', animFrame: 2 }));
+  });
+
+  it('spawns fully off the near side', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'start' });
+    game.state.shotCount = 1;
+    const ufo = __spawnUfoForTest(game);
+    expect(ufo.vx).toBeGreaterThan(0);
+    expect(ufo.x).toBeCloseTo(-ufoOffscreenAbsX(), 5);
+  });
+
+  it('scrolls past the inner rim before despawning', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'start' });
+    game.state.shotCount = 1;
+    const ufo = __spawnUfoForTest(game);
+    const off = ufoOffscreenAbsX();
+    const inner = playfieldMaxAbsCenterX(UFO.halfWidth);
+    ufo.x = off - UFO.speed * TICK_DT * 1.5;
+    step(game, TICK_DT);
+    expect(game.state.ufo).not.toBeNull();
+    expect(game.state.ufo!.x).toBeGreaterThan(inner);
+    expect(game.state.ufo!.x).toBeLessThan(off);
+  });
+
+  it('despawns once fully past the far rim', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'start' });
+    game.state.shotCount = 1;
+    const ufo = __spawnUfoForTest(game);
+    const off = ufoOffscreenAbsX();
+    ufo.x = off - UFO.speed * TICK_DT * 0.25;
+    drainEvents(game);
+    step(game, TICK_DT);
+    expect(game.state.ufo).toBeNull();
+    expect(drainEvents(game).some((e) => e.type === 'ufoDespawn')).toBe(true);
   });
 });
 

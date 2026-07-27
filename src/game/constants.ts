@@ -171,6 +171,11 @@ export function playfieldMaxAbsCenterX(halfExtent: number): number {
   return gameAreaHalfWidth() - halfExtent;
 }
 
+/** |center X| when the UFO is fully past the green-line rim (scroll on/off). */
+export function ufoOffscreenAbsX(): number {
+  return gameAreaHalfWidth() + UFO.halfWidth;
+}
+
 /**
  * Max |player.x| so ship outer edges stay on the green line / game area.
  */

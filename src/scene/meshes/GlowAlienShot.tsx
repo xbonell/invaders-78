@@ -16,8 +16,8 @@ const SHOT_GLOW: Record<
 };
 
 /**
- * Classic Rolling / Plunger / Squiggly silhouettes with additive glow.
- * Always mounted; visibility + XZ from motion snapshot (avoids remount flashes).
+ * Classic Rolling / Plunger / Squiggly silhouettes with soft additive glow.
+ * Cores stay on the shared voxel grid; halo may bleed past one cell.
  */
 export function GlowAlienShot({
   type,
@@ -29,7 +29,6 @@ export function GlowAlienShot({
   motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const group = useRef<THREE.Group>(null);
-  const elapsed = useRef(0);
   const bits = useMemo(
     () => recipeToBits(alienShotRecipe(type, frame)),
     [type, frame],
@@ -44,7 +43,7 @@ export function GlowAlienShot({
     node.position.set(s.x, 0.45, s.z);
   };
 
-  useFrame((_, dt) => {
+  useFrame(() => {
     const g = group.current;
     if (!g) return;
     const s = motionSnapshot.current.alienShots[type];
@@ -52,15 +51,12 @@ export function GlowAlienShot({
     if (!s.visible) return;
     g.position.x = s.x;
     g.position.z = s.z;
-    elapsed.current += dt;
-    const scale = 1 + 0.12 * Math.sin(elapsed.current * 40);
-    g.scale.set(scale, scale, 1);
   });
 
   return (
     <group ref={attach}>
       {bits.map((b, i) => (
-        <group key={i} position={[b.x, b.y * 0.35, b.z]}>
+        <group key={i} position={[b.x, b.y, b.z]}>
           <mesh>
             <boxGeometry args={[b.size * 2.2, b.size * 2.2, b.size * 2.2]} />
             <meshBasicMaterial
@@ -84,7 +80,7 @@ export function GlowAlienShot({
             />
           </mesh>
           <mesh>
-            <boxGeometry args={[b.size * 0.55, b.size * 0.55, b.size * 0.55]} />
+            <boxGeometry args={[b.size, b.size, b.size]} />
             <meshBasicMaterial
               color={core}
               transparent

@@ -3,6 +3,8 @@
  * UFO, octopus×2, crab×2, squid×2.
  */
 
+import { VOXEL_SIZE } from '../../game/logicalSpace';
+
 export type CellH = 0 | 1 | 2; // empty | short | tall
 
 export interface VoxelRecipe {
@@ -80,7 +82,7 @@ export const PLAYER_RECIPE = parse(
     '#############',
     '#############',
   ],
-  0.14,
+  VOXEL_SIZE,
   C_PLAYER,
 );
 
@@ -99,7 +101,7 @@ export const SQUID_A = parse(
     '#......#',
     '.#....#.',
   ],
-  0.13,
+  VOXEL_SIZE,
   C_ALIEN,
 );
 
@@ -114,7 +116,7 @@ export const SQUID_B = parse(
     '.#.##.#.',
     '#.#..#.#',
   ],
-  0.13,
+  VOXEL_SIZE,
   C_ALIEN,
 );
 
@@ -133,7 +135,7 @@ export const CRAB_A = parse(
     '#.#.....#.#',
     '...##.##...',
   ],
-  0.12,
+  VOXEL_SIZE,
   C_ALIEN,
 );
 
@@ -148,7 +150,7 @@ export const CRAB_B = parse(
     '..#.....#..',
     '.#.......#.',
   ],
-  0.12,
+  VOXEL_SIZE,
   C_ALIEN,
 );
 
@@ -167,7 +169,7 @@ export const OCTOPUS_A = parse(
     '.##..##..##.',
     '..##....##..',
   ],
-  0.115,
+  VOXEL_SIZE,
   C_ALIEN,
 );
 
@@ -182,7 +184,7 @@ export const OCTOPUS_B = parse(
     '..##.##.##..',
     '##........##',
   ],
-  0.115,
+  VOXEL_SIZE,
   C_ALIEN,
 );
 
@@ -208,7 +210,7 @@ const UFO_WINDOW_FRAMES = [
 ] as const;
 
 const UFO_FRAMES = UFO_WINDOW_FRAMES.map((windows) =>
-  parse([...UFO_BODY, windows, ...UFO_BELLY], 0.12, C_UFO),
+  parse([...UFO_BODY, windows, ...UFO_BELLY], VOXEL_SIZE, C_UFO),
 );
 
 export function ufoRecipe(frame: 0 | 1 | 2): VoxelRecipe {
@@ -221,7 +223,7 @@ export const UFO_RECIPE = ufoRecipe(0);
 export const BUNKER_COLOR = C_BUNKER;
 
 const C_SHOT = '#f0f0f0';
-const SHOT_CELL = 0.1;
+const SHOT_CELL = VOXEL_SIZE;
 
 /** Squiggly ×4 — zigzag (Wikimedia strip left group). */
 const SQUIGGLY_FRAMES = [

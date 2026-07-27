@@ -56,9 +56,9 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 ## Visuals
 
 - Visuals: playfield framed by contain-fit ortho camera; black letterbox (see [playfield viewport layout](./2026-07-26-playfield-viewport-layout-design.md))
-- Voxel recipes in `src/scene/voxels/recipes.ts` (sheet-accurate grids)
+- Voxel recipes in `src/scene/voxels/recipes.ts` (sheet-accurate grids; shared square `VOXEL_SIZE` reticle — see [unified voxel grid](./2026-07-27-unified-voxel-grid-design.md))
 - Alien death debris: **orange** additive glow; full voxel shatter
-- Bullets: thin additive “laser” stacks
+- Bullets: grid-locked voxel stacks with soft additive glow (no pulse scale)
 - Lighting: low ambient + hemisphere + angled key; formation casts onto bunkers
 - No camera motion; no texture bitmaps
 

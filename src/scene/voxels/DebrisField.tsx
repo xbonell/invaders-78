@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { BUNKER } from '../../game/constants';
+import { BUNKER, VOXEL_SIZE } from '../../game/constants';
 import type { GameEvent } from '../../game/types';
 import { drainFxQueue } from './fxQueue';
 import {
@@ -86,13 +86,14 @@ const ALIEN_SHOT_DEBRIS = ['#ffb4b4', '#fb7185', '#e11d48', '#fecdd3'] as const;
 
 function alienShotBurstBits(): VoxelBit[] {
   const bits: VoxelBit[] = [];
+  const core = VOXEL_SIZE * 0.92;
   for (let i = 0; i < 10; i++) {
     const color = ALIEN_SHOT_DEBRIS[i % ALIEN_SHOT_DEBRIS.length]!;
     bits.push({
-      x: (Math.random() - 0.5) * 0.15,
-      y: 0.35 + Math.random() * 0.25,
-      z: (Math.random() - 0.5) * 0.15,
-      size: 0.06 + Math.random() * 0.08,
+      x: (Math.random() - 0.5) * VOXEL_SIZE,
+      y: VOXEL_SIZE * 0.5 + Math.random() * VOXEL_SIZE,
+      z: (Math.random() - 0.5) * VOXEL_SIZE,
+      size: core,
       color,
     });
   }
@@ -138,7 +139,7 @@ export function DebrisField() {
       rot: 0,
       life: 0,
       maxLife: LIFE,
-      size: 0.1,
+      size: VOXEL_SIZE * 0.92,
       color: new THREE.Color('#fff'),
     }));
   }

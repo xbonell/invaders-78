@@ -19,7 +19,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 |------|------|
 | `src/game/simulation.ts` | `createGame`, `dispatch`, `step`, `drainEvents` — **source of truth for rules** |
 | `src/game/alienShots.ts` | Rolling / Plunger / Squiggly slots, reload, patterns, collisions |
-| `src/game/logicalSpace.ts` | 224×256 logical ↔ world XZ conversion |
+| `src/game/logicalSpace.ts` | 224×256 logical ↔ world XZ conversion; `VOXEL_SIZE` (= `SCALE_X`) shared art reticle |
 | `src/game/types.ts` | Phases, entities, `GameEvent`, commands |
 | `src/game/constants.ts` | Tuning (`ALIEN_SHOT`, speeds, UFO table, attract timers) |
 | `src/game/formation.ts` | Grid spawn, march interval, bunker masks |
@@ -59,7 +59,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 - **Move input:** `dispatch({ type: 'move' })` always updates `moveDir`; clear on death/respawn. Never gate move updates on `phase === 'playing'` only.
 - **Audio unlock:** first gesture must `await audio.unlock()` before start/fire that should make sound.
 - **Camera:** ortho, `camera.up.set(0,0,1)`; contain-fits `PLAYFIELD` (+ margin); player at negative Z (screen bottom). Left key → `moveDir = 1`.
-- **No bitmap game art:** recipes/code geometry only (favicon exempt).
+- **No bitmap game art:** recipes/code geometry only (favicon exempt). All playfield voxels share square `VOXEL_SIZE` (= `SCALE_X`).
 - **Controls:** see README; 2P is key `2`, not gamepad yet.
 
 ## How to…
@@ -70,7 +70,7 @@ Edit `src/game/constants.ts` (`FORMATION`, `ALIEN_SHOT`, `PLAYER`, `UFO`, `ATTRA
 
 ### Change alien / UFO / player / alien-shot shape
 
-Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). `alienRecipe(type, frame)` / `alienShotRecipe(type, frame)` / `ufoRecipe(frame)` select animation frames. Debris for aliens uses orange override in `DebrisField.tsx`.
+Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empty). All recipes use shared `VOXEL_SIZE` pitch (square cubes). `alienRecipe(type, frame)` / `alienShotRecipe(type, frame)` / `ufoRecipe(frame)` select animation frames. Debris for aliens uses orange override in `DebrisField.tsx`.
 
 ### Add a new `GameEvent`
 

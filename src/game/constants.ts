@@ -12,9 +12,9 @@ import {
   groundLineWidth,
   worldDeltaFromArcadePixels,
 } from './arcadeLayout';
-import { PLAYFIELD, SCALE_X, SCALE_Z } from './logicalSpace';
+import { PLAYFIELD, SCALE_X, SCALE_Z, VOXEL_SIZE } from './logicalSpace';
 
-export { PLAYFIELD };
+export { PLAYFIELD, VOXEL_SIZE };
 
 export const TICK_DT = 1 / 60;
 
@@ -27,22 +27,24 @@ export const PLAYER = {
   z: playerZ,
   speed: 12,
   /**
-   * Must match PLAYER_RECIPE footprint (13×0.14). Was 0.7 for an old 10-wide
-   * grid — too small, so the silhouette overhung the green line by ~2 cells.
+   * Must match PLAYER_RECIPE footprint (13×8 × VOXEL_SIZE).
    */
-  halfWidth: (13 * 0.14) / 2,
-  halfDepth: (8 * 0.14) / 2,
+  halfWidth: (13 * VOXEL_SIZE) / 2,
+  halfDepth: (8 * VOXEL_SIZE) / 2,
   /**
-   * Top-row voxel centre of PLAYER_RECIPE (8×0.14 grid) — cannon tip.
+   * Top-row voxel centre of PLAYER_RECIPE (8-row grid) — cannon tip.
    * Matches recipeToBits: `((rows - 1) * cell) / 2`.
    */
-  bulletSpawnOffsetZ: ((8 - 1) * 0.14) / 2,
+  bulletSpawnOffsetZ: ((8 - 1) * VOXEL_SIZE) / 2,
   bulletSpeed: 22,
   startLives: 3,
   dyingDuration: 0.85,
   /** Arcade DIP default: extra ship at 1500 */
   bonusLifeAt: 1500,
 } as const;
+
+/** Player bolt length in shared voxel cells (Z). */
+export const PLAYER_BOLT_CELLS = 7;
 
 export const FORMATION = {
   cols: 11,
@@ -101,9 +103,9 @@ export const ALIEN_SHOT = {
 export const UFO = {
   z: ufoZ,
   speed: 5.5,
-  /** Matches UFO_RECIPE 16×0.12 footprint */
-  halfWidth: (16 * 0.12) / 2,
-  halfDepth: 0.4,
+  /** Matches UFO_RECIPE 16×7 × VOXEL_SIZE footprint */
+  halfWidth: (16 * VOXEL_SIZE) / 2,
+  halfDepth: (7 * VOXEL_SIZE) / 2,
   /**
    * ROM table @ 1D54 (×10 for points). 16th value unused — wrap after 15.
    * 300 at index 8 → after 8 completed shots, next hit scores 300 (then every 15).
@@ -119,18 +121,15 @@ export const UFO = {
   animIntervalTicks: 12,
 } as const;
 
-/** Arcade shields: 22×16 px footprint; one cell per ROM pixel. */
-const bunkerCellW = SCALE_X;
-const bunkerCellD = SCALE_Z;
-
+/** Arcade shields: 22×16 px footprint; one square voxel per ROM pixel. */
 export const BUNKER = {
   count: 4,
   cols: SHIELD_W_PX,
   rows: SHIELD_H_PX,
-  cellSize: bunkerCellW,
-  cellDepth: bunkerCellD,
+  cellSize: VOXEL_SIZE,
+  cellDepth: VOXEL_SIZE,
   /** Vertical stack reference for voxel look */
-  stackSize: bunkerCellD * 2,
+  stackSize: VOXEL_SIZE * 2,
   /** Center Yr of 16px-tall shield at Yr=48 */
   z: arcadeToWorld(0, SHIELD_YR + SHIELD_H_PX / 2).z,
   // ROM $1D20 shield bitmap (verified vs Arcade Archives key art)
@@ -187,11 +186,11 @@ export function playerMaxAbsX(): number {
 }
 
 export const HIT = {
-  /** Widest alien (octopus 12×0.115) — used for edge bumps vs game area */
-  alienHalfW: (12 * 0.115) / 2,
+  /** Widest alien (octopus 12×VOXEL_SIZE) — used for edge bumps vs game area */
+  alienHalfW: (12 * VOXEL_SIZE) / 2,
   alienHalfD: (ALIEN_CELL_PX * SCALE_Z) / 2,
-  bulletHalfW: 0.08,
-  bulletHalfD: 0.25,
+  bulletHalfW: VOXEL_SIZE / 2,
+  bulletHalfD: (PLAYER_BOLT_CELLS * VOXEL_SIZE) / 2,
 } as const;
 
 export const ATTRACT = {

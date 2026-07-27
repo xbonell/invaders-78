@@ -15,6 +15,9 @@ export const LOGICAL_H = 256;
 export const SCALE_X = PLAYFIELD.width / LOGICAL_W;
 export const SCALE_Z = PLAYFIELD.depth / LOGICAL_H;
 
+/** Shared square world voxel pitch (playfield art reticle). */
+export const VOXEL_SIZE = SCALE_X;
+
 export interface LogicalVec2 {
   x: number;
   y: number;

@@ -115,7 +115,7 @@ export function Overlay({
         <div className="overlay-panel">
           <div className="attract-logo">
             <p className="play-line">Play</p>
-            <h1 className="brand">Invaders 78</h1>
+            <h1 className="brand">Invaders'78</h1>
           </div>
           <ScoreTable />
           <ModeSelector menuPlayerCount={state.menuPlayerCount} />
@@ -162,17 +162,19 @@ export function Overlay({
   }
   if (state.phase === 'gameOver') {
     return (
-      <div className="overlay overlay-dim">
+      <div className="overlay overlay-dim overlay-game-over">
         <div className="overlay-panel">
           <h2>Game Over</h2>
-          {state.playerCount === 2 ? (
-            <>
-              <p className="tagline">P1 {pad(state.scores[0])}</p>
-              <p className="tagline">P2 {pad(state.scores[1])}</p>
-            </>
-          ) : (
-            <p className="tagline">Score {pad(state.scores[0])}</p>
-          )}
+          <div className="game-over-scores">
+            {state.playerCount === 2 ? (
+              <>
+                <p className="tagline">P1 {pad(state.scores[0])}</p>
+                <p className="tagline">P2 {pad(state.scores[1])}</p>
+              </>
+            ) : (
+              <p className="tagline">Score {pad(state.scores[0])}</p>
+            )}
+          </div>
           <ModeSelector menuPlayerCount={state.menuPlayerCount} />
         </div>
       </div>
@@ -201,7 +203,7 @@ function ScoreTable() {
   const cellRem = 0.15;
   return (
     <div className="score-table">
-      <p className="score-table-title">*Score Advance Table*</p>
+      <p className="score-table-title">* Score Advance Table *</p>
       <ul>
         <li>
           <span className="st-icon-slot">

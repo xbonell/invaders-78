@@ -32,10 +32,11 @@ export const PLAYER = {
   halfWidth: (13 * VOXEL_SIZE) / 2,
   halfDepth: (8 * VOXEL_SIZE) / 2,
   /**
-   * Top-row voxel centre of PLAYER_RECIPE (8-row grid) — cannon tip.
+   * Top-row voxel centre of PLAYER_RECIPE (8-row grid) — cannon tip,
+   * plus 3 voxel heights so the bolt clears the turret.
    * Matches recipeToBits: `((rows - 1) * cell) / 2`.
    */
-  bulletSpawnOffsetZ: ((8 - 1) * VOXEL_SIZE) / 2,
+  bulletSpawnOffsetZ: ((8 - 1) * VOXEL_SIZE) / 2 + 3 * VOXEL_SIZE,
   bulletSpeed: 22,
   startLives: 3,
   dyingDuration: 0.85,

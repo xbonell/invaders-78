@@ -170,6 +170,7 @@ export function Playfield({
           <group key={a.id} position={[p.x, 0.85, p.z]}>
             <RecipeMesh
               recipe={alienRecipe(a.type, state.formation.animFrame)}
+              castShadow
             />
           </group>
         ))}

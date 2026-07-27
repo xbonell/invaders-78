@@ -16,11 +16,11 @@ export function BunkerMesh({ bunker }: { bunker: Bunker }) {
     <group>
       {cells.map((c) => (
         <group key={c.key} position={[c.x, 0, c.z]}>
-          <mesh position={[0, h * 0.5, 0]}>
+          <mesh position={[0, h * 0.5, 0]} receiveShadow>
             <boxGeometry args={[s, h, d]} />
             <meshLambertMaterial color={BUNKER_COLOR} />
           </mesh>
-          <mesh position={[0, h * 1.35, 0]}>
+          <mesh position={[0, h * 1.35, 0]} receiveShadow>
             <boxGeometry args={[s * 0.85, h * 0.7, d * 0.85]} />
             <meshLambertMaterial color={BUNKER_COLOR} />
           </mesh>

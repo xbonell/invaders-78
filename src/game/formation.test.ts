@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { ALIEN_SHOT, BUNKER, FORMATION, GROUND_LINE, HIT, PLAYER, PLAYFIELD, TICK_DT, UFO, playfieldMaxAbsCenterX } from './constants';
+import {
+  ALIEN_SHOT,
+  BUNKER,
+  FORMATION,
+  GROUND_LINE,
+  HIT,
+  PLAYER,
+  TICK_DT,
+  UFO,
+  playfieldMaxAbsCenterX,
+} from './constants';
 import {
   createBunkers,
   formationStepX,
@@ -8,13 +18,7 @@ import {
 } from './formation';
 import { forceActivateShot } from './alienShots';
 import { erodeBunkerAt } from './collisions';
-import {
-  __spawnUfoForTest,
-  createGame,
-  dispatch,
-  drainEvents,
-  step,
-} from './simulation';
+import { __spawnUfoForTest, createGame, dispatch, drainEvents, step } from './simulation';
 
 describe('formation', () => {
   it('shortens step interval as aliens die (1/N frames)', () => {
@@ -39,22 +43,17 @@ describe('formation', () => {
     const limit = playfieldMaxAbsCenterX(HIT.alienHalfW);
     // Current rim OK; next step would push past
     game.state.formation.originX = limit - 10 * FORMATION.colSpacing;
-    expect(
-      formationWouldHitEdge(game.state.aliens, game.state.formation),
-    ).toBe(true);
+    expect(formationWouldHitEdge(game.state.aliens, game.state.formation)).toBe(true);
     game.state.formation.stepTimer = game.state.formation.stepInterval;
     step(game, TICK_DT);
-    expect(game.state.formation.dir).toBe(-beforeDir as 1 | -1);
+    expect(game.state.formation.dir).toBe(beforeDir === 1 ? -1 : 1);
     expect(game.state.formation.originZ).toBeLessThan(beforeZ);
     for (const a of game.state.aliens) {
       if (!a.alive) continue;
       const p = game.getAlienWorldPos(a);
-      expect(Math.abs(p.x) + HIT.alienHalfW).toBeLessThanOrEqual(
-        GROUND_LINE.width / 2 + 1e-6,
-      );
+      expect(Math.abs(p.x) + HIT.alienHalfW).toBeLessThanOrEqual(GROUND_LINE.width / 2 + 1e-6);
     }
   });
-
 
   it('clears wave when all aliens die', () => {
     const game = createGame(0);
@@ -112,9 +111,7 @@ describe('formation', () => {
 
     expect(game.state.alienHitFreezeTimer).toBeGreaterThan(0);
     expect(game.state.formation.originX).toBe(originX);
-    expect(game.state.alienShots.rolling.position.y).toBe(
-      shotY + ALIEN_SHOT.normalStepPixels,
-    );
+    expect(game.state.alienShots.rolling.position.y).toBe(shotY + ALIEN_SHOT.normalStepPixels);
   });
 });
 
@@ -128,7 +125,7 @@ describe('bunkers', () => {
 
   it('erodes a cell on bullet overlap', () => {
     const bunkers = createBunkers();
-    const bunker = bunkers[0]!;
+    const bunker = bunkers[0];
     const solid = bunker.cells.findIndex((c) => c === 1);
     expect(solid).toBeGreaterThanOrEqual(0);
     const before = bunker.cells.reduce((n, c) => n + c, 0);
@@ -197,7 +194,7 @@ describe('ufo', () => {
     dispatch(game, { type: 'credit' });
     dispatch(game, { type: 'start' });
     for (const a of game.state.aliens) a.alive = false;
-    for (let i = 0; i < 7; i++) game.state.aliens[i]!.alive = true;
+    for (let i = 0; i < 7; i++) game.state.aliens[i].alive = true;
     game.state.ufoSpawnTimer = 0;
     step(game, TICK_DT);
     expect(game.state.ufo).toBeNull();
@@ -256,9 +253,7 @@ describe('ufo', () => {
     };
     step(game, TICK_DT);
     const hit = drainEvents(game).find((e) => e.type === 'ufoHit');
-    expect(hit).toEqual(
-      expect.objectContaining({ type: 'ufoHit', animFrame: 2 }),
-    );
+    expect(hit).toEqual(expect.objectContaining({ type: 'ufoHit', animFrame: 2 }));
   });
 });
 

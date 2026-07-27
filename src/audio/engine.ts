@@ -37,10 +37,9 @@ export class AudioEngine {
 
   private async doUnlock(): Promise<void> {
     if (!this.ctx) {
-      const Ctx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext;
+      const w = window as Window & { webkitAudioContext?: typeof AudioContext };
+      const Ctx = window.AudioContext ?? w.webkitAudioContext;
+      if (!Ctx) throw new Error('AudioContext unavailable');
       this.ctx = new Ctx();
       this.master = this.ctx.createGain();
       this.master.gain.value = this.muted ? 0 : 0.35;
@@ -160,9 +159,9 @@ export class AudioEngine {
     this.marchGain = g;
     this.marchFilter = filter;
 
-    osc.onended = () => {
+    osc.addEventListener('ended', () => {
       if (this.marchOsc === osc) this.stopMarch();
-    };
+    });
   }
 
   private stopMarch(): void {
@@ -185,12 +184,7 @@ export class AudioEngine {
     this.marchFilter = null;
   }
 
-  private blip(
-    freq: number,
-    dur: number,
-    type: OscillatorType,
-    gain: number,
-  ): void {
+  private blip(freq: number, dur: number, type: OscillatorType, gain: number): void {
     const ctx = this.ensure();
     if (!ctx || !this.master) return;
     const osc = ctx.createOscillator();
@@ -255,10 +249,7 @@ export class AudioEngine {
     const now = ctx.currentTime;
     for (let i = 0; i < 40; i++) {
       const t = now + i * 0.15;
-      this.ufoOsc.frequency.linearRampToValueAtTime(
-        i % 2 === 0 ? 280 : 180,
-        t,
-      );
+      this.ufoOsc.frequency.linearRampToValueAtTime(i % 2 === 0 ? 280 : 180, t);
     }
   }
 

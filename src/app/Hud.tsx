@@ -1,11 +1,6 @@
 import type { GameState } from '../game/types';
 import { ALIEN_POINTS, ATTRACT } from '../game/constants';
-import {
-  CRAB_A,
-  OCTOPUS_A,
-  SQUID_A,
-  UFO_RECIPE,
-} from '../scene/voxels/recipes';
+import { CRAB_A, OCTOPUS_A, SQUID_A, UFO_RECIPE } from '../scene/voxels/recipes';
 import { RecipeSprite } from './RecipeSprite';
 
 export function Hud({
@@ -26,16 +21,13 @@ export function Hud({
     state.phase === 'playerSwitch' ||
     state.phase === 'gameOver';
 
-  const score1 = inSession ? state.scores[0]! : 0;
-  const score2 =
-    inSession && state.playerCount === 2 ? state.scores[1]! : 0;
+  const score1 = inSession ? state.scores[0] : 0;
+  const score2 = inSession && state.playerCount === 2 ? state.scores[1] : 0;
 
   return (
     <div className="hud">
       <div className="hud-top">
-        <div
-          className={`hud-block${state.activePlayer === 0 && inSession ? ' hud-active' : ''}`}
-        >
+        <div className={`hud-block${state.activePlayer === 0 && inSession ? ' hud-active' : ''}`}>
           <span className="hud-label">Score&lt;1&gt;</span>
           <span className="hud-value">{pad(score1)}</span>
         </div>
@@ -59,9 +51,7 @@ export function Hud({
 
 export function FooterBar({ state }: { state: GameState }) {
   const lives =
-    state.phase === 'attract' ||
-    state.phase === 'gameOver' ||
-    state.phase === 'invasion'
+    state.phase === 'attract' || state.phase === 'gameOver' || state.phase === 'invasion'
       ? 0
       : Math.max(0, state.lives);
 
@@ -72,15 +62,11 @@ export function FooterBar({ state }: { state: GameState }) {
         {Array.from({ length: Math.min(lives, 6) }, (_, i) => (
           <span key={i} className="life-ship" aria-hidden />
         ))}
-        {state.playerCount === 2 &&
-          state.phase !== 'attract' &&
-          state.phase !== 'gameOver' && (
-            <span className="player-tag">P{state.activePlayer + 1}</span>
-          )}
+        {state.playerCount === 2 && state.phase !== 'attract' && state.phase !== 'gameOver' && (
+          <span className="player-tag">P{state.activePlayer + 1}</span>
+        )}
       </div>
-      <div className="credit">
-        Credit {String(state.credits).padStart(2, '0')}
-      </div>
+      <div className="credit">Credit {String(state.credits).padStart(2, '0')}</div>
     </div>
   );
 }
@@ -125,11 +111,11 @@ export function Overlay({ state }: { state: GameState }) {
         <h2>Game Over</h2>
         {state.playerCount === 2 ? (
           <>
-            <p className="tagline">P1 {pad(state.scores[0]!)}</p>
-            <p className="tagline">P2 {pad(state.scores[1]!)}</p>
+            <p className="tagline">P1 {pad(state.scores[0])}</p>
+            <p className="tagline">P2 {pad(state.scores[1])}</p>
           </>
         ) : (
-          <p className="tagline">Score {pad(state.scores[0]!)}</p>
+          <p className="tagline">Score {pad(state.scores[0])}</p>
         )}
         <p className="hint pulse">1 / Enter — play again · 2 — two players</p>
       </div>

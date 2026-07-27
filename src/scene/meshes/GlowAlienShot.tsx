@@ -6,10 +6,7 @@ import type { MotionSnapshot } from '../../game/playerRender';
 import { alienShotRecipe, recipeToBits } from '../voxels/recipes';
 
 /** Per-type additive glow: Rolling red, Plunger blue, Squiggly purple. */
-const SHOT_GLOW: Record<
-  AlienShotType,
-  { core: string; mid: string; halo: string }
-> = {
+const SHOT_GLOW: Record<AlienShotType, { core: string; mid: string; halo: string }> = {
   rolling: { core: '#ffb4b4', mid: '#fb7185', halo: '#e11d48' },
   plunger: { core: '#dbeafe', mid: '#38bdf8', halo: '#2563eb' },
   squiggly: { core: '#e9d5ff', mid: '#c084fc', halo: '#7c3aed' },
@@ -29,10 +26,7 @@ export function GlowAlienShot({
   motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
   const group = useRef<THREE.Group>(null);
-  const bits = useMemo(
-    () => recipeToBits(alienShotRecipe(type, frame)),
-    [type, frame],
-  );
+  const bits = useMemo(() => recipeToBits(alienShotRecipe(type, frame)), [type, frame]);
   const { core, mid, halo } = SHOT_GLOW[type];
 
   const attach = (node: THREE.Group | null) => {

@@ -9,7 +9,11 @@
     "preview": "rsbuild preview",
     "postinstall": "patch-package",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check ."
   },
   "dependencies": {
     "@react-three/fiber": "^9.6.1",
@@ -24,6 +28,9 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.185.1",
+    "oxfmt": "^0.60.0",
+    "oxlint": "^1.75.0",
+    "oxlint-tsgolint": "^7.0.2001",
     "patch-package": "^8.0.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"

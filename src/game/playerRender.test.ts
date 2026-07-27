@@ -87,15 +87,19 @@ describe('blendUfoDisplayX', () => {
 
 describe('blendOptionalVec2', () => {
   it('hides on despawn but keeps last position (avoid origin flash)', () => {
-    expect(
-      blendOptionalVec2({ x: 1, z: 2 }, null, 0.5, 1, 1),
-    ).toEqual({ visible: false, x: 1, z: 2 });
+    expect(blendOptionalVec2({ x: 1, z: 2 }, null, 0.5, 1, 1)).toEqual({
+      visible: false,
+      x: 1,
+      z: 2,
+    });
   });
 
   it('snaps on spawn when prev is null', () => {
-    expect(
-      blendOptionalVec2(null, { x: 3, z: 4 }, 0.5, 1, 1),
-    ).toEqual({ visible: true, x: 3, z: 4 });
+    expect(blendOptionalVec2(null, { x: 3, z: 4 }, 0.5, 1, 1)).toEqual({
+      visible: true,
+      x: 3,
+      z: 4,
+    });
   });
 
   it('120Hz alternate frames yield even Z steps for a bullet', () => {

@@ -12,9 +12,7 @@ export function aabbOverlap(
   bhw: number,
   bhd: number,
 ): boolean {
-  return (
-    Math.abs(ax - bx) <= ahw + bhw && Math.abs(az - bz) <= ahd + bhd
-  );
+  return Math.abs(ax - bx) <= ahw + bhw && Math.abs(az - bz) <= ahd + bhd;
 }
 
 export function bulletHitsPoint(
@@ -24,16 +22,7 @@ export function bulletHitsPoint(
   halfW: number,
   halfD: number,
 ): boolean {
-  return aabbOverlap(
-    bullet.x,
-    bullet.z,
-    HIT.bulletHalfW,
-    HIT.bulletHalfD,
-    x,
-    z,
-    halfW,
-    halfD,
-  );
+  return aabbOverlap(bullet.x, bullet.z, HIT.bulletHalfW, HIT.bulletHalfD, x, z, halfW, halfD);
 }
 
 /** True if a vertical shot at shotX from fromZ→toZ would hit a solid bunker cell. */

@@ -35,7 +35,7 @@ interface Particle {
 function claimSlot(pool: Particle[]): Particle {
   const free = pool.find((p) => !p.active);
   if (free) return free;
-  let oldest = pool[0]!;
+  let oldest = pool[0];
   for (const p of pool) {
     if (p.life < oldest.life) oldest = p;
   }
@@ -88,7 +88,7 @@ function alienShotBurstBits(): VoxelBit[] {
   const bits: VoxelBit[] = [];
   const core = VOXEL_SIZE * 0.92;
   for (let i = 0; i < 10; i++) {
-    const color = ALIEN_SHOT_DEBRIS[i % ALIEN_SHOT_DEBRIS.length]!;
+    const color = ALIEN_SHOT_DEBRIS[i % ALIEN_SHOT_DEBRIS.length];
     bits.push({
       x: (Math.random() - 0.5) * VOXEL_SIZE,
       y: VOXEL_SIZE * 0.5 + Math.random() * VOXEL_SIZE,
@@ -206,11 +206,7 @@ export function DebrisField() {
   });
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[undefined, undefined, MAX_DEBRIS]}
-      frustumCulled={false}
-    >
+    <instancedMesh ref={meshRef} args={[undefined, undefined, MAX_DEBRIS]} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
       <meshBasicMaterial
         toneMapped={false}

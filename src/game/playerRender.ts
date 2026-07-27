@@ -1,11 +1,7 @@
 import type { AlienShotType, GamePhase } from './types';
 
 /** Display-only linear interpolation between fixed simulation ticks. */
-export function interpolatePlayerX(
-  prevTickX: number,
-  currentX: number,
-  alpha: number,
-): number {
+export function interpolatePlayerX(prevTickX: number, currentX: number, alpha: number): number {
   return prevTickX + (currentX - prevTickX) * alpha;
 }
 
@@ -151,25 +147,12 @@ export interface WriteMotionSnapshotInput {
   invasionMaxBlend: number;
 }
 
-export function writeMotionSnapshot(
-  snap: MotionSnapshot,
-  input: WriteMotionSnapshotInput,
-): void {
+export function writeMotionSnapshot(snap: MotionSnapshot, input: WriteMotionSnapshotInput): void {
   const { alpha, prev } = input;
 
-  snap.playerX = blendDisplayX(
-    prev.playerX,
-    input.playerX,
-    alpha,
-    input.playerMaxBlend,
-  );
+  snap.playerX = blendDisplayX(prev.playerX, input.playerX, alpha, input.playerMaxBlend);
 
-  const ufo = blendUfoDisplayX(
-    prev.ufoX,
-    input.ufoX,
-    alpha,
-    input.ufoMaxBlend,
-  );
+  const ufo = blendUfoDisplayX(prev.ufoX, input.ufoX, alpha, input.ufoMaxBlend);
   snap.ufoVisible = ufo.visible;
   snap.ufoX = ufo.x;
 

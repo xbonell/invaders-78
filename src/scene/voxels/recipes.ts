@@ -25,7 +25,7 @@ export interface VoxelBit {
 /** Parse rows of `.` empty, `#` short, `H` tall. */
 function parse(rows: string[], cell: number, color: string): VoxelRecipe {
   const grid: CellH[][] = rows.map((row) =>
-    [...row].map((ch) => {
+    Array.from(row, (ch) => {
       if (ch === 'H' || ch === '2') return 2;
       if (ch === '#' || ch === '1' || ch === 'X') return 1;
       return 0;
@@ -44,9 +44,9 @@ export function recipeToBits(recipe: VoxelRecipe): VoxelBit[] {
   const gap = 0.92;
 
   for (let r = 0; r < rows; r++) {
-    const row = grid[r]!;
+    const row = grid[r];
     for (let c = 0; c < row.length; c++) {
-      const h = row[c]!;
+      const h = row[c];
       if (h === 0) continue;
       const x = c * cell - ox;
       const z = oz - r * cell;
@@ -91,31 +91,13 @@ export const PLAYER_RECIPE = parse(
  * Narrow body, crossed / split tentacles between frames.
  */
 export const SQUID_A = parse(
-  [
-    '...##...',
-    '..####..',
-    '.######.',
-    '##.##.##',
-    '########',
-    '.#.##.#.',
-    '#......#',
-    '.#....#.',
-  ],
+  ['...##...', '..####..', '.######.', '##.##.##', '########', '.#.##.#.', '#......#', '.#....#.'],
   VOXEL_SIZE,
   C_ALIEN,
 );
 
 export const SQUID_B = parse(
-  [
-    '...##...',
-    '..####..',
-    '.######.',
-    '##.##.##',
-    '########',
-    '..#..#..',
-    '.#.##.#.',
-    '#.#..#.#',
-  ],
+  ['...##...', '..####..', '.######.', '##.##.##', '########', '..#..#..', '.#.##.#.', '#.#..#.#'],
   VOXEL_SIZE,
   C_ALIEN,
 );
@@ -193,28 +175,16 @@ export const OCTOPUS_B = parse(
  * Dome pixels taller (H) for a clearer 3D disc.
  * Three frames: underside lights chase (window row only).
  */
-const UFO_BODY = [
-  '.....HHHHHH.....',
-  '...##########...',
-  '..############..',
-] as const;
-const UFO_BELLY = [
-  '################',
-  '..###..##..###..',
-  '...#........#...',
-] as const;
-const UFO_WINDOW_FRAMES = [
-  '.##.##.##.##.##.',
-  '#.##.##.##.##.##',
-  '##.##.##.##.##.#',
-] as const;
+const UFO_BODY = ['.....HHHHHH.....', '...##########...', '..############..'] as const;
+const UFO_BELLY = ['################', '..###..##..###..', '...#........#...'] as const;
+const UFO_WINDOW_FRAMES = ['.##.##.##.##.##.', '#.##.##.##.##.##', '##.##.##.##.##.#'] as const;
 
 const UFO_FRAMES = UFO_WINDOW_FRAMES.map((windows) =>
   parse([...UFO_BODY, windows, ...UFO_BELLY], VOXEL_SIZE, C_UFO),
 );
 
 export function ufoRecipe(frame: 0 | 1 | 2): VoxelRecipe {
-  return UFO_FRAMES[frame]!;
+  return UFO_FRAMES[frame];
 }
 
 /** Alias of frame 0 for callers that do not animate. */
@@ -249,30 +219,23 @@ const PLUNGER_FRAMES = [
   parse(['..##.', '.##..', '..#..', '..##.', '.##..', '..#..', '..#..'], SHOT_CELL, C_SHOT),
 ] as const;
 
-const SHOT_EXPLOSION = parse(
-  ['.#.#.', '#.#.#', '.#.#.', '#.#.#'],
-  SHOT_CELL,
-  C_SHOT,
-);
+const SHOT_EXPLOSION = parse(['.#.#.', '#.#.#', '.#.#.', '#.#.#'], SHOT_CELL, C_SHOT);
 
 export function alienShotRecipe(
   type: 'rolling' | 'plunger' | 'squiggly',
   frame: number,
 ): VoxelRecipe {
   const i = ((frame % 4) + 4) % 4;
-  if (type === 'squiggly') return SQUIGGLY_FRAMES[i]!;
-  if (type === 'rolling') return ROLLING_FRAMES[i]!;
-  return PLUNGER_FRAMES[i]!;
+  if (type === 'squiggly') return SQUIGGLY_FRAMES[i];
+  if (type === 'rolling') return ROLLING_FRAMES[i];
+  return PLUNGER_FRAMES[i];
 }
 
 export function alienShotExplosionRecipe(): VoxelRecipe {
   return SHOT_EXPLOSION;
 }
 
-export function alienRecipe(
-  type: 'squid' | 'crab' | 'octopus',
-  frame: 0 | 1,
-): VoxelRecipe {
+export function alienRecipe(type: 'squid' | 'crab' | 'octopus', frame: 0 | 1): VoxelRecipe {
   if (type === 'squid') return frame === 0 ? SQUID_A : SQUID_B;
   if (type === 'crab') return frame === 0 ? CRAB_A : CRAB_B;
   return frame === 0 ? OCTOPUS_A : OCTOPUS_B;

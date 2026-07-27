@@ -8,9 +8,7 @@ const cache = new WeakMap<VoxelRecipe, THREE.BufferGeometry>();
  * One BufferGeometry for a recipe silhouette (merged boxes).
  * Cached by recipe object identity — use stable recipe consts / alienRecipe().
  */
-export function recipeToMergedGeometry(
-  recipe: VoxelRecipe,
-): THREE.BufferGeometry {
+export function recipeToMergedGeometry(recipe: VoxelRecipe): THREE.BufferGeometry {
   const hit = cache.get(recipe);
   if (hit) return hit;
 

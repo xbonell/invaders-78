@@ -58,10 +58,7 @@ describe('attract and credits', () => {
       const before = game.state.formation.originX;
       game.state.formation.stepTimer = game.state.formation.stepInterval;
       step(game, TICK_DT);
-      expect(
-        game.state.formation.originX !== before ||
-          game.state.formation.dir === -1,
-      ).toBe(true);
+      expect(game.state.formation.originX !== before || game.state.formation.dir === -1).toBe(true);
     }
   });
 

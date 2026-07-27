@@ -1,14 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BUNKER } from '../../game/constants';
 import { SCALE_X, VOXEL_SIZE } from '../../game/logicalSpace';
-import {
-  CRAB_A,
-  OCTOPUS_A,
-  PLAYER_RECIPE,
-  SQUID_A,
-  UFO_RECIPE,
-  alienShotRecipe,
-} from './recipes';
+import { CRAB_A, OCTOPUS_A, PLAYER_RECIPE, SQUID_A, UFO_RECIPE, alienShotRecipe } from './recipes';
 
 describe('unified voxel grid', () => {
   it('VOXEL_SIZE matches SCALE_X', () => {

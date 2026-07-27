@@ -1,10 +1,4 @@
-import {
-  useMemo,
-  useRef,
-  type MutableRefObject,
-  type ReactNode,
-  type RefObject,
-} from 'react';
+import { useMemo, useRef, type MutableRefObject, type ReactNode, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { AlienShotType, GameState } from '../game/types';
@@ -17,20 +11,12 @@ import { GlowAlienShot } from './meshes/GlowAlienShot';
 import { GlowBullet } from './meshes/GlowBullet';
 import { RecipeMesh } from './voxels/RecipeMesh';
 import { DebrisField } from './voxels/DebrisField';
-import {
-  alienRecipe,
-  PLAYER_RECIPE,
-  ufoRecipe,
-} from './voxels/recipes';
+import { alienRecipe, PLAYER_RECIPE, ufoRecipe } from './voxels/recipes';
 
 const ALIEN_SHOT_TYPES: AlienShotType[] = ['rolling', 'plunger', 'squiggly'];
 
 /** Runs before mesh useFrames so snapshot matches this display frame. */
-export function GameSimDriver({
-  advanceRef,
-}: {
-  advanceRef: RefObject<(now: number) => void>;
-}) {
+export function GameSimDriver({ advanceRef }: { advanceRef: RefObject<(now: number) => void> }) {
   useFrame(() => {
     advanceRef.current?.(performance.now());
   }, -1);
@@ -133,32 +119,27 @@ export function Playfield({
   version: number;
   motionSnapshot: MutableRefObject<MotionSnapshot>;
 }) {
-  const aliens = useMemo(() => {
-    return state.aliens
-      .filter((a) => a.alive)
-      .map((a) => ({ a, p: alienWorldPos(a, state.formation) }));
-  }, [state.aliens, state.formation, version]);
+  // `version` forces rebuild when sim mutates aliens/formation in place
+  const aliens = useMemo(
+    () =>
+      state.aliens.filter((a) => a.alive).map((a) => ({ a, p: alienWorldPos(a, state.formation) })),
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- version tracks in-place sim mutations
+    [state.aliens, state.formation, version],
+  );
 
   return (
     <group>
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -0.02, 0]}
-      >
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
         <planeGeometry args={[GROUND_LINE.width, PLAYFIELD.depth + 4]} />
         <meshLambertMaterial color="#050505" />
       </mesh>
 
       <mesh position={[0, GROUND_LINE.y, PLAYER.z - GROUND_LINE.zOffset]}>
-        <boxGeometry
-          args={[GROUND_LINE.width, GROUND_LINE.y, GROUND_LINE.thickness]}
-        />
+        <boxGeometry args={[GROUND_LINE.width, GROUND_LINE.y, GROUND_LINE.thickness]} />
         <meshLambertMaterial color="#3ecf6a" />
       </mesh>
 
-      {state.player.alive && (
-        <SmoothPlayer z={state.player.z} motionSnapshot={motionSnapshot} />
-      )}
+      {state.player.alive && <SmoothPlayer z={state.player.z} motionSnapshot={motionSnapshot} />}
 
       {state.bunkers.map((b, i) => (
         <BunkerMesh key={i} bunker={b} />
@@ -168,10 +149,7 @@ export function Playfield({
       <InvasionAlienOffset motionSnapshot={motionSnapshot}>
         {aliens.map(({ a, p }) => (
           <group key={a.id} position={[p.x, 0.85, p.z]}>
-            <RecipeMesh
-              recipe={alienRecipe(a.type, state.formation.animFrame)}
-              castShadow
-            />
+            <RecipeMesh recipe={alienRecipe(a.type, state.formation.animFrame)} castShadow />
           </group>
         ))}
       </InvasionAlienOffset>
@@ -188,10 +166,7 @@ export function Playfield({
         />
       ))}
 
-      <SmoothUfo
-        animFrame={state.ufo?.animFrame ?? 0}
-        motionSnapshot={motionSnapshot}
-      />
+      <SmoothUfo animFrame={state.ufo?.animFrame ?? 0} motionSnapshot={motionSnapshot} />
 
       <DebrisField />
     </group>

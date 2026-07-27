@@ -1,12 +1,6 @@
 import type { Alien, AlienType, Bunker, FormationState } from './types';
 import { formationTopLeftForWave, shieldCenterWorld } from './arcadeLayout';
-import {
-  BUNKER,
-  FORMATION,
-  HIT,
-  TICK_DT,
-  playfieldMaxAbsCenterX,
-} from './constants';
+import { BUNKER, FORMATION, HIT, TICK_DT, playfieldMaxAbsCenterX } from './constants';
 
 export function alienTypeForRow(row: number): AlienType {
   if (row === 0) return 'squid';
@@ -64,10 +58,7 @@ export function formationStepX(alive: number, dir: 1 | -1): number {
   return FORMATION.stepX;
 }
 
-export function alienWorldPos(
-  alien: Alien,
-  formation: FormationState,
-): { x: number; z: number } {
+export function alienWorldPos(alien: Alien, formation: FormationState): { x: number; z: number } {
   return {
     x: formation.originX + alien.col * FORMATION.colSpacing,
     z: formation.originZ - alien.row * FORMATION.rowSpacing,
@@ -108,10 +99,7 @@ export function createBunkers(): Bunker[] {
   }));
 }
 
-export function bunkerCellWorld(
-  bunker: Bunker,
-  index: number,
-): { x: number; z: number } | null {
+export function bunkerCellWorld(bunker: Bunker, index: number): { x: number; z: number } | null {
   if (bunker.cells[index] !== 1) return null;
   const col = index % bunker.cols;
   const row = Math.floor(index / bunker.cols);

@@ -20,13 +20,7 @@ import {
 } from './arcadeLayout';
 import { allAlienShotSlots, clearAlienShots } from './alienShots';
 import { SCALE_X, SCALE_Z } from './logicalSpace';
-import {
-  createGame,
-  dispatch,
-  drainEvents,
-  injectAlienShotAtPlayer,
-  step,
-} from './simulation';
+import { createGame, dispatch, drainEvents, injectAlienShotAtPlayer, step } from './simulation';
 
 function startGame() {
   const game = createGame(0);
@@ -43,9 +37,7 @@ describe('simulation core', () => {
     dispatch(game, { type: 'start' });
     expect(game.state.phase).toBe('playing');
     expect(game.state.lives).toBe(PLAYER.startLives);
-    expect(game.state.aliens.filter((a) => a.alive)).toHaveLength(
-      FORMATION.cols * FORMATION.rows,
-    );
+    expect(game.state.aliens.filter((a) => a.alive)).toHaveLength(FORMATION.cols * FORMATION.rows);
   });
 
   it('allows only one player shot at a time', () => {
@@ -116,14 +108,8 @@ describe('simulation core', () => {
     expect(PLAYFIELD.width).toBe(28);
     expect(FORMATION.colSpacing).toBeCloseTo(ALIEN_CELL_PX * SCALE_X, 5);
     expect(FORMATION.rowSpacing).toBeCloseTo(ALIEN_CELL_PX * SCALE_Z, 5);
-    expect(FORMATION.startOriginX).toBeCloseTo(
-      formationTopLeftForWave(1).x,
-      5,
-    );
-    expect(FORMATION.startOriginZ).toBeCloseTo(
-      formationTopLeftForWave(1).z,
-      5,
-    );
+    expect(FORMATION.startOriginX).toBeCloseTo(formationTopLeftForWave(1).x, 5);
+    expect(FORMATION.startOriginZ).toBeCloseTo(formationTopLeftForWave(1).z, 5);
     expect(PLAYER.z).toBeCloseTo(UFO.z - (0xd0 - 0x20) * SCALE_Z, 5);
     expect(BUNKER.z).toBeLessThan(FORMATION.startOriginZ);
     expect(BUNKER.z).toBeGreaterThan(PLAYER.z);
@@ -186,16 +172,14 @@ describe('arcade layout helpers', () => {
     expect(refAlienYrForWave(2)).toBe(0x60);
     expect(refAlienYrForWave(7)).toBe(0x40);
     expect(refAlienYrForWave(10)).toBe(0x60);
-    expect(formationTopLeftForWave(2).z).toBeLessThan(
-      formationTopLeftForWave(1).z,
-    );
+    expect(formationTopLeftForWave(2).z).toBeLessThan(formationTopLeftForWave(1).z);
   });
 
   it('places four shields at ROM pitch (22 + 23 gap)', () => {
     expect(SHIELD_PITCH_PX).toBe(45);
     expect([...SHIELD_LEFT_XR]).toEqual([34, 79, 124, 169]);
     const xs = SHIELD_LEFT_XR.map((_, i) => shieldCenterWorld(i).x);
-    expect(xs[0]).toBeLessThan(xs[1]!);
+    expect(xs[0]).toBeLessThan(xs[1]);
     expect(xs[3]).toBeGreaterThan(0);
     expect(xs[0]).toBeGreaterThan(PLAYFIELD.minX);
     expect(REF_ALIEN_XR).toBe(0x38);

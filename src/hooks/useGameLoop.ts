@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type MutableRefObject,
-  type RefObject,
-} from 'react';
+import { useEffect, useRef, useState, type MutableRefObject, type RefObject } from 'react';
 import { ALIEN_SHOT, FORMATION, PLAYER, TICK_DT, UFO } from '../game/constants';
 import {
   createMotionSnapshot,
@@ -46,9 +40,7 @@ function capturePrev(state: GameState): MotionPrevCapture {
   return {
     playerX: state.player.x,
     ufoX: state.ufo?.x ?? null,
-    bullet: state.playerBullet
-      ? { x: state.playerBullet.x, z: state.playerBullet.z }
-      : null,
+    bullet: state.playerBullet ? { x: state.playerBullet.x, z: state.playerBullet.z } : null,
     shots: {
       rolling: activeShotWorld(state, 'rolling'),
       plunger: activeShotWorld(state, 'plunger'),
@@ -63,9 +55,7 @@ function emptyPrev(state: GameState): MotionPrevCapture {
   return {
     playerX: state.player.x,
     ufoX: state.ufo?.x ?? null,
-    bullet: state.playerBullet
-      ? { x: state.playerBullet.x, z: state.playerBullet.z }
-      : null,
+    bullet: state.playerBullet ? { x: state.playerBullet.x, z: state.playerBullet.z } : null,
     shots: {
       rolling: activeShotWorld(state, 'rolling'),
       plunger: activeShotWorld(state, 'plunger'),
@@ -84,9 +74,7 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
   const game = gameRef.current;
 
   const [version, setVersion] = useState(0);
-  const motionSnapshot = useRef<MotionSnapshot>(
-    createMotionSnapshot(game.state.player.x),
-  );
+  const motionSnapshot = useRef<MotionSnapshot>(createMotionSnapshot(game.state.player.x));
   const prevCapture = useRef<MotionPrevCapture>(emptyPrev(game.state));
   const lastVisualSig = useRef(visualSig(game.state));
   const padPrev = useRef({ fire: false, start: false, steering: false });
@@ -136,9 +124,7 @@ export function useGameLoop(audio: AudioEngine | null): GameLoopApi {
       prev: prevCapture.current,
       playerX: state.player.x,
       ufoX: state.ufo?.x ?? null,
-      bullet: state.playerBullet
-        ? { x: state.playerBullet.x, z: state.playerBullet.z }
-        : null,
+      bullet: state.playerBullet ? { x: state.playerBullet.x, z: state.playerBullet.z } : null,
       shots: {
         rolling: activeShotWorld(state, 'rolling'),
         plunger: activeShotWorld(state, 'plunger'),

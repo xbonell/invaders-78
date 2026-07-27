@@ -8,6 +8,8 @@ Living guide for continuing **Invaders 78**. Prefer this over older plan checkli
 pnpm install
 pnpm dev      # http://localhost (Rsbuild)
 pnpm test     # Vitest, game sim only
+pnpm lint     # Oxlint (type-aware)
+pnpm format:check
 pnpm build
 ```
 
@@ -99,6 +101,8 @@ Online multiplayer, ROM assets, glTF pipelines, rewriting sim inside `useFrame`.
 ## Verification checklist for agents
 
 - [ ] `pnpm test` green  
+- [ ] `pnpm lint` green  
+- [ ] `pnpm format:check` green  
 - [ ] `pnpm build` green  
 - [ ] Manual: Enter starts with sound; kill shows orange alien debris; die while holding ←/→ then release during death — no slide on respawn  
 - [ ] Attract demo kills still explode  

@@ -8,7 +8,7 @@ describe('recipeToMergedGeometry', () => {
     const geom = recipeToMergedGeometry(PLAYER_RECIPE);
     const positions = geom.getAttribute('position');
     expect(positions).toBeTruthy();
-    expect(positions!.count).toBe(bits.length * 24);
+    expect(positions.count).toBe(bits.length * 24);
   });
 
   it('returns the same cached geometry for the same recipe', () => {

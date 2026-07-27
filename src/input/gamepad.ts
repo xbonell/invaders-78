@@ -16,21 +16,15 @@ export function pollGamepad(
 
   const withAudio = (fn: () => void) => {
     const result = onGesture?.();
-    if (result && typeof (result as Promise<void>).then === 'function') {
-      void (result as Promise<void>).then(fn);
+    if (result && typeof result.then === 'function') {
+      void result.then(fn);
     } else {
       fn();
     }
   };
 
-  const left =
-    pad.buttons[14]?.pressed ||
-    (pad.axes[0] ?? 0) < -0.4 ||
-    (pad.axes[6] ?? 0) < -0.4;
-  const right =
-    pad.buttons[15]?.pressed ||
-    (pad.axes[0] ?? 0) > 0.4 ||
-    (pad.axes[6] ?? 0) > 0.4;
+  const left = pad.buttons[14]?.pressed || (pad.axes[0] ?? 0) < -0.4 || (pad.axes[6] ?? 0) < -0.4;
+  const right = pad.buttons[15]?.pressed || (pad.axes[0] ?? 0) > 0.4 || (pad.axes[6] ?? 0) > 0.4;
 
   if (left || right) {
     void onGesture?.();
@@ -50,8 +44,7 @@ export function pollGamepad(
   }
   prev.fire = fireBtn;
 
-  const startBtn =
-    (pad.buttons[9]?.pressed ?? false) || (pad.buttons[8]?.pressed ?? false);
+  const startBtn = (pad.buttons[9]?.pressed ?? false) || (pad.buttons[8]?.pressed ?? false);
   if (startBtn && !prev.start) {
     withAudio(() => {
       if (

@@ -24,8 +24,8 @@ export function attachKeyboard(
 
   const withAudio = (fn: () => void) => {
     const result = onGesture?.();
-    if (result && typeof (result as Promise<void>).then === 'function') {
-      void (result as Promise<void>).then(() => {
+    if (result && typeof result.then === 'function') {
+      void result.then(() => {
         fn();
         onUi?.();
       });

@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "unicorn", "oxc", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "env": {
+    "browser": true
+  },
+  "settings": {
+    "react": {
+      "version": "19.2.7"
+    }
+  },
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": "off",
+    "eslint/no-underscore-dangle": [
+      "error",
+      {
+        "allow": ["__spawnUfoForTest"]
+      }
+    ]
+  },
+  "ignorePatterns": ["dist/**", "node_modules/**", "patches/**", "docs/**", "public/**"],
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "env": {
+        "vitest": true
+      }
+    }
+  ]
+}

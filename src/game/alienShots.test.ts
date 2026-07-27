@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ALIEN_SHOT, PLAYER } from './constants';
 import { createAliens, createFormation } from './formation';
 import { logicalToWorld } from './logicalSpace';
-import type { Alien, AlienShotContext, Bunker } from './types';
+import type { Alien, Bunker } from './types';
 import {
   COLUMN_FIRE_TABLE,
   PLUNGER_TABLE_END,
@@ -11,6 +11,7 @@ import {
   SQUIGGLY_TABLE_START,
   activateShot,
   allAlienShotSlots,
+  type AlienShotContext,
   createAlienShotSystem,
   findShooterFromRequestedColumn,
   forceActivateShot,
@@ -39,8 +40,6 @@ function stubCtx(
     playerScore: 0,
     remainingAlienCount: aliens.filter((a) => a.alive).length,
     playerCenterX: 0,
-    aliens,
-    formation,
     bunkers: overrides.bunkers ?? [],
     playerBullet: null,
     clearPlayerBullet: () => {},
@@ -78,16 +77,10 @@ describe('round-robin', () => {
     for (let i = 0; i < 6; i++) {
       const slot = getSlotByIndex(system, system.nextSlotToProcess);
       order.push(slot.type);
-      system.nextSlotToProcess = ((system.nextSlotToProcess + 1) % 3) as 0 | 1 | 2;
+      system.nextSlotToProcess =
+        system.nextSlotToProcess === 0 ? 1 : system.nextSlotToProcess === 1 ? 2 : 0;
     }
-    expect(order).toEqual([
-      'rolling',
-      'plunger',
-      'squiggly',
-      'rolling',
-      'plunger',
-      'squiggly',
-    ]);
+    expect(order).toEqual(['rolling', 'plunger', 'squiggly', 'rolling', 'plunger', 'squiggly']);
   });
 });
 
@@ -181,30 +174,26 @@ describe('plunger and squiggly patterns', () => {
     const system = createAlienShotSystem();
     const requested: number[] = [];
     for (let i = 0; i < 17; i++) {
-      requested.push(COLUMN_FIRE_TABLE[system.plungerTableIndex]!);
+      requested.push(COLUMN_FIRE_TABLE[system.plungerTableIndex]);
       system.plungerTableIndex += 1;
       if (system.plungerTableIndex > PLUNGER_TABLE_END) {
         system.plungerTableIndex = PLUNGER_TABLE_START;
       }
     }
-    expect(requested).toEqual([
-      1, 7, 1, 1, 1, 4, 11, 1, 6, 3, 1, 1, 11, 9, 2, 8, 1,
-    ]);
+    expect(requested).toEqual([1, 7, 1, 1, 1, 4, 11, 1, 6, 3, 1, 1, 11, 9, 2, 8, 1]);
   });
 
   it('squiggly requests columns 11,1,6,3,1,1,11,9,2,8,2,11,4,7,10 then wraps', () => {
     const system = createAlienShotSystem();
     const requested: number[] = [];
     for (let i = 0; i < 16; i++) {
-      requested.push(COLUMN_FIRE_TABLE[system.squigglyTableIndex]!);
+      requested.push(COLUMN_FIRE_TABLE[system.squigglyTableIndex]);
       system.squigglyTableIndex += 1;
       if (system.squigglyTableIndex > SQUIGGLY_TABLE_END) {
         system.squigglyTableIndex = SQUIGGLY_TABLE_START;
       }
     }
-    expect(requested).toEqual([
-      11, 1, 6, 3, 1, 1, 11, 9, 2, 8, 2, 11, 4, 7, 10, 11,
-    ]);
+    expect(requested).toEqual([11, 1, 6, 3, 1, 1, 11, 9, 2, 8, 2, 11, 4, 7, 10, 11]);
   });
 
   it('does not advance plunger pointer when reload blocks spawn', () => {
@@ -247,9 +236,7 @@ describe('eligibility', () => {
 describe('reloadAllowsShot', () => {
   it('allows when other slots are idle', () => {
     const system = createAlienShotSystem();
-    expect(
-      reloadAllowsShot(system.rolling, allAlienShotSlots(system), 48),
-    ).toBe(true);
+    expect(reloadAllowsShot(system.rolling, allAlienShotSlots(system), 48)).toBe(true);
   });
 
   it('blocks when other active counters are below threshold', () => {
@@ -258,9 +245,7 @@ describe('reloadAllowsShot', () => {
     system.plunger.moveCounter = 5;
     forceActivateShot(system.squiggly, 0, 0);
     system.squiggly.moveCounter = 5;
-    expect(
-      reloadAllowsShot(system.rolling, allAlienShotSlots(system), 48),
-    ).toBe(false);
+    expect(reloadAllowsShot(system.rolling, allAlienShotSlots(system), 48)).toBe(false);
   });
 });
 

@@ -1,17 +1,9 @@
 /** Arcade-authentic alien Rolling / Plunger / Squiggly shot system. */
 
 import { ALIEN_SHOT, FORMATION, HIT, PLAYER } from './constants';
-import {
-  aabbOverlap,
-  erodeBunkerAt,
-} from './collisions';
+import { aabbOverlap, erodeBunkerAt } from './collisions';
 import { aliveCount, alienWorldPos } from './formation';
-import {
-  LOGICAL_W,
-  logicalToWorld,
-  worldDeltaYToLogical,
-  worldToLogical,
-} from './logicalSpace';
+import { LOGICAL_W, logicalToWorld, worldDeltaYToLogical, worldToLogical } from './logicalSpace';
 import type {
   Alien,
   AlienShotSlot,
@@ -125,25 +117,17 @@ export function getAlienShotReloadThreshold(score: number): number {
   return 0x07;
 }
 
-export function allAlienShotSlots(
-  system: AlienShotSystem,
-): readonly AlienShotSlot[] {
+export function allAlienShotSlots(system: AlienShotSystem): readonly AlienShotSlot[] {
   return [system.rolling, system.plunger, system.squiggly];
 }
 
-export function getSlotByIndex(
-  system: AlienShotSystem,
-  index: 0 | 1 | 2,
-): AlienShotSlot {
+export function getSlotByIndex(system: AlienShotSystem, index: 0 | 1 | 2): AlienShotSlot {
   if (index === 0) return system.rolling;
   if (index === 1) return system.plunger;
   return system.squiggly;
 }
 
-function pushDebug(
-  ctx: AlienShotContext,
-  event: AlienShotDebugEvent,
-): void {
+function pushDebug(ctx: AlienShotContext, event: AlienShotDebugEvent): void {
   ctx.debugEvents?.push(event);
 }
 
@@ -154,11 +138,7 @@ export function reloadAllowsShot(
 ): boolean {
   const otherCounters = allSlots
     .filter((slot) => slot.type !== candidate.type)
-    .map((slot) =>
-      slot.state === 'idle'
-        ? ALIEN_SHOT.inactiveMoveCounter
-        : slot.moveCounter,
-    );
+    .map((slot) => (slot.state === 'idle' ? ALIEN_SHOT.inactiveMoveCounter : slot.moveCounter));
   return Math.min(...otherCounters) >= reloadThreshold;
 }
 
@@ -174,13 +154,12 @@ export function isShotTypeEligible(
       return remainingAlienCount > 1;
     case 'squiggly':
       return remainingAlienCount >= 1 && !squigglySlotLockedByUfo;
+    default:
+      return false;
   }
 }
 
-export function getLowestLivingAlienInColumn(
-  aliens: Alien[],
-  column: number,
-): Alien | null {
+export function getLowestLivingAlienInColumn(aliens: Alien[], column: number): Alien | null {
   let best: Alien | null = null;
   for (const a of aliens) {
     if (!a.alive || a.col !== column) continue;
@@ -219,7 +198,7 @@ export function selectRollingShotColumn(
 
   let bestCol = -1;
   let bestDist = Infinity;
-  for (const [col, cx] of [...occupied.entries()].sort((a, b) => a[0] - b[0])) {
+  for (const [col, cx] of [...occupied.entries()].toSorted((a, b) => a[0] - b[0])) {
     const d = Math.abs(cx - playerCenterX);
     if (d < bestDist) {
       bestDist = d;
@@ -234,9 +213,9 @@ export function selectRollingShotColumnFromCentres(
   playerCenterX: number,
   columnCentres: ReadonlyArray<{ column: number; centerX: number }>,
 ): number {
-  let bestCol = columnCentres[0]!.column;
+  let bestCol = columnCentres[0].column;
   let bestDist = Infinity;
-  const sorted = [...columnCentres].sort((a, b) => a.column - b.column);
+  const sorted = [...columnCentres].toSorted((a, b) => a.column - b.column);
   for (const { column, centerX } of sorted) {
     const d = Math.abs(centerX - playerCenterX);
     if (d < bestDist) {
@@ -262,11 +241,11 @@ function advanceSquigglyPointer(system: AlienShotSystem): void {
 }
 
 export function peekPlungerColumn(system: AlienShotSystem): number {
-  return COLUMN_FIRE_TABLE[system.plungerTableIndex]! - 1;
+  return COLUMN_FIRE_TABLE[system.plungerTableIndex] - 1;
 }
 
 export function peekSquigglyColumn(system: AlienShotSystem): number {
-  return COLUMN_FIRE_TABLE[system.squigglyTableIndex]! - 1;
+  return COLUMN_FIRE_TABLE[system.squigglyTableIndex] - 1;
 }
 
 function selectShooter(
@@ -275,16 +254,11 @@ function selectShooter(
   ctx: AlienShotContext,
 ): Alien | null {
   if (type === 'rolling') {
-    const col = selectRollingShotColumn(
-      ctx.playerCenterX,
-      ctx.aliens,
-      ctx.formation,
-    );
+    const col = selectRollingShotColumn(ctx.playerCenterX, ctx.aliens, ctx.formation);
     if (col === null) return null;
     return getLowestLivingAlienInColumn(ctx.aliens, col);
   }
-  const requested =
-    type === 'plunger' ? peekPlungerColumn(system) : peekSquigglyColumn(system);
+  const requested = type === 'plunger' ? peekPlungerColumn(system) : peekSquigglyColumn(system);
   return findShooterFromRequestedColumn(ctx.aliens, requested);
 }
 
@@ -296,8 +270,7 @@ function calculateShotSpawnPosition(
   const logical = worldToLogical(wp.x, wp.z);
   const alienHalfH = worldDeltaYToLogical(HIT.alienHalfD);
   const shotHalfW = ALIEN_SHOT.hitboxHalfW;
-  const spawnY =
-    Math.floor(logical.y + alienHalfH) + ALIEN_SHOT.projectileSpawnGap;
+  const spawnY = Math.floor(logical.y + alienHalfH) + ALIEN_SHOT.projectileSpawnGap;
   const spawnX = Math.floor(logical.x - shotHalfW);
   return {
     x: Math.max(0, Math.min(LOGICAL_W - 1, spawnX)),
@@ -305,11 +278,7 @@ function calculateShotSpawnPosition(
   };
 }
 
-export function activateShot(
-  slot: AlienShotSlot,
-  shooter: Alien,
-  formation: FormationState,
-): void {
+export function activateShot(slot: AlienShotSlot, shooter: Alien, formation: FormationState): void {
   const pos = calculateShotSpawnPosition(shooter, formation);
   slot.state = 'active';
   slot.position = { ...pos };
@@ -322,11 +291,7 @@ export function activateShot(
 }
 
 /** Force-activate a slot at a logical position (tests / death-hit injection). */
-export function forceActivateShot(
-  slot: AlienShotSlot,
-  x: number,
-  y: number,
-): void {
+export function forceActivateShot(slot: AlienShotSlot, x: number, y: number): void {
   slot.state = 'active';
   slot.position = { x, y };
   slot.previousPosition = { x, y };
@@ -335,10 +300,7 @@ export function forceActivateShot(
   slot.explosionFramesRemaining = 0;
 }
 
-export function beginAlienShotExplosion(
-  slot: AlienShotSlot,
-  ctx?: AlienShotContext,
-): void {
+export function beginAlienShotExplosion(slot: AlienShotSlot, ctx?: AlienShotContext): void {
   if (slot.state === 'exploding') return;
   slot.state = 'exploding';
   slot.explosionFramesRemaining = ALIEN_SHOT.explosionFrames;
@@ -367,17 +329,9 @@ function attemptSpawn(
     return false;
   }
 
-  if (
-    !isShotTypeEligible(
-      slot.type,
-      ctx.remainingAlienCount,
-      ctx.squigglySlotLockedByUfo,
-    )
-  ) {
+  if (!isShotTypeEligible(slot.type, ctx.remainingAlienCount, ctx.squigglySlotLockedByUfo)) {
     const reason: SpawnBlockReason =
-      slot.type === 'squiggly' && ctx.squigglySlotLockedByUfo
-        ? 'ufo-slot-lock'
-        : 'type-disabled';
+      slot.type === 'squiggly' && ctx.squigglySlotLockedByUfo ? 'ufo-slot-lock' : 'type-disabled';
     pushDebug(ctx, { type: 'spawn-blocked', reason, shotType: slot.type });
     return false;
   }
@@ -431,11 +385,7 @@ function shotWorldBullet(slot: AlienShotSlot, y: number): Bullet {
   };
 }
 
-function overlapsPlayerBullet(
-  slot: AlienShotSlot,
-  testY: number,
-  playerBullet: Bullet,
-): boolean {
+function overlapsPlayerBullet(slot: AlienShotSlot, testY: number, playerBullet: Bullet): boolean {
   const sample = shotWorldBullet(slot, testY);
   return aabbOverlap(
     sample.x,
@@ -467,10 +417,7 @@ function overlapsPlayer(
   );
 }
 
-function resolveSweptCollisions(
-  slot: AlienShotSlot,
-  ctx: AlienShotContext,
-): boolean {
+function resolveSweptCollisions(slot: AlienShotSlot, ctx: AlienShotContext): boolean {
   const prevY = slot.previousPosition.y;
   const currY = slot.position.y;
   const startY = prevY + 1;
@@ -533,10 +480,7 @@ function advanceAnimation(slot: AlienShotSlot): void {
   slot.animationFrame = (slot.animationFrame + 1) % 4;
 }
 
-export function updateActiveAlienShot(
-  slot: AlienShotSlot,
-  ctx: AlienShotContext,
-): void {
+export function updateActiveAlienShot(slot: AlienShotSlot, ctx: AlienShotContext): void {
   slot.previousPosition = { ...slot.position };
   const deltaY = stepPixels(ctx.remainingAlienCount);
   slot.position.y += deltaY;
@@ -546,10 +490,7 @@ export function updateActiveAlienShot(
   resolveSweptCollisions(slot, ctx);
 }
 
-function updateAlienShotExplosion(
-  slot: AlienShotSlot,
-  ctx: AlienShotContext,
-): void {
+function updateAlienShotExplosion(slot: AlienShotSlot, ctx: AlienShotContext): void {
   slot.explosionFramesRemaining -= 1;
   if (slot.explosionFramesRemaining <= 0) {
     pushDebug(ctx, { type: 'despawned', shotType: slot.type });
@@ -575,13 +516,11 @@ export function processAlienShotSlot(
   }
 }
 
-export function updateAlienShots(
-  system: AlienShotSystem,
-  ctx: AlienShotContext,
-): void {
+export function updateAlienShots(system: AlienShotSystem, ctx: AlienShotContext): void {
   const slot = getSlotByIndex(system, system.nextSlotToProcess);
   processAlienShotSlot(slot, system, ctx);
-  system.nextSlotToProcess = ((system.nextSlotToProcess + 1) % 3) as 0 | 1 | 2;
+  system.nextSlotToProcess =
+    system.nextSlotToProcess === 0 ? 1 : system.nextSlotToProcess === 1 ? 2 : 0;
 }
 
 export interface AlienShotSerializableState {
@@ -600,9 +539,7 @@ export interface AlienShotSerializableState {
   squigglySlotLockedByUfo: boolean;
 }
 
-export function serializeAlienShots(
-  system: AlienShotSystem,
-): AlienShotSerializableState {
+export function serializeAlienShots(system: AlienShotSystem): AlienShotSerializableState {
   return {
     slots: allAlienShotSlots(system).map((s) => ({
       type: s.type,
@@ -656,10 +593,6 @@ export function alienShotContextFromGameState(
 export function injectAlienShotAtPlayer(state: GameState): void {
   const logical = worldToLogical(state.player.x, state.player.z);
   // One normal step is 4px; start above so sweep covers player centre.
-  forceActivateShot(
-    state.alienShots.rolling,
-    logical.x,
-    Math.max(0, logical.y - 3),
-  );
+  forceActivateShot(state.alienShots.rolling, logical.x, Math.max(0, logical.y - 3));
   state.alienShots.nextSlotToProcess = 0;
 }

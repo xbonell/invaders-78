@@ -2,13 +2,7 @@ import type { GameEvent } from '../game/types';
 
 const queue: GameEvent[] = [];
 
-const FX_TYPES = new Set([
-  'alienHit',
-  'ufoHit',
-  'playerHit',
-  'bunkerHit',
-  'alienShotHit',
-]);
+const FX_TYPES = new Set(['alienHit', 'ufoHit', 'playerHit', 'bunkerHit', 'alienShotHit']);
 
 /** Push destruction events for the scene to consume (survives React frame gaps). */
 export function enqueueFx(events: GameEvent[]): void {

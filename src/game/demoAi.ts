@@ -62,9 +62,9 @@ export function pickDemoAim(
 
   const clear = candidates.filter((c) => !c.blocked);
   const pool = clear.length > 0 ? clear : candidates;
-  let best = pool[0]!;
+  let best = pool[0];
   for (let i = 1; i < pool.length; i++) {
-    const c = pool[i]!;
+    const c = pool[i];
     if (c.score > best.score) best = c;
   }
 

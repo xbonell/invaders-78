@@ -21,9 +21,7 @@ export function visualSig(state: GameState): string {
   }
 
   const shots = allAlienShotSlots(state.alienShots)
-    .map((s) =>
-      s.state === 'idle' ? '' : `${s.type[0]}${s.state[0]}${s.animationFrame}`,
-    )
+    .map((s) => (s.state === 'idle' ? '' : `${s.type[0]}${s.state[0]}${s.animationFrame}`))
     .join('');
 
   return [

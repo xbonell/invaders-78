@@ -10,7 +10,10 @@ export function arcadeToWorld(xr: number, yr: number): { x: number; z: number } 
   return logicalToWorld(xr, LOGICAL_H - yr);
 }
 
-export function worldDeltaFromArcadePixels(dx: number, dy: number): {
+export function worldDeltaFromArcadePixels(
+  dx: number,
+  dy: number,
+): {
   x: number;
   z: number;
 } {
@@ -20,15 +23,22 @@ export function worldDeltaFromArcadePixels(dx: number, dy: number): {
 /** Bottom-left reference alien Yr at wave start (ROM 07EA + table 1DA3). */
 export const ALIEN_START_YR = [
   0x78, // wave 1 (hardcoded at game start)
-  0x60, 0x50, 0x48, 0x48, 0x48, 0x40, 0x40, 0x40, // waves 2–9
+  0x60,
+  0x50,
+  0x48,
+  0x48,
+  0x48,
+  0x40,
+  0x40,
+  0x40, // waves 2–9
 ] as const;
 
 export function refAlienYrForWave(wave: number): number {
   const w = Math.max(1, wave);
-  if (w === 1) return ALIEN_START_YR[0]!;
+  if (w === 1) return ALIEN_START_YR[0];
   // Wave 10+ wraps to table start ($60), same as ROM
   const table = ALIEN_START_YR.slice(1);
-  return table[(w - 2) % table.length]!;
+  return table[(w - 2) % table.length];
 }
 
 /** Pixel pitch of one alien cell (ROM count-the-16s). */
@@ -62,9 +72,8 @@ export const SHIELD_LEFT_XR = [
   34 + SHIELD_PITCH_PX * 3,
 ] as const; // 34, 79, 124, 169
 
-
 export function shieldCenterWorld(index: number): { x: number; z: number } {
-  const left = SHIELD_LEFT_XR[index]!;
+  const left = SHIELD_LEFT_XR[index];
   return arcadeToWorld(left + SHIELD_W_PX / 2, SHIELD_YR + SHIELD_H_PX / 2);
 }
 
@@ -83,10 +92,7 @@ export function formationTopLeftForWave(wave: number): { x: number; z: number } 
 /** Arcade cannon outer-edge travel width (sprite left $30 .. $D9+16), world units. */
 export function groundLineWidth(): number {
   const outerLeft = arcadeToWorld(PLAYER_XR_MIN, PLAYER_YR).x;
-  const outerRight = arcadeToWorld(
-    PLAYER_XR_MAX + PLAYER_SPRITE_W,
-    PLAYER_YR,
-  ).x;
+  const outerRight = arcadeToWorld(PLAYER_XR_MAX + PLAYER_SPRITE_W, PLAYER_YR).x;
   return outerRight - outerLeft;
 }
 
@@ -99,4 +105,3 @@ export function playerCenterXBounds(halfWidth: number): { min: number; max: numb
   const maxAbs = halfLine - halfWidth;
   return { min: -maxAbs, max: maxAbs };
 }
-

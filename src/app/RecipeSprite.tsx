@@ -26,7 +26,7 @@ export function RecipeSprite({
 
   const cells: ReactNode[] = [];
   for (let r = 0; r < rows; r++) {
-    const row = recipe.grid[r]!;
+    const row = recipe.grid[r];
     for (let c = 0; c < cols; c++) {
       const h = row[c] ?? 0;
       cells.push(

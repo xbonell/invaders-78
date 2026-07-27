@@ -48,11 +48,7 @@ export function GameCanvas({
       />
       <GameSimDriver advanceRef={advanceRef} />
       <OrthoCameraRig />
-      <Playfield
-        state={state}
-        version={version}
-        motionSnapshot={motionSnapshot}
-      />
+      <Playfield state={state} version={version} motionSnapshot={motionSnapshot} />
     </Canvas>
   );
 }

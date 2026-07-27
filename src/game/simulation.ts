@@ -10,10 +10,7 @@ import {
   playerMaxAbsX,
   playfieldMaxAbsCenterX,
 } from './constants';
-import {
-  bulletHitsPoint,
-  erodeBunkerAt,
-} from './collisions';
+import { bulletHitsPoint, erodeBunkerAt } from './collisions';
 import {
   alienShotContextFromGameState,
   clearAlienShots,
@@ -33,13 +30,7 @@ import {
   stepIntervalForCount,
 } from './formation';
 import { demoMoveDir, demoShouldFire, pickDemoAim } from './demoAi';
-import type {
-  Alien,
-  GameCommand,
-  GameEvent,
-  GameState,
-  Ufo,
-} from './types';
+import type { Alien, GameCommand, GameEvent, GameState, Ufo } from './types';
 
 export { injectAlienShotAtPlayer };
 
@@ -64,21 +55,17 @@ function syncActive(state: GameState): void {
 
 function addScore(state: GameState, points: number): void {
   const i = state.activePlayer;
-  const before = state.scores[i]!;
+  const before = state.scores[i];
   state.scores[i] = before + points;
   state.score = state.scores[i]!;
-  state.highScore = Math.max(
-    state.highScore,
-    state.scores[0]!,
-    state.scores[1]!,
-  );
+  state.highScore = Math.max(state.highScore, state.scores[0], state.scores[1]);
   if (
     !state.bonusLifeAwarded[i] &&
     before < PLAYER.bonusLifeAt &&
-    state.scores[i]! >= PLAYER.bonusLifeAt
+    state.scores[i] >= PLAYER.bonusLifeAt
   ) {
     state.bonusLifeAwarded[i] = true;
-    state.livesByPlayer[i] = state.livesByPlayer[i]! + 1;
+    state.livesByPlayer[i] = state.livesByPlayer[i] + 1;
     state.lives = state.livesByPlayer[i]!;
   }
 }
@@ -182,10 +169,7 @@ function beginPlay(state: GameState, playerCount: 1 | 2): void {
   state.playerCount = playerCount;
   state.activePlayer = 0;
   state.scores = [0, 0];
-  state.livesByPlayer = [
-    PLAYER.startLives,
-    playerCount === 2 ? PLAYER.startLives : 0,
-  ];
+  state.livesByPlayer = [PLAYER.startLives, playerCount === 2 ? PLAYER.startLives : 0];
   state.shotCounts = [0, 0];
   state.bonusLifeAwarded = [false, false];
   startWave(state, 1);
@@ -200,20 +184,12 @@ export function dispatch(game: Game, cmd: GameCommand): void {
       state.credits = Math.min(99, state.credits + 1);
       break;
     case 'start':
-      if (
-        state.phase === 'attract' ||
-        state.phase === 'ready' ||
-        state.phase === 'gameOver'
-      ) {
+      if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
         beginPlay(state, 1);
       }
       break;
     case 'startTwo':
-      if (
-        state.phase === 'attract' ||
-        state.phase === 'ready' ||
-        state.phase === 'gameOver'
-      ) {
+      if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
         beginPlay(state, 2);
       }
       break;
@@ -243,10 +219,7 @@ function tryPlayerFire(game: Game): void {
   if (!game.fireQueued) return;
   game.fireQueued = false;
   const { state } = game;
-  if (
-    (state.phase !== 'playing' && state.phase !== 'attract') ||
-    !state.player.alive
-  ) {
+  if ((state.phase !== 'playing' && state.phase !== 'attract') || !state.player.alive) {
     return;
   }
   if (state.playerBullet) return;
@@ -265,7 +238,7 @@ function tryPlayerFire(game: Game): void {
 function onPlayerShotRemoved(state: GameState): void {
   if (state.phase !== 'playing' && state.phase !== 'attract') return;
   const i = state.activePlayer;
-  state.shotCounts[i] = state.shotCounts[i]! + 1;
+  state.shotCounts[i] = state.shotCounts[i] + 1;
   state.shotCount = state.shotCounts[i]!;
 }
 
@@ -414,7 +387,8 @@ function updateUfo(state: GameState, dt: number): void {
   while (state.ufo.animTicks >= UFO.animIntervalTicks) {
     state.ufo.animTicks -= UFO.animIntervalTicks;
     const stepDir = state.ufo.vx > 0 ? 1 : 2;
-    state.ufo.animFrame = ((state.ufo.animFrame + stepDir) % 3) as 0 | 1 | 2;
+    const nextFrame = (state.ufo.animFrame + stepDir) % 3;
+    state.ufo.animFrame = nextFrame === 0 ? 0 : nextFrame === 1 ? 1 : 2;
   }
 }
 
@@ -432,21 +406,13 @@ function collidePlayerBullet(state: GameState, scoring: boolean): void {
   }
 
   if (state.ufo) {
-    if (
-      bulletHitsPoint(
-        b,
-        state.ufo.x,
-        state.ufo.z,
-        UFO.halfWidth,
-        UFO.halfDepth,
-      )
-    ) {
+    if (bulletHitsPoint(b, state.ufo.x, state.ufo.z, UFO.halfWidth, UFO.halfDepth)) {
       const ux = state.ufo.x;
       const uz = state.ufo.z;
       const animFrame = state.ufo.animFrame;
       // Score from current pointer at hit (ROM); then shot removal advances it
       const index = mysteryScoreIndex(state.shotCount);
-      const points = scoring ? UFO.scoreTable[index]! : 0;
+      const points = scoring ? UFO.scoreTable[index] : 0;
       if (scoring) addScore(state, points);
       pushEvent(state, { type: 'ufoHit', points, x: ux, z: uz, animFrame });
       state.ufo = null;
@@ -492,7 +458,7 @@ function hitPlayer(game: Game): void {
   game.moveDir = 0;
   game.fireQueued = false;
   const i = state.activePlayer;
-  state.livesByPlayer[i] = Math.max(0, state.livesByPlayer[i]! - 1);
+  state.livesByPlayer[i] = Math.max(0, state.livesByPlayer[i] - 1);
   syncActive(state);
   state.phase = 'dying';
   state.dyingTimer = PLAYER.dyingDuration;
@@ -543,7 +509,7 @@ function otherPlayer(i: 0 | 1): 0 | 1 {
 function resolveAfterDeath(game: Game): void {
   const { state } = game;
   const i = state.activePlayer;
-  if (state.livesByPlayer[i]! > 0) {
+  if (state.livesByPlayer[i] > 0) {
     state.player.alive = true;
     state.player.x = 0;
     game.moveDir = 0;
@@ -555,7 +521,7 @@ function resolveAfterDeath(game: Game): void {
 
   if (state.playerCount === 2) {
     const o = otherPlayer(i);
-    if (state.livesByPlayer[o]! > 0) {
+    if (state.livesByPlayer[o] > 0) {
       state.activePlayer = o;
       syncActive(state);
       state.player.alive = true;
@@ -569,7 +535,7 @@ function resolveAfterDeath(game: Game): void {
       state.switchTimer = ATTRACT.playerSwitchDuration;
       pushEvent(state, {
         type: 'playerSwitch',
-        player: (o + 1) as 1 | 2,
+        player: o === 0 ? 1 : 2,
       });
       return;
     }
@@ -582,11 +548,9 @@ function resolveAfterDeath(game: Game): void {
   pushEvent(state, { type: 'gameOver' });
 }
 
-function nextAttractScreen(
-  current: GameState['attractScreen'],
-): GameState['attractScreen'] {
+function nextAttractScreen(current: GameState['attractScreen']): GameState['attractScreen'] {
   const screens = ATTRACT.enabledScreens;
-  const idx = screens.indexOf(current as (typeof screens)[number]);
+  const idx = screens.findIndex((screen) => screen === current);
   const nextIdx = idx < 0 ? 0 : (idx + 1) % screens.length;
   return screens[nextIdx] ?? 'info';
 }

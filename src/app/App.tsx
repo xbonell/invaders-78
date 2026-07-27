@@ -4,6 +4,7 @@ import { playViewAspect, playViewInsetXPercent, playViewInsetYPercent } from '..
 import { dispatch } from '../game/simulation';
 import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';
+import { applyBackdropUrl, bakeBackdrop } from '../scene/backdrop/bakeBackdrop';
 import { GameCanvas } from '../scene/GameCanvas';
 import { attachFullscreenListeners, subscribeFullscreen, toggleFullscreen } from './fullscreen';
 import { FooterBar, Hud, Overlay } from './Hud';
@@ -21,9 +22,18 @@ export default function App() {
   const pauseMenuRef = useRef<PauseMenuInput | null>(null);
   const pauseIndexRef = useRef(pauseIndex);
   pauseIndexRef.current = pauseIndex;
+  const shellRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const { game, state, version, motionSnapshot, advanceRef } = useGameLoop(audio, pauseMenuRef);
   const wasPaused = useRef(false);
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) return undefined;
+    const baked = bakeBackdrop();
+    applyBackdropUrl(shell, baked.url);
+    return () => baked.dispose();
+  }, []);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -86,7 +96,7 @@ export default function App() {
   };
 
   return (
-    <div className="shell" onPointerDown={unlock} onKeyDown={unlock}>
+    <div ref={shellRef} className="shell" onPointerDown={unlock} onKeyDown={unlock}>
       <div
         ref={stageRef}
         className="stage"

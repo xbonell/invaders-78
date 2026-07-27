@@ -56,14 +56,14 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 
 ## Visuals
 
-- Visuals: playfield framed by contain-fit ortho camera; dimmed backdrop (`src/assets/backdrop.png`) on `.shell` shows through a transparent canvas (see [playfield viewport layout](./2026-07-26-playfield-viewport-layout-design.md))
+- Visuals: playfield framed by contain-fit ortho camera; dimmed procedural backdrop on `.shell` (baked once; [procedural backdrop](./2026-07-27-procedural-backdrop-design.md)) shows through a transparent canvas (see [playfield viewport layout](./2026-07-26-playfield-viewport-layout-design.md))
 - Voxel recipes in `src/scene/voxels/recipes.ts` (sheet-accurate grids; shared square `VOXEL_SIZE` reticle — see [unified voxel grid](./2026-07-27-unified-voxel-grid-design.md))
 - Alien / UFO death debris: **orange** additive glow; full voxel shatter
 - UFO kill: floating points number rises and fades at hit location (scoring hits only)
 - Bullets: grid-locked voxel stacks with soft additive glow (no pulse scale)
 - Lighting: low ambient + hemisphere + angled key (no shadow maps — hitch with transparent canvas + backdrop)
 - Palette: aliens/shot voxels `#ffffff`; player/bunkers/HUD accent `#22e35a` (recipes + `--color-accent`; [vivid entity colors](./2026-07-27-vivid-entity-colors-design.md))
-- No camera motion; no bitmap ship art (backdrop + favicon exempt)
+- No camera motion; no bitmap ship art (favicon exempt)
 
 ## Input
 

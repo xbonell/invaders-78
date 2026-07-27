@@ -19,7 +19,7 @@
   );
   --overlay-dim: rgba(0, 0, 0, 0.75);
   /* Soften backdrop so playfield entities stay readable */
-  --backdrop-dim: rgba(0, 0, 0, 0.65);
+  --backdrop-dim: rgba(0, 0, 0, 0.5);
 
   --z-chrome: 2;
   --z-overlay: 3;
@@ -76,7 +76,7 @@ body,
   overflow: hidden;
   background-color: var(--color-bg);
   background-image:
-    linear-gradient(var(--backdrop-dim), var(--backdrop-dim)), url('../assets/backdrop.png');
+    linear-gradient(var(--backdrop-dim), var(--backdrop-dim)), var(--backdrop-url, none);
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;

@@ -34,6 +34,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/input/` | Keyboard, gamepad, start helpers |
 | `src/audio/engine.ts` | Procedural Web Audio (SFX + descending formation march) |
 | `src/scene/GameCanvas.tsx` | R3F canvas + lights; transparent clear over `.shell` backdrop; no shadow maps |
+| `src/scene/backdrop/` | One-shot WebGL bake → CSS `--backdrop-url` on `.shell` (no game-loop cost) |
 | `src/scene/Playfield.tsx` | Syncs sim snapshot → meshes |
 | `src/scene/voxels/recipes.ts` | Pixel grids → voxel bits (aliens, player, UFO) |
 | `src/scene/voxels/mergedGeometry.ts` | Cached merged BufferGeometry per recipe (movers) |
@@ -64,7 +65,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 - **Move input:** `dispatch({ type: 'move' })` always updates `moveDir`; clear on death/respawn. Never gate move updates on `phase === 'playing'` only.
 - **Audio unlock:** first gesture must `await audio.unlock()` before start/fire that should make sound.
 - **Camera:** ortho, `camera.up.set(0,0,1)`; contain-fits `PLAYFIELD` (+ margin); player at negative Z (screen bottom). Left key → `moveDir = 1`.
-- **No bitmap game art:** recipes/code geometry only (`public/favicon.png` + `src/assets/backdrop.png` exempt). All playfield voxels share square `VOXEL_SIZE` (= `SCALE_X`).
+- **No bitmap game art:** recipes/code geometry only (`public/favicon.png` exempt). Shell backdrop is a one-shot procedural bake ([procedural backdrop](superpowers/specs/2026-07-27-procedural-backdrop-design.md)). All playfield voxels share square `VOXEL_SIZE` (= `SCALE_X`).
 - **Controls:** see README; attract/game-over: ←→ select 1P/2P, Fire/Enter/Start confirm ([start mode selector](docs/superpowers/specs/2026-07-27-start-mode-selector-design.md)).
 
 ## How to…

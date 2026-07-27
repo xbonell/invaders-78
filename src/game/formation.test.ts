@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALIEN_SHOT, FORMATION, GROUND_LINE, HIT, PLAYER, PLAYFIELD, TICK_DT, UFO, playfieldMaxAbsCenterX } from './constants';
+import { ALIEN_SHOT, BUNKER, FORMATION, GROUND_LINE, HIT, PLAYER, PLAYFIELD, TICK_DT, UFO, playfieldMaxAbsCenterX } from './constants';
 import {
   createBunkers,
   formationStepX,
@@ -119,6 +119,13 @@ describe('formation', () => {
 });
 
 describe('bunkers', () => {
+  it('uses ROM 22×16 shield mask', () => {
+    expect(BUNKER.cols).toBe(22);
+    expect(BUNKER.rows).toBe(16);
+    expect(BUNKER.mask).toHaveLength(22 * 16);
+    expect(BUNKER.mask.reduce((n, c) => n + c, 0)).toBe(294);
+  });
+
   it('erodes a cell on bullet overlap', () => {
     const bunkers = createBunkers();
     const bunker = bunkers[0]!;

@@ -59,7 +59,7 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 - Voxel recipes in `src/scene/voxels/recipes.ts` (sheet-accurate grids)
 - Alien death debris: **orange** additive glow; full voxel shatter
 - Bullets: thin additive “laser” stacks
-- Lighting: low ambient + hemisphere + angled key + ground shadows
+- Lighting: low ambient + hemisphere + angled key; formation casts onto bunkers
 - No camera motion; no texture bitmaps
 
 ## Input

@@ -49,7 +49,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 3. `DebrisField` `useFrame` calls `drainFxQueue()` and spawns particles.
 4. React `version` bumps when `visualSig(state)` changes or events fire — continuous player/UFO/bullet motion does **not** reconcile React.
 5. Continuous movers (player, UFO, player bullet, alien shots): advance lerps into `motionSnapshot`; meshes set transforms in `useFrame` with **no** React position props for those axes. Alien march stays discrete; invasion fly-off lerps formation origin via an offset group.
-6. Scene uses flat lighting (no shadow maps) so hundreds of voxel boxes do not hitch the frame.
+6. Selective shadow maps: formation `RecipeMesh` casts; bunker cells receive (`shadows="percentage"`). Player/UFO/ground do not participate — avoids the old per-voxel shadow hitch.
 7. Player / UFO / aliens render as **merged recipe meshes** (`RecipeMesh`); bunkers stay per-cell; explosions still spawn from `recipeToBits`.
 
 ## Conventions (do not break casually)

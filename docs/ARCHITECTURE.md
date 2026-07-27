@@ -45,7 +45,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/scene/meshes/ScoreFloatField.tsx` | World-space rising/fading points text |
 | `src/scene/meshes/GlowBullet.tsx` | Laser bolt visuals |
 | `src/scene/meshes/BunkerMesh.tsx` | Erodable bunker cells (per-cell boxes) |
-| `src/app/` | Shell, HUD, overlays, pause menu, CSS |
+| `src/app/` | Shell, HUD, overlays, pause menu, CSS (chrome scales with stage via `--stage-w`; [stage-scaled UI](docs/superpowers/specs/2026-07-27-stage-scaled-ui-design.md)) |
 
 ## Data flow
 

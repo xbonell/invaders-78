@@ -1,17 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AudioEngine } from '../audio/engine';
-import {
-  playViewDepth,
-  playViewInsetXPercent,
-  playViewInsetYPercent,
-  playViewWidth,
-} from '../game/playView';
+import { playViewAspect, playViewInsetXPercent, playViewInsetYPercent } from '../game/playView';
 import { dispatch } from '../game/simulation';
 import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { GameCanvas } from '../scene/GameCanvas';
 import { attachFullscreenListeners, subscribeFullscreen, toggleFullscreen } from './fullscreen';
 import { FooterBar, Hud, Overlay } from './Hud';
+import { CHROME_REF_WIDTH_PX } from './chromeScale';
 import { movePauseIndex, PAUSE_DEFAULT_INDEX, pauseItemAt, type PauseMenuInput } from './pauseMenu';
 import './app.css';
 
@@ -25,8 +21,27 @@ export default function App() {
   const pauseMenuRef = useRef<PauseMenuInput | null>(null);
   const pauseIndexRef = useRef(pauseIndex);
   pauseIndexRef.current = pauseIndex;
+  const stageRef = useRef<HTMLDivElement>(null);
   const { game, state, version, motionSnapshot, advanceRef } = useGameLoop(audio, pauseMenuRef);
   const wasPaused = useRef(false);
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--stage-aspect', String(playViewAspect()));
+
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+
+    const syncStageWidth = () => {
+      const width = stage.getBoundingClientRect().width;
+      root.style.setProperty('--stage-w', `${width}px`);
+      root.style.setProperty('--chrome-scale', String(width / CHROME_REF_WIDTH_PX));
+    };
+    syncStageWidth();
+    const ro = new ResizeObserver(syncStageWidth);
+    ro.observe(stage);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     audio.setMuted(muted);
@@ -70,19 +85,15 @@ export default function App() {
     confirm: () => activatePauseItem(pauseIndexRef.current),
   };
 
-  const viewW = playViewWidth();
-  const viewD = playViewDepth();
-
   return (
     <div className="shell" onPointerDown={unlock} onKeyDown={unlock}>
       <div
+        ref={stageRef}
         className="stage"
         style={{
-          aspectRatio: `${viewW} / ${viewD}`,
-          width: `min(100%, calc(100dvh * ${viewW} / ${viewD}))`,
           // Inset chrome to align with the green baseline ends.
-          ['--play-inset-x' as any]: `${playViewInsetXPercent()}%`,
-          ['--play-inset-y' as any]: `${playViewInsetYPercent()}%`,
+          ['--play-inset-x' as string]: `${playViewInsetXPercent()}%`,
+          ['--play-inset-y' as string]: `${playViewInsetYPercent()}%`,
         }}
       >
         <GameCanvas

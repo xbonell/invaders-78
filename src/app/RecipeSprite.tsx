@@ -5,22 +5,23 @@ import type { VoxelRecipe } from '../scene/voxels/recipes';
 export function RecipeSprite({
   recipe,
   className,
-  pixelSize = 3,
+  /** rem per grid cell; scales with parent chrome zoom */
+  cellRem = 0.1875,
 }: {
   recipe: VoxelRecipe;
   className?: string;
-  /** CSS px per grid cell */
-  pixelSize?: number;
+  cellRem?: number;
 }) {
   const rows = recipe.grid.length;
   const cols = recipe.grid.reduce((m, r) => Math.max(m, r.length), 0);
+  const cell = `${cellRem}rem`;
 
   const style: CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: `repeat(${cols}, ${pixelSize}px)`,
-    gridTemplateRows: `repeat(${rows}, ${pixelSize}px)`,
-    width: cols * pixelSize,
-    height: rows * pixelSize,
+    gridTemplateColumns: `repeat(${cols}, ${cell})`,
+    gridTemplateRows: `repeat(${rows}, ${cell})`,
+    width: `${cols * cellRem}rem`,
+    height: `${rows * cellRem}rem`,
     flexShrink: 0,
   };
 
@@ -34,8 +35,8 @@ export function RecipeSprite({
           key={`${r}-${c}`}
           style={{
             background: h > 0 ? recipe.color : 'transparent',
-            width: pixelSize,
-            height: pixelSize,
+            width: cell,
+            height: cell,
           }}
         />,
       );

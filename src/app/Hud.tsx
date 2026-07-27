@@ -112,68 +112,78 @@ export function Overlay({
           transitionDuration: `${ATTRACT.transitionDuration}s`,
         }}
       >
-        <div className="attract-logo">
-          <p className="play-line">Play</p>
-          <h1 className="brand">Invaders 78</h1>
+        <div className="overlay-panel">
+          <div className="attract-logo">
+            <p className="play-line">Play</p>
+            <h1 className="brand">Invaders 78</h1>
+          </div>
+          <ScoreTable />
+          <ModeSelector menuPlayerCount={state.menuPlayerCount} />
         </div>
-        <ScoreTable />
-        <ModeSelector menuPlayerCount={state.menuPlayerCount} />
       </div>
     );
   }
   if (state.phase === 'playerSwitch') {
     return (
       <div className="overlay overlay-dim">
-        <h2>Player {state.activePlayer + 1}</h2>
-        <p className="tagline">Get ready</p>
+        <div className="overlay-panel">
+          <h2>Player {state.activePlayer + 1}</h2>
+          <p className="tagline">Get ready</p>
+        </div>
       </div>
     );
   }
   if (state.phase === 'paused') {
     return (
       <div className="overlay overlay-dim">
-        <h2>Paused</h2>
-        <ul className="pause-menu">
-          {PAUSE_ITEMS.map((id, index) => (
-            <li key={id}>
-              <button
-                type="button"
-                className={`pause-menu-item${index === pauseIndex ? ' selected' : ''}`}
-                onMouseEnter={() => onPauseSelect?.(index)}
-                onClick={() => onPauseActivate?.(index)}
-              >
-                <span className="pause-menu-cursor" aria-hidden>
-                  {index === pauseIndex ? '>' : '\u00A0'}
-                </span>
-                {pauseLabel(id, muted, fullscreen)}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className="hint-sub">Esc / Start — resume · Enter / A — select</p>
+        <div className="overlay-panel">
+          <h2>Paused</h2>
+          <ul className="pause-menu">
+            {PAUSE_ITEMS.map((id, index) => (
+              <li key={id}>
+                <button
+                  type="button"
+                  className={`pause-menu-item${index === pauseIndex ? ' selected' : ''}`}
+                  onMouseEnter={() => onPauseSelect?.(index)}
+                  onClick={() => onPauseActivate?.(index)}
+                >
+                  <span className="pause-menu-cursor" aria-hidden>
+                    {index === pauseIndex ? '>' : '\u00A0'}
+                  </span>
+                  {pauseLabel(id, muted, fullscreen)}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="hint-sub">Esc / Start — resume · Enter / A — select</p>
+        </div>
       </div>
     );
   }
   if (state.phase === 'gameOver') {
     return (
       <div className="overlay overlay-dim">
-        <h2>Game Over</h2>
-        {state.playerCount === 2 ? (
-          <>
-            <p className="tagline">P1 {pad(state.scores[0])}</p>
-            <p className="tagline">P2 {pad(state.scores[1])}</p>
-          </>
-        ) : (
-          <p className="tagline">Score {pad(state.scores[0])}</p>
-        )}
-        <ModeSelector menuPlayerCount={state.menuPlayerCount} />
+        <div className="overlay-panel">
+          <h2>Game Over</h2>
+          {state.playerCount === 2 ? (
+            <>
+              <p className="tagline">P1 {pad(state.scores[0])}</p>
+              <p className="tagline">P2 {pad(state.scores[1])}</p>
+            </>
+          ) : (
+            <p className="tagline">Score {pad(state.scores[0])}</p>
+          )}
+          <ModeSelector menuPlayerCount={state.menuPlayerCount} />
+        </div>
       </div>
     );
   }
   if (state.phase === 'waveClear') {
     return (
       <div className="overlay overlay-dim">
-        <h2>Wave Clear</h2>
+        <div className="overlay-panel">
+          <h2>Wave Clear</h2>
+        </div>
       </div>
     );
   }
@@ -187,32 +197,33 @@ function pauseLabel(id: PauseMenuItem, muted: boolean, fullscreen: boolean): str
 }
 
 function ScoreTable() {
-  const px = 2;
+  /** Mid-size cells for score icons */
+  const cellRem = 0.15;
   return (
     <div className="score-table">
       <p className="score-table-title">*Score Advance Table*</p>
       <ul>
         <li>
           <span className="st-icon-slot">
-            <RecipeSprite recipe={UFO_RECIPE} pixelSize={px} />
+            <RecipeSprite recipe={UFO_RECIPE} cellRem={cellRem} />
           </span>
           <span>= ? Mystery</span>
         </li>
         <li>
           <span className="st-icon-slot">
-            <RecipeSprite recipe={SQUID_A} pixelSize={px} />
+            <RecipeSprite recipe={SQUID_A} cellRem={cellRem} />
           </span>
           <span>= {ALIEN_POINTS.squid} Points</span>
         </li>
         <li>
           <span className="st-icon-slot">
-            <RecipeSprite recipe={CRAB_A} pixelSize={px} />
+            <RecipeSprite recipe={CRAB_A} cellRem={cellRem} />
           </span>
           <span>= {ALIEN_POINTS.crab} Points</span>
         </li>
         <li>
           <span className="st-icon-slot">
-            <RecipeSprite recipe={OCTOPUS_A} pixelSize={px} />
+            <RecipeSprite recipe={OCTOPUS_A} cellRem={cellRem} />
           </span>
           <span>= {ALIEN_POINTS.octopus} Points</span>
         </li>

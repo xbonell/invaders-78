@@ -38,7 +38,7 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 - **Simulation** (`src/game/`) — pure TS; phases, formation, collisions, scoring; emits `GameEvent`s
 - **Bridge** (`src/hooks/useGameLoop.ts`) — rAF accumulator, input attach, drain events → audio + FX queue
 - **Scene** (`src/scene/`) — ortho camera, voxels, bunkers, glow bullets, debris
-- **HUD** (`src/app/`) — DOM overlay SCORE&lt;1&gt;/HI-SCORE/SCORE&lt;2&gt;, lives
+- **HUD** (`src/app/`) — DOM overlay SCORE&lt;1&gt;/HI-SCORE/SCORE&lt;2&gt;, lives; chrome scales with stage ([stage-scaled UI](./2026-07-27-stage-scaled-ui-design.md))
 - **Audio** (`src/audio/`) — Web Audio only; unlock on first user gesture
 
 ## Gameplay

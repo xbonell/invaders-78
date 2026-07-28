@@ -1,3 +1,13 @@
+/// <reference types="@rsbuild/core/types" />
+
+interface ImportMetaEnv {
+  readonly PUBLIC_HIGH_SCORE_API?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 /**
  * Imports the SVG file as a React component.
  * @requires [@rsbuild/plugin-svgr](https://npmjs.com/package/@rsbuild/plugin-svgr)

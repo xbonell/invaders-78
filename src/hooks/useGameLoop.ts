@@ -19,6 +19,11 @@ import { pollGamepad } from '../input/gamepad';
 import type { AudioEngine } from '../audio/engine';
 import { enqueueFx } from '../scene/voxels/fxQueue';
 import { enqueueScoreFloats } from '../scene/voxels/scoreFloatQueue';
+import {
+  fetchGlobalHighScore,
+  submitGlobalHighScore,
+} from '../net/highScoreApi';
+import { mergeHighScores, shouldSubmitHighScore } from '../net/highScorePolicy';
 
 export interface GameLoopApi {
   game: Game;
@@ -82,6 +87,7 @@ export function useGameLoop(
     gameRef.current = createGame(loadHighScore());
   }
   const game = gameRef.current;
+  const knownGlobalRef = useRef<number | null>(null);
 
   const [version, setVersion] = useState(0);
   const motionSnapshot = useRef(createMotionSnapshot(activeBoard(game.state).player.x));
@@ -113,6 +119,27 @@ export function useGameLoop(
   const bumpUi = () => setVersion((v) => v + 1);
   const bumpUiRef = useRef(bumpUi);
   bumpUiRef.current = bumpUi;
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const remote = await fetchGlobalHighScore();
+      if (cancelled) return;
+      knownGlobalRef.current = remote;
+      const merged = mergeHighScores(game.state.highScore, remote);
+      if (merged !== game.state.highScore) {
+        game.state.highScore = merged;
+        saveHighScore(merged);
+        bumpUiRef.current();
+      } else if (remote != null && shouldSubmitHighScore(game.state.highScore, remote)) {
+        const stored = await submitGlobalHighScore(game.state.highScore);
+        if (!cancelled && stored != null) knownGlobalRef.current = stored;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [game]);
 
   advanceRef.current = (now: number) => {
     const clock = clockRef.current;
@@ -190,7 +217,7 @@ export function useGameLoop(
       ) {
         audioRef.current?.handleEvents(events);
       }
-      maybePersistHi(game, events);
+      maybePersistHi(game, events, knownGlobalRef);
     }
 
     // Reconcile React only when the discrete visual fingerprint changes.
@@ -226,15 +253,28 @@ export function useGameLoop(
   return { game, state: game.state, version, motionSnapshot, advanceRef };
 }
 
-function maybePersistHi(game: Game, events: GameEvent[]): void {
+function maybePersistHi(
+  game: Game,
+  events: GameEvent[],
+  knownGlobalRef: { current: number | null },
+): void {
   if (
-    events.some(
+    !events.some(
       (e) =>
         (e.type === 'alienHit' && e.points > 0) ||
         (e.type === 'ufoHit' && e.points > 0) ||
         e.type === 'gameOver',
     )
   ) {
-    saveHighScore(game.state.highScore);
+    return;
   }
+
+  saveHighScore(game.state.highScore);
+
+  if (!shouldSubmitHighScore(game.state.highScore, knownGlobalRef.current)) return;
+
+  const score = game.state.highScore;
+  void submitGlobalHighScore(score).then((stored) => {
+    if (stored != null) knownGlobalRef.current = stored;
+  });
 }

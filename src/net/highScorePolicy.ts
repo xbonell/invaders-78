@@ -16,7 +16,9 @@ export function shouldSubmitHighScore(localHigh: number, knownGlobal: number | n
   return local > clampHighScore(knownGlobal);
 }
 
-/** Server/client shared rule: value to store, or null if reject / no-op. */
+/** Server/client shared rule: value to store, or null if reject / no-op.
+ * functions/api/high-score.ts mirrors this intentionally because Pages Functions do not import from src/.
+ */
 export function nextStoredHighScore(current: number, submitted: number): number | null {
   if (!Number.isFinite(submitted)) return null;
   const n = Math.floor(submitted);

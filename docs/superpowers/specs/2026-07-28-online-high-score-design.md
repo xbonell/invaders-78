@@ -65,8 +65,9 @@ Invalid body → `400` `{ "error": "invalid score" }`. No auth header.
 
 ### Config
 
-- Client calls **same-origin** `/api/high-score` in production (empty base URL).
-- Optional `PUBLIC_HIGH_SCORE_API` (Rsbuild public env) for pointing local `pnpm dev` at a deployed or `wrangler pages dev` API.
+- Client calls **same-origin** `/api/high-score` in production and during local end-to-end API testing via `pnpm pages:dev` (serves `dist` plus the Pages Function together).
+- `pnpm dev` exercises the app/offline `localStorage` path unless it is pointed at an API origin that already sends browser CORS headers.
+- Optional `PUBLIC_HIGH_SCORE_API` (Rsbuild public env) is only for those CORS-enabled API origins. This Pages Function does not add CORS, so pairing `pnpm dev` with a separate `wrangler pages dev` origin is blocked by browsers.
 - When the API is unreachable, fail soft: keep local score; do not block play.
 
 ## Error handling

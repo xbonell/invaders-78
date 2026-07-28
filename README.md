@@ -47,6 +47,7 @@ Next: playtest/balance, settings, or desktop/Steam packaging (see architecture b
 1. Create a Cloudflare Pages project linked to this repo (build: `pnpm build`, output: `dist`).
 2. Create KV namespace `HI_SCORE` and bind it to the Pages project as `HI_SCORE` (see `wrangler.toml`).
 3. Deploy: `pnpm pages:deploy` (or GitHub integration on push to `main`).
-4. Optional local API: set `PUBLIC_HIGH_SCORE_API` to the `wrangler pages dev` origin when running `pnpm dev`.
+4. Local API test: run `pnpm pages:dev` and open the Wrangler URL it serves. This builds `dist` and serves the app plus `/api/high-score` from one origin.
+5. `PUBLIC_HIGH_SCORE_API` is only for an API origin that already sends browser CORS headers. This Pages Function does not add CORS, so `pnpm dev` plus a separate `wrangler pages dev` origin will be blocked by browsers.
 
 Global Hi-Score uses `GET`/`PUT /api/high-score`. Offline play still uses `localStorage`.

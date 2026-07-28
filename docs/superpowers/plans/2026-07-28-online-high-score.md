@@ -15,7 +15,7 @@
 - Single global integer score only — no names, auth, or attract `highScores` UI
 - Valid remote scores: finite integers in `0…999999`
 - Fail soft on network errors — never block play
-- Same-origin `/api/high-score` in production; optional `PUBLIC_HIGH_SCORE_API` for local → remote API
+- Same-origin `/api/high-score` in production and local `pnpm pages:dev`; `PUBLIC_HIGH_SCORE_API` only for CORS-enabled API origins
 - Keep mute/`localStorage` APIs in `src/game/storage.ts` unchanged in behavior
 - Prefer updating `docs/ARCHITECTURE.md` + main design spec when this ships
 
@@ -659,7 +659,8 @@ Append to `README.md`:
 1. Create a Cloudflare Pages project linked to this repo (build: `pnpm build`, output: `dist`).
 2. Create KV namespace `HI_SCORE` and bind it to the Pages project as `HI_SCORE` (see `wrangler.toml`).
 3. Deploy: `pnpm pages:deploy` (or GitHub integration on push to `main`).
-4. Optional local API: set `PUBLIC_HIGH_SCORE_API` to the `wrangler pages dev` origin when running `pnpm dev`.
+4. Local API test: run `pnpm pages:dev` and open the Wrangler URL it serves. This builds `dist` and serves the app plus `/api/high-score` from one origin.
+5. `PUBLIC_HIGH_SCORE_API` is only for an API origin that already sends browser CORS headers. This Pages Function does not add CORS, so `pnpm dev` plus a separate `wrangler pages dev` origin will be blocked by browsers.
 
 Global Hi-Score uses `GET`/`PUT /api/high-score`. Offline play still uses `localStorage`.
 ```
@@ -719,7 +720,7 @@ Expected: all exit 0.
 - [ ] **Step 2: Manual checklist**
 
 1. `pnpm dev` with no API — play, raise score, refresh: local hi-score persists.
-2. `pnpm pages:dev` — PUT a score via curl; open game against that origin (or `PUBLIC_HIGH_SCORE_API`): HUD shows remote max on load.
+2. `pnpm pages:dev` — PUT a score via curl; open the game at the Wrangler origin: HUD shows remote max on load.
 3. Beat the max in-game — refresh another browser/profile: new max appears after boot sync.
 4. PUT a lower score — server keeps the higher value.
 

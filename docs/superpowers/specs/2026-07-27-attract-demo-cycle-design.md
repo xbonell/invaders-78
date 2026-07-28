@@ -27,7 +27,7 @@ info (dimmed overlay) → demo (clear playfield) → [highScores when enabled] �
 
 ## Out of scope
 
-Online high-score fetch, auth, persistence, or stub UI for `highScores`.
+Online high-score fetch, auth, persistence, or stub UI for `highScores`. See [online high score](./2026-07-28-online-high-score-design.md) for global max persistence; attract `highScores` UI still deferred.
 
 ## Verification
 

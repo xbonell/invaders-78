@@ -133,6 +133,8 @@ export interface BoardState {
   ufoSpawnTimer: number;
   /** Countdown while formation freezes after a kill (in-flight shots keep moving) */
   alienHitFreezeTimer: number;
+  /** Countdown after a spent player bolt before re-fire is allowed */
+  playerFireLockTimer: number;
 }
 
 export interface GameState {

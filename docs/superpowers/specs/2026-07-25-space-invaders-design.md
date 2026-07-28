@@ -18,7 +18,7 @@ Date: 2026-07-25 · Updated: 2026-07-27
 | Camera | Orthographic top-down (`up = +Z`, player at bottom); contain-fits playfield |
 | Art | Pixel→voxel extrusions from classic silhouettes; no bitmaps |
 | Scope shipped | v1 core + v2 attract/HUD + v3 2P/tuning + voxel/FX polish |
-| Bunkers | Cell erosion; taller voxel stacks |
+| Bunkers | Cell erosion; taller voxel stacks; persist across waves |
 | Architecture | Pure fixed-timestep sim + R3F view + event FX/audio |
 | Bundler | Rsbuild + React + TypeScript |
 | Controls flip | Left/right mapped for flipped camera (`left → +X`) |
@@ -45,10 +45,10 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 
 - **1P / 2P:** attract/game-over mode selector (default 1P); ←→ / A D / pad select; Fire / Enter / Start confirm; alternating turns; no coin/credit gate ([start mode selector](./2026-07-27-start-mode-selector-design.md))
 - **2P boards:** each player has an isolated board (formation, bunkers, wave, shots); switch after every death if the other still has lives; invasion ends only the active player’s remaining lives ([alternating 2P boards](./2026-07-27-alternating-2p-boards-design.md))
-- Player: horizontal only; one shot on screen; 3 lives each; bonus life at 1500
+- Player: horizontal only; one shot on screen; ROM bolt speed (4 px/frame) + ~16-frame re-fire lockout after spent shot; 3 lives each; bonus life at 1500
 - Invaders: 5×11 at ROM 16×16 pitch; start from ref ($38,$78) + wave Yr table; edge drop + reverse; step cadence = alive/60; last alien 3 px right / 2 px left; ~16-frame freeze on kill
 - Points: squid 30, crab 20, octopus 10; UFO ROM table (15 values); spawn ~25.6 s when ≥8 aliens; direction from shot LSB; scrolls on/off past the green-line rim (shootable while partially visible); UFO kill shows floating points at hit location
-- Bunkers: 4 at ROM VRAM slots; ROM 22×16 pixel masks; cell erase on hit
+- Bunkers: 4 at ROM VRAM slots; ROM 22×16 pixel masks; cell erase on hit; damage persists across waves (restored only on new credit)
 - Waves: clear → brief pause → next wave at ROM start Yr
 - Phases: `attract` → `playing` → `dying` / `waveClear` / `playerSwitch` → `gameOver` → attract
 - Hi-score: localStorage cache + optional global max via /api/high-score ([online high score](./2026-07-28-online-high-score-design.md))

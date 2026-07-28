@@ -20,6 +20,7 @@ export function createEmptyBoard(): BoardState {
     ufo: null,
     ufoSpawnTimer: UFO.spawnInterval * 0.5,
     alienHitFreezeTimer: 0,
+    playerFireLockTimer: 0,
   };
 }
 
@@ -29,10 +30,14 @@ export function resetBoardWave(board: BoardState, wave: number): void {
   board.formation = createFormation(wave);
   board.playerBullet = null;
   resetAlienShotSystemForWave(board.alienShots);
-  board.bunkers = createBunkers();
+  // Classic arcade: bunkers persist across waves; only restore on a fresh credit (wave 1).
+  if (wave === 1 || board.bunkers.length === 0) {
+    board.bunkers = createBunkers();
+  }
   board.ufo = null;
   board.ufoSpawnTimer = UFO.spawnInterval;
   board.alienHitFreezeTimer = 0;
+  board.playerFireLockTimer = 0;
   board.player.x = 0;
   board.player.z = PLAYER.z;
   board.player.alive = true;

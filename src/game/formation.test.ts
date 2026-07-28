@@ -74,6 +74,32 @@ describe('formation', () => {
     expect(events.some((e) => e.type === 'waveClear')).toBe(true);
   });
 
+  it('keeps bunker damage across waves', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'start' });
+    const board = activeBoard(game.state);
+    const solid = board.bunkers[0].cells.findIndex((c) => c === 1);
+    expect(solid).toBeGreaterThanOrEqual(0);
+    board.bunkers[0].cells[solid] = 0;
+    for (const a of board.aliens) a.alive = false;
+    step(game, TICK_DT);
+    expect(game.state.phase).toBe('waveClear');
+    game.state.waveClearTimer = 0;
+    step(game, TICK_DT);
+    expect(game.state.phase).toBe('playing');
+    expect(activeBoard(game.state).wave).toBe(2);
+    expect(activeBoard(game.state).bunkers[0].cells[solid]).toBe(0);
+  });
+
+  it('restores bunkers when starting a new game', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'start' });
+    const solid = activeBoard(game.state).bunkers[0].cells.findIndex((c) => c === 1);
+    activeBoard(game.state).bunkers[0].cells[solid] = 0;
+    dispatch(game, { type: 'restart' });
+    expect(activeBoard(game.state).bunkers[0].cells[solid]).toBe(1);
+  });
+
   it('freezes formation briefly after an alien kill', () => {
     const game = createGame(0);
     dispatch(game, { type: 'start' });

@@ -56,6 +56,30 @@ describe('simulation core', () => {
     expect(activeBoard(game.state).playerBullet).toBe(first);
   });
 
+  it('uses ROM player bolt speed (4 px/frame)', () => {
+    expect(PLAYER.bulletSpeed).toBeCloseTo(4 * 60 * SCALE_Z, 5);
+    expect(PLAYER.shotLockout).toBeCloseTo(16 / 60, 5);
+  });
+
+  it('blocks re-fire for shotLockout after bolt is spent', () => {
+    const game = startGame();
+    dispatch(game, { type: 'fire' });
+    const board = activeBoard(game.state);
+    expect(board.playerBullet).not.toBeNull();
+    board.playerBullet!.z = PLAYFIELD.maxZ + 2;
+    step(game, TICK_DT);
+    expect(board.playerBullet).toBeNull();
+    expect(board.playerFireLockTimer).toBeGreaterThan(0);
+
+    dispatch(game, { type: 'fire' });
+    expect(board.playerBullet).toBeNull();
+
+    step(game, PLAYER.shotLockout);
+    expect(board.playerFireLockTimer).toBeLessThanOrEqual(0);
+    dispatch(game, { type: 'fire' });
+    expect(board.playerBullet).not.toBeNull();
+  });
+
   it('awards points when player bullet hits an alien', () => {
     const game = startGame();
     const alien = activeBoard(game.state).aliens.find((a) => a.alive)!;

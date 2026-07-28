@@ -37,7 +37,10 @@ export const PLAYER = {
    * Matches recipeToBits: `((rows - 1) * cell) / 2`.
    */
   bulletSpawnOffsetZ: ((8 - 1) * VOXEL_SIZE) / 2 + 3 * VOXEL_SIZE,
-  bulletSpeed: 22,
+  /** ROM: 4 px per interrupt at 60 Hz */
+  bulletSpeed: 4 * 60 * SCALE_Z,
+  /** ROM player-shot blow-up / alien-explode busy window (~16 frames) */
+  shotLockout: 16 / 60,
   startLives: 3,
   dyingDuration: 0.85,
   /** Arcade DIP default: extra ship at 1500 */

@@ -5,6 +5,6 @@ import { pluginReact } from '@rsbuild/plugin-react';
 export default defineConfig({
   plugins: [pluginReact()],
   html: {
-    title: 'Invaders \'78',
+    title: "Invaders '78",
   },
 });

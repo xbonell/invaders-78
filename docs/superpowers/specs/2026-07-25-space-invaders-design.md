@@ -51,7 +51,7 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 - Bunkers: 4 at ROM VRAM slots; ROM 22×16 pixel masks; cell erase on hit
 - Waves: clear → brief pause → next wave at ROM start Yr
 - Phases: `attract` → `playing` → `dying` / `waveClear` / `playerSwitch` → `gameOver` → attract
-- Hi-score: `localStorage`
+- Hi-score: localStorage cache + optional global max via /api/high-score ([online high score](./2026-07-28-online-high-score-design.md))
 - Layout: arcade Xr/Yr via [`arcadeLayout.ts`](../../../src/game/arcadeLayout.ts) (not the old feel-tuned constants)
 
 ## Visuals
@@ -82,7 +82,7 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 
 ## Out of scope (still)
 
-Steam/Tauri wrapper, online leaderboards, glTF/bitmaps/samples, ROM fonts, network multiplayer.
+Steam/Tauri wrapper, named / top-N online leaderboards (single global max shipped), glTF/bitmaps/samples, ROM fonts, network multiplayer.
 
 ## Testing
 

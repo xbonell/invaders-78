@@ -41,3 +41,12 @@ pnpm build
 
 Shipped: core loop, attract mode, free 1P/2P start, voxel art + FX, laser bullets, procedural audio.  
 Next: playtest/balance, settings, or desktop/Steam packaging (see architecture backlog).
+
+## Deploy (Cloudflare Pages)
+
+1. Create a Cloudflare Pages project linked to this repo (build: `pnpm build`, output: `dist`).
+2. Create KV namespace `HI_SCORE` and bind it to the Pages project as `HI_SCORE` (see `wrangler.toml`).
+3. Deploy: `pnpm pages:deploy` (or GitHub integration on push to `main`).
+4. Optional local API: set `PUBLIC_HIGH_SCORE_API` to the `wrangler pages dev` origin when running `pnpm dev`.
+
+Global Hi-Score uses `GET`/`PUT /api/high-score`. Offline play still uses `localStorage`.

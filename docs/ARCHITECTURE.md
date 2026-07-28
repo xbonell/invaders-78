@@ -47,6 +47,8 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/scene/meshes/GlowBullet.tsx` | Laser bolt visuals |
 | `src/scene/meshes/BunkerMesh.tsx` | Erodable bunker cells (per-cell boxes) |
 | `src/app/` | Shell, HUD, overlays, pause menu, CSS (chrome scales with stage via `--stage-w`; [stage-scaled UI](docs/superpowers/specs/2026-07-27-stage-scaled-ui-design.md)) |
+| `src/net/` | Global high-score HTTP client + pure policy (no Three/Audio) |
+| `functions/api/high-score.ts` | Cloudflare Pages Function — persisted max score (KV) |
 
 ## Data flow
 
@@ -88,6 +90,10 @@ Edit grids in `src/scene/voxels/recipes.ts` (`#` short voxel, `H` tall, `.` empt
 
 Extend `GamePhase`, handle in `dispatch` / `step`, update HUD `Overlay`/`Hud` visibility.
 
+### Persist / deploy hi-score
+
+See [online high score design spec](superpowers/specs/2026-07-28-online-high-score-design.md) and `wrangler.toml` (KV binding `HI_SCORE`, `pnpm pages:deploy` / `pages:dev`).
+
 ## Backlog (suggested)
 
 1. **Playtest / balance** — wave 1 feel, bunker chew, UFO rate  
@@ -98,10 +104,11 @@ Extend `GamePhase`, handle in `dispatch` / `step`, update HUD `Overlay`/`Hud` vi
 6. ~~Alien shots~~ — arcade Rolling/Plunger/Squiggly slots (2026-07-26)
 7. ~~Gamepad 2P start~~ — Select/Back mirrors keyboard `2` (2026-07-27)
 8. ~~Start mode selector~~ — ←→ select 1P/2P, Fire/Enter/Start confirm (2026-07-27)
+9. ~~Online global hi-score~~ — Cloudflare Pages + KV (2026-07-28)
 
 ## Explicit non-goals
 
-Online multiplayer, ROM assets, glTF pipelines, rewriting sim inside `useFrame`.
+Online multiplayer, named / top-N online leaderboards (single global max is shipped), ROM assets, glTF pipelines, rewriting sim inside `useFrame`.
 
 ## Verification checklist for agents
 

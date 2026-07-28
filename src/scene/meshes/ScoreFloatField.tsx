@@ -5,8 +5,10 @@ import { VOXEL_SIZE } from '../../game/constants';
 import { drainScoreFloatQueue, type ScoreFloatSpawn } from '../voxels/scoreFloatQueue';
 
 const POOL = 4;
-const LIFE = 0.6;
-const RISE_SPEED = 3.2;
+const LIFE = 2.0;
+/** Remaining-life fraction where fade begins (full opacity for first ~55%). */
+const FADE_START = 0.45;
+const RISE_SPEED = 1.2;
 const PLANE_H = VOXEL_SIZE * 5;
 const TEX_W = 256;
 const TEX_H = 96;
@@ -114,7 +116,7 @@ function attachMesh(slot: FloatSlot, node: THREE.Mesh | null): void {
   node.renderOrder = 10;
 }
 
-/** World-space UFO points popup: rises +Z and fades out immediately. */
+/** World-space UFO points popup: rises +Z, holds opaque, then fades. */
 export function ScoreFloatField() {
   const poolRef = useRef<FloatSlot[]>([]);
 
@@ -148,7 +150,7 @@ export function ScoreFloatField() {
       const t = Math.max(0, slot.life / slot.maxLife);
       mesh.visible = true;
       mesh.position.set(slot.x, slot.y, slot.z);
-      mat.opacity = t;
+      mat.opacity = t >= FADE_START ? 1 : t / FADE_START;
     }
   });
 

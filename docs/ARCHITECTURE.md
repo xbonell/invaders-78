@@ -92,7 +92,7 @@ Extend `GamePhase`, handle in `dispatch` / `step`, update HUD `Overlay`/`Hud` vi
 
 ### Persist / deploy hi-score
 
-See [online high score design spec](superpowers/specs/2026-07-28-online-high-score-design.md) and `wrangler.toml` (KV binding `HI_SCORE`, `pnpm pages:deploy` / `pages:dev`). Use `pnpm pages:dev` for local API testing so `dist` and `/api/high-score` are served from the same Wrangler origin; `pnpm dev` plus a separate Pages Function origin needs CORS, which this Function does not implement.
+See [online high score design spec](superpowers/specs/2026-07-28-online-high-score-design.md) and `wrangler.toml` (KV binding `HI_SCORE`, `pnpm pages:deploy` / `pages:dev`). CI: `.github/workflows/deploy-pages.yml` runs checks on PRs and deploys to Cloudflare Pages on `main` (needs `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` secrets and real KV ids). Use `pnpm pages:dev` for local API testing so `dist` and `/api/high-score` are served from the same Wrangler origin; `pnpm dev` plus a separate Pages Function origin needs CORS, which this Function does not implement.
 
 ## Backlog (suggested)
 

@@ -44,10 +44,37 @@ Next: playtest/balance, settings, or desktop/Steam packaging (see architecture b
 
 ## Deploy (Cloudflare Pages)
 
-1. Create a Cloudflare Pages project linked to this repo (build: `pnpm build`, output: `dist`).
-2. Create KV namespace `HI_SCORE` and bind it to the Pages project as `HI_SCORE` (see `wrangler.toml`).
-3. Deploy: `pnpm pages:deploy` (or GitHub integration on push to `main`).
-4. Local API test: run `pnpm pages:dev` and open the Wrangler URL it serves. This builds `dist` and serves the app plus `/api/high-score` from one origin.
-5. `PUBLIC_HIGH_SCORE_API` is only for an API origin that already sends browser CORS headers. This Pages Function does not add CORS, so `pnpm dev` plus a separate `wrangler pages dev` origin will be blocked by browsers.
+### One-time Cloudflare setup
+
+1. Log in: `npx wrangler login` (or create an API token with **Account → Cloudflare Pages → Edit** and **Account → Workers KV Storage → Edit**).
+2. Create KV namespaces and put the ids in `wrangler.toml` (replace the `REPLACE_WITH_*` placeholders):
+
+   ```bash
+   npx wrangler kv namespace create HI_SCORE
+   npx wrangler kv namespace create HI_SCORE --preview
+   ```
+
+3. Create the Pages project once if it does not exist: `pnpm pages:deploy` locally, or let the first CI deploy create `invaders-78`.
+4. In the Pages project settings, confirm the KV binding name is `HI_SCORE`.
+
+### GitHub Actions (recommended)
+
+On every PR / push: test, lint, format check, and build (`.github/workflows/deploy-pages.yml`).  
+On push to `main`: deploy `dist` to Cloudflare Pages with Wrangler.
+
+Add repository secrets:
+
+| Secret | Value |
+| ------ | ----- |
+| `CLOUDFLARE_API_TOKEN` | API token with Pages + KV edit |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
+
+Deploy is skipped until `wrangler.toml` has real KV ids (the workflow fails fast on placeholders).
+
+### Manual / local
+
+- Production-like local: `pnpm pages:dev` (same origin for app + `/api/high-score`)
+- Manual deploy: `pnpm pages:deploy`
+- `PUBLIC_HIGH_SCORE_API` is only for an API origin that already sends browser CORS headers. This Pages Function does not add CORS, so `pnpm dev` plus a separate `wrangler pages dev` origin will be blocked by browsers.
 
 Global Hi-Score uses `GET`/`PUT /api/high-score`. Offline play still uses `localStorage`.

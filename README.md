@@ -54,7 +54,7 @@ Next: playtest/balance, settings, or desktop/Steam packaging (see architecture b
    npx wrangler kv namespace create HI_SCORE --preview
    ```
 
-3. Create the Pages project once if it does not exist: `pnpm pages:deploy` locally, or let the first CI deploy create `invaders-78`.
+3. Create the Pages project once if it does not exist (`npx wrangler pages project create invaders-78 --production-branch=main`), or let the first CI deploy create it via `preCommands`.
 4. In the Pages project settings, confirm the KV binding name is `HI_SCORE`.
 
 ### GitHub Actions (recommended)

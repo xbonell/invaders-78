@@ -76,4 +76,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: npm
           wranglerVersion: '4.114.0'
+          # wrangler v4 does not auto-create Pages projects on deploy
+          preCommands: wrangler pages project create invaders-78 --production-branch=main || true
           command: pages deploy dist --project-name=invaders-78

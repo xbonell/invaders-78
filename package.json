@@ -10,6 +10,8 @@
     "postinstall": "patch-package",
     "test": "vitest run",
     "test:watch": "vitest",
+    "pages:dev": "pnpm build && wrangler pages dev dist --kv HI_SCORE",
+    "pages:deploy": "pnpm build && wrangler pages deploy dist",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "format": "oxfmt .",
@@ -22,6 +24,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260728.1",
     "@rsbuild/core": "^2.1.8",
     "@rsbuild/plugin-react": "^2.1.0",
     "@types/node": "^24.13.3",
@@ -33,7 +36,8 @@
     "oxlint-tsgolint": "^7.0.2001",
     "patch-package": "^8.0.1",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "^4.114.0"
   },
   "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72"
 }

@@ -1,0 +1,8 @@
+name = "invaders-78"
+compatibility_date = "2026-07-28"
+pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "HI_SCORE"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_KV_PREVIEW_ID"

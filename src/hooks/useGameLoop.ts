@@ -19,10 +19,7 @@ import { pollGamepad } from '../input/gamepad';
 import type { AudioEngine } from '../audio/engine';
 import { enqueueFx } from '../scene/voxels/fxQueue';
 import { enqueueScoreFloats } from '../scene/voxels/scoreFloatQueue';
-import {
-  fetchGlobalHighScore,
-  submitGlobalHighScore,
-} from '../net/highScoreApi';
+import { fetchGlobalHighScore, submitGlobalHighScore } from '../net/highScoreApi';
 import { mergeHighScores, shouldSubmitHighScore } from '../net/highScorePolicy';
 
 export interface GameLoopApi {

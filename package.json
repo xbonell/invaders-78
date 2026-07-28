@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "rsbuild build",
+    "dev": "rsbuild",
     "start": "rsbuild --open",
     "preview": "rsbuild preview",
     "postinstall": "patch-package",

@@ -64,10 +64,10 @@ On push to `main`: deploy `dist` to Cloudflare Pages with Wrangler.
 
 Add repository secrets:
 
-| Secret | Value |
-| ------ | ----- |
-| `CLOUDFLARE_API_TOKEN` | API token with Pages + KV edit |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
+| Secret                  | Value                          |
+| ----------------------- | ------------------------------ |
+| `CLOUDFLARE_API_TOKEN`  | API token with Pages + KV edit |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id          |
 
 Deploy is skipped until `wrangler.toml` has real KV ids (the workflow fails fast on placeholders).
 

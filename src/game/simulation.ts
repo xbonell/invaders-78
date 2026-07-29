@@ -139,7 +139,11 @@ function pushEvent(state: GameState, event: GameEvent): void {
   state.events.push(event);
 }
 
-function beginPlay(state: GameState, playerCount: 1 | 2): void {
+function beginPlay(game: Game, playerCount: 1 | 2): void {
+  const { state } = game;
+  // Drop attract-demo / game-over / held-key leftovers (same idea as death clear)
+  game.moveDir = 0;
+  game.fireQueued = false;
   state.playerCount = playerCount;
   state.activePlayer = 0;
   state.scores = [0, 0];
@@ -161,17 +165,17 @@ export function dispatch(game: Game, cmd: GameCommand): void {
   switch (cmd.type) {
     case 'start':
       if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
-        beginPlay(state, 1);
+        beginPlay(game, 1);
       }
       break;
     case 'startTwo':
       if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
-        beginPlay(state, 2);
+        beginPlay(game, 2);
       }
       break;
     case 'confirmStart':
       if (state.phase === 'attract' || state.phase === 'ready' || state.phase === 'gameOver') {
-        beginPlay(state, state.menuPlayerCount);
+        beginPlay(game, state.menuPlayerCount);
       }
       break;
     case 'menuSelect':
@@ -186,7 +190,7 @@ export function dispatch(game: Game, cmd: GameCommand): void {
       }
       break;
     case 'restart':
-      beginPlay(state, state.playerCount);
+      beginPlay(game, state.playerCount);
       break;
     case 'pause':
       if (state.phase === 'playing') state.phase = 'paused';

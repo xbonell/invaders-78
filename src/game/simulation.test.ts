@@ -135,6 +135,43 @@ describe('simulation core', () => {
     expect(game.moveDir).toBe(0);
   });
 
+  it('clears leftover moveDir when starting a new game after game over', () => {
+    const game = startGame();
+    game.state.livesByPlayer[0] = 1;
+    game.state.lives = 1;
+    dispatch(game, { type: 'move', dir: 1 });
+    injectAlienShotAtPlayer(game.state);
+    step(game, TICK_DT);
+    expect(game.state.phase).toBe('dying');
+    // Input still tracked while dying (same as mid-life death)
+    dispatch(game, { type: 'move', dir: -1 });
+    expect(game.moveDir).toBe(-1);
+    game.state.dyingTimer = 0;
+    step(game, TICK_DT);
+    expect(game.state.phase).toBe('gameOver');
+    expect(game.moveDir).toBe(0);
+    // Move during game-over / attract leftover (demo AI also writes moveDir) must not stick
+    dispatch(game, { type: 'move', dir: 1 });
+    expect(game.moveDir).toBe(1);
+    dispatch(game, { type: 'confirmStart' });
+    expect(game.state.phase).toBe('playing');
+    expect(game.moveDir).toBe(0);
+    const x0 = activeBoard(game.state).player.x;
+    for (let i = 0; i < 10; i++) step(game, TICK_DT);
+    expect(activeBoard(game.state).player.x).toBeCloseTo(x0, 5);
+  });
+
+  it('clears leftover moveDir when starting from attract after demo steering', () => {
+    const game = createGame(0);
+    expect(game.state.phase).toBe('attract');
+    game.moveDir = 1;
+    game.fireQueued = true;
+    dispatch(game, { type: 'confirmStart' });
+    expect(game.state.phase).toBe('playing');
+    expect(game.moveDir).toBe(0);
+    expect(game.fireQueued).toBe(false);
+  });
+
   it('uses ROM-derived layout positions', () => {
     expect(PLAYFIELD.width).toBe(28);
     expect(FORMATION.colSpacing).toBeCloseTo(ALIEN_CELL_PX * SCALE_X, 5);

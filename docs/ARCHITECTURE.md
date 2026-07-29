@@ -74,7 +74,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 
 ### Tune difficulty
 
-Edit `src/game/constants.ts` (`FORMATION`, `ALIEN_SHOT`, `PLAYER`, `UFO`, `ATTRACT`). Player bolt speed / re-fire lockout live on `PLAYER` (`bulletSpeed`, `shotLockout`). Alien fire is score-reload + table/targeting in `alienShots.ts`, not a timer interval. UFO scroll-on/off uses `ufoOffscreenAbsX()` in `simulation.ts` (despawn only when fully past the green-line rim). Add/adjust tests in `alienShots.test.ts` / `formation.test.ts` / `players.test.ts` / `simulation.test.ts` if behavior changes.
+Edit `src/game/constants.ts` (`FORMATION`, `ALIEN_SHOT`, `PLAYER`, `UFO`, `ATTRACT`). Alien fire is score-reload + table/targeting in `alienShots.ts`, not a timer interval. UFO scroll-on/off uses `ufoOffscreenAbsX()` in `simulation.ts` (despawn only when fully past the green-line rim). Add/adjust tests in `alienShots.test.ts` / `formation.test.ts` / `players.test.ts` if behavior changes.
 
 ### Change alien / UFO / player / alien-shot shape
 

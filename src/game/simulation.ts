@@ -219,7 +219,7 @@ function tryPlayerFire(game: Game): void {
   if ((state.phase !== 'playing' && state.phase !== 'attract') || !board.player.alive) {
     return;
   }
-  if (board.playerBullet || board.playerFireLockTimer > 0) return;
+  if (board.playerBullet) return;
   board.playerBullet = {
     x: board.player.x,
     z: board.player.z + PLAYER.bulletSpawnOffsetZ,
@@ -243,14 +243,7 @@ function clearPlayerBullet(state: GameState): void {
   const board = activeBoard(state);
   if (!board.playerBullet) return;
   board.playerBullet = null;
-  board.playerFireLockTimer = PLAYER.shotLockout;
   onPlayerShotRemoved(state);
-}
-
-function tickPlayerFireLock(board: BoardState, dt: number): void {
-  if (board.playerFireLockTimer > 0) {
-    board.playerFireLockTimer -= dt;
-  }
 }
 
 function updatePlayer(game: Game, dt: number): void {
@@ -322,7 +315,6 @@ function beginInvasion(game: Game): void {
   clearAlienShots(board.alienShots);
   board.ufo = null;
   board.alienHitFreezeTimer = 0;
-  board.playerFireLockTimer = 0;
   game.moveDir = 0;
   game.fireQueued = false;
   const i = state.activePlayer;
@@ -463,7 +455,6 @@ function hitPlayer(game: Game): void {
   clearAlienShots(board.alienShots);
   board.ufo = null;
   board.alienHitFreezeTimer = 0;
-  board.playerFireLockTimer = 0;
   game.moveDir = 0;
   game.fireQueued = false;
   const i = state.activePlayer;
@@ -511,7 +502,6 @@ function checkWaveClear(state: GameState): void {
   clearAlienShots(board.alienShots);
   board.ufo = null;
   board.alienHitFreezeTimer = 0;
-  board.playerFireLockTimer = 0;
   pushEvent(state, { type: 'waveClear' });
 }
 
@@ -530,7 +520,6 @@ function switchToPlayer(game: Game, next: 0 | 1): void {
   clearAlienShots(board.alienShots);
   board.ufo = null;
   board.alienHitFreezeTimer = 0;
-  board.playerFireLockTimer = 0;
   game.moveDir = 0;
   game.fireQueued = false;
   state.phase = 'playerSwitch';
@@ -618,7 +607,6 @@ function updateAttract(game: Game, dt: number): void {
 
   updatePlayer(game, dt);
   stepFormation(game, dt, false);
-  tickPlayerFireLock(board, dt);
   updatePlayerBullet(state, dt);
   collidePlayerBullet(state, false);
 
@@ -680,7 +668,6 @@ export function step(game: Game, dt: number): void {
   const board = activeBoard(state);
   tryPlayerFire(game);
   updatePlayer(game, dt);
-  tickPlayerFireLock(board, dt);
 
   if (board.alienHitFreezeTimer > 0) {
     board.alienHitFreezeTimer -= dt;

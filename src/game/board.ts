@@ -20,7 +20,6 @@ export function createEmptyBoard(): BoardState {
     ufo: null,
     ufoSpawnTimer: UFO.spawnInterval * 0.5,
     alienHitFreezeTimer: 0,
-    playerFireLockTimer: 0,
   };
 }
 
@@ -37,7 +36,6 @@ export function resetBoardWave(board: BoardState, wave: number): void {
   board.ufo = null;
   board.ufoSpawnTimer = UFO.spawnInterval;
   board.alienHitFreezeTimer = 0;
-  board.playerFireLockTimer = 0;
   board.player.x = 0;
   board.player.z = PLAYER.z;
   board.player.alive = true;

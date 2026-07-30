@@ -63,10 +63,6 @@ export function attachKeyboard(
         return;
       }
       if (e.key === 'Escape') {
-        if (pauseMenu.escape?.()) {
-          onUi?.();
-          return;
-        }
         // Do not preventDefault — allow the UA to leave fullscreen if active.
         dispatch(game, { type: 'resume' });
         onUi?.();

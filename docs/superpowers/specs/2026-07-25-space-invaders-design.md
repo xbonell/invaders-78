@@ -4,7 +4,7 @@ Date: 2026-07-25 · Updated: 2026-07-27
 
 ## Intent
 
-**Invaders 78** — a 1978-style arcade invaders game with 2D playfield dynamics, **code-built voxel** ships (no bitmaps / glTF), procedural Web Audio, keyboard + gamepad + touch overlay. Web-first; Steam/desktop packaging is future work. Product name avoids the trademarked “Space Invaders” title.
+**Invaders 78** — a 1978-style arcade invaders game with 2D playfield dynamics, **code-built voxel** ships (no bitmaps / glTF), procedural Web Audio, keyboard + gamepad. Web-first; Steam/desktop packaging is future work. Product name avoids the trademarked “Space Invaders” title.
 
 ## Current status
 
@@ -26,7 +26,7 @@ Date: 2026-07-25 · Updated: 2026-07-27
 ## Architecture
 
 ```
-Input (keyboard/gamepad/touch) → GameSimulation ← FixedTimestepLoop (useGameLoop)
+Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
                               ↓ events
               ┌───────────────┼───────────────┐
               ↓               ↓               ↓
@@ -71,7 +71,6 @@ Input (keyboard/gamepad/touch) → GameSimulation ← FixedTimestepLoop (useGame
 - Fire edge-triggered; AudioContext unlock awaited before start/fire when needed
 - Attract / game over: horizontal input selects 1P/2P (`menuPlayerCount`); Fire / Enter / Start confirms; confirm press is consumed until release so it does not fire on frame one
 - Gamepad: first connected pad; D-pad/stick + South fire + Start
-- Touch (coarse/touch devices): floating left stick (X-only) + Fire + Pause; same menu/move/fire/pause mapping as gamepad ([touch controls](./2026-07-30-touch-controls-design.md))
 - Pause menu: ↑↓ / pad vertical navigate; Enter / South confirm; Esc / Start always resume ([pause menu design](./2026-07-27-pause-menu-design.md))
 
 ## Audio
@@ -92,4 +91,4 @@ pnpm test    # Vitest — src/game/*.test.ts
 pnpm build
 ```
 
-Manual: attract demo explosions, mode selector → 1P/2P alternating boards after each death, death while holding move, audio on first confirm; on touch device — stick menu select, Fire start, multi-touch steer+fire, Pause.
+Manual: attract demo explosions, mode selector → 1P/2P alternating boards after each death, death while holding move, audio on first confirm.

@@ -8,18 +8,8 @@ import { applyBackdropUrl, bakeBackdrop } from '../scene/backdrop/bakeBackdrop';
 import { GameCanvas } from '../scene/GameCanvas';
 import { attachFullscreenListeners, subscribeFullscreen, toggleFullscreen } from './fullscreen';
 import { FooterBar, Hud, Overlay } from './Hud';
-import { TouchControls } from './TouchControls';
 import { CHROME_REF_WIDTH_PX } from './chromeScale';
 import { movePauseIndex, PAUSE_DEFAULT_INDEX, pauseItemAt, type PauseMenuInput } from './pauseMenu';
-import {
-  clampLayout,
-  defaultTouchLayout,
-  hasStoredTouchLayout,
-  layoutsEqual,
-  loadTouchLayout,
-  saveTouchLayout,
-  type TouchLayout,
-} from './touchLayout';
 import './app.css';
 
 export default function App() {
@@ -29,22 +19,12 @@ export default function App() {
     () => typeof document !== 'undefined' && !!document.fullscreenElement,
   );
   const [pauseIndex, setPauseIndex] = useState(PAUSE_DEFAULT_INDEX);
-  const [layoutEditing, setLayoutEditing] = useState(false);
-  const [touchLayout, setTouchLayout] = useState<TouchLayout>(() => loadTouchLayout());
-  const layoutBackup = useRef<TouchLayout | null>(null);
-  const hadStoredLayout = useRef(false);
-  const layoutPrimed = useRef(false);
   const pauseMenuRef = useRef<PauseMenuInput | null>(null);
   const pauseIndexRef = useRef(pauseIndex);
   pauseIndexRef.current = pauseIndex;
-  const layoutEditingRef = useRef(layoutEditing);
-  layoutEditingRef.current = layoutEditing;
   const shellRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const { game, state, version, bumpUi, motionSnapshot, advanceRef } = useGameLoop(
-    audio,
-    pauseMenuRef,
-  );
+  const { game, state, version, motionSnapshot, advanceRef } = useGameLoop(audio, pauseMenuRef);
   const wasPaused = useRef(false);
 
   useEffect(() => {
@@ -62,30 +42,13 @@ export default function App() {
     const stage = stageRef.current;
     if (!stage) return undefined;
 
-    hadStoredLayout.current = hasStoredTouchLayout();
-
-    const syncStage = () => {
-      const { width, height } = stage.getBoundingClientRect();
-      if (width <= 0 || height <= 0) return;
+    const syncStageWidth = () => {
+      const width = stage.getBoundingClientRect().width;
       root.style.setProperty('--stage-w', `${width}px`);
-      const scale = width / CHROME_REF_WIDTH_PX;
-      root.style.setProperty('--chrome-scale', String(scale));
-
-      setTouchLayout((prev) => {
-        const base =
-          !layoutPrimed.current && !hadStoredLayout.current
-            ? defaultTouchLayout(width, height, scale)
-            : prev;
-        layoutPrimed.current = true;
-        const next = clampLayout(base, width, height, scale);
-        if (layoutsEqual(next, prev)) return prev;
-        // Persist when a stored layout had to move back on-screen after resize.
-        if (hadStoredLayout.current) saveTouchLayout(next);
-        return next;
-      });
+      root.style.setProperty('--chrome-scale', String(width / CHROME_REF_WIDTH_PX));
     };
-    syncStage();
-    const ro = new ResizeObserver(syncStage);
+    syncStageWidth();
+    const ro = new ResizeObserver(syncStageWidth);
     ro.observe(stage);
     return () => ro.disconnect();
   }, []);
@@ -102,12 +65,6 @@ export default function App() {
     const paused = state.phase === 'paused';
     if (paused && !wasPaused.current) {
       setPauseIndex(PAUSE_DEFAULT_INDEX);
-      setLayoutEditing(false);
-      layoutBackup.current = null;
-    }
-    if (!paused && wasPaused.current) {
-      setLayoutEditing(false);
-      layoutBackup.current = null;
     }
     wasPaused.current = paused;
   }, [state.phase, version]);
@@ -126,47 +83,16 @@ export default function App() {
     void audio.unlock();
   };
 
-  const beginLayoutEdit = () => {
-    layoutBackup.current = { ...touchLayout };
-    setLayoutEditing(true);
-  };
-
-  const finishLayoutEdit = (save: boolean) => {
-    if (save) {
-      saveTouchLayout(touchLayout);
-      hadStoredLayout.current = true;
-    } else if (layoutBackup.current) {
-      setTouchLayout(layoutBackup.current);
-    }
-    layoutBackup.current = null;
-    setLayoutEditing(false);
-  };
-
   const activatePauseItem = (index: number) => {
     const item = pauseItemAt(index);
     if (item === 'sound') toggleMute();
     else if (item === 'fullscreen') void toggleFullscreen();
-    else if (item === 'controls') beginLayoutEdit();
     else dispatch(game, { type: 'resume' });
   };
 
   pauseMenuRef.current = {
-    navigate: (dir) => {
-      if (layoutEditingRef.current) return;
-      setPauseIndex((i) => movePauseIndex(i, dir));
-    },
-    confirm: () => {
-      if (layoutEditingRef.current) {
-        finishLayoutEdit(true);
-        return;
-      }
-      activatePauseItem(pauseIndexRef.current);
-    },
-    escape: () => {
-      if (!layoutEditingRef.current) return false;
-      finishLayoutEdit(false);
-      return true;
-    },
+    navigate: (dir) => setPauseIndex((i) => movePauseIndex(i, dir)),
+    confirm: () => activatePauseItem(pauseIndexRef.current),
   };
 
   return (
@@ -188,25 +114,14 @@ export default function App() {
         />
         <Hud state={state} />
         <FooterBar state={state} />
-        <TouchControls
-          game={game}
-          phase={state.phase}
-          layout={touchLayout}
-          editing={layoutEditing}
-          onLayoutChange={setTouchLayout}
-          onGesture={unlock}
-          onUi={bumpUi}
-        />
       </div>
       <Overlay
         state={state}
         muted={muted}
         fullscreen={fullscreen}
         pauseIndex={pauseIndex}
-        layoutEditing={layoutEditing}
         onPauseSelect={setPauseIndex}
         onPauseActivate={activatePauseItem}
-        onLayoutDone={() => finishLayoutEdit(true)}
       />
     </div>
   );

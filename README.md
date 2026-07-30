@@ -1,6 +1,6 @@
 # Invaders 78
 
-1978-style arcade invaders: 2D dynamics, **voxel** ships (React Three Fiber), procedural Web Audio, keyboard + gamepad + touch.
+1978-style arcade invaders: 2D dynamics, **voxel** ships (React Three Fiber), procedural Web Audio, keyboard + gamepad.
 
 ## Stack
 
@@ -21,16 +21,15 @@ pnpm build
 
 ## Controls
 
-| Action        | Keyboard      | Gamepad              | Touch (phone/tablet)  |
-| ------------- | ------------- | -------------------- | --------------------- |
-| Select mode   | ← → / A D     | D-pad / left stick   | Stick L/R             |
-| Confirm start | Space / Enter | South (A) / Start    | Fire                  |
-| Move          | ← → / A D     | D-pad / left stick   | Stick                 |
-| Fire          | Space / Ctrl  | South (A / ×)        | Fire                  |
-| Pause         | Esc           | Start (in play)      | Pause                 |
-| Move controls | —             | —                    | Pause → Move controls |
-| Pause menu    | ↑↓ · Enter    | D-pad/stick Y · A    | Tap menu items        |
-| Resume        | Esc           | Start (while paused) | Back / tap            |
+| Action        | Keyboard      | Gamepad              |
+| ------------- | ------------- | -------------------- |
+| Select mode   | ← → / A D     | D-pad / left stick   |
+| Confirm start | Space / Enter | South (A) / Start    |
+| Move          | ← → / A D     | D-pad / left stick   |
+| Fire          | Space / Ctrl  | South (A / ×)        |
+| Pause         | Esc           | Start (in play)      |
+| Pause menu    | ↑↓ · Enter    | D-pad/stick Y · A    |
+| Resume        | Esc           | Start (while paused) |
 
 ## Docs for contributors / agents
 

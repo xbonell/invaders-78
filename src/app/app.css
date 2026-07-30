@@ -23,7 +23,6 @@
 
   --z-chrome: 2;
   --z-overlay: 3;
-  --z-touch: 4;
 
   /*
    * Stage-scaled chrome: --stage-aspect from playViewAspect();
@@ -105,8 +104,6 @@ body,
 
 .stage canvas {
   background: transparent !important;
-  /* Game input is keyboard/pad/touch overlay — don't steal stick presses. */
-  pointer-events: none;
 }
 
 .hud {
@@ -447,134 +444,4 @@ body,
   /* UFO is widest recipe (16 cells × 0.15rem) */
   width: 2.4rem;
   min-height: 1.5rem;
-}
-
-/* Touch virtual controls (coarse / touch devices) */
-.touch-controls {
-  position: absolute;
-  inset: 0;
-  z-index: var(--z-touch);
-  pointer-events: none;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.touch-controls-editing {
-  z-index: calc(var(--z-overlay) + 1);
-}
-
-.touch-stick {
-  position: absolute;
-  pointer-events: auto;
-  touch-action: none;
-  border-radius: 50%;
-  border: 2px solid rgba(245, 245, 245, 0.35);
-  background: rgba(0, 0, 0, 0.25);
-  box-sizing: border-box;
-  zoom: var(--chrome-scale);
-  cursor: grab;
-}
-
-.touch-controls-editing .touch-stick,
-.touch-controls-editing .touch-btn {
-  cursor: grab;
-  outline: 1px dashed rgba(34, 227, 90, 0.55);
-}
-
-.touch-stick-active {
-  border-color: rgba(245, 245, 245, 0.5);
-  background: rgba(0, 0, 0, 0.32);
-}
-
-.touch-stick-knob {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 42%;
-  height: 42%;
-  margin-left: -21%;
-  margin-top: -21%;
-  border-radius: 50%;
-  background: rgba(34, 227, 90, 0.45);
-  border: 2px solid rgba(245, 245, 245, 0.5);
-  will-change: transform;
-  pointer-events: none;
-}
-
-.touch-actions {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  pointer-events: auto;
-  touch-action: none;
-  zoom: var(--chrome-scale);
-}
-
-.touch-btn-pause {
-  position: absolute;
-  bottom: calc(100% + 0.75rem);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.55rem 0.85rem;
-  font-size: 0.45rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border-radius: 0.35rem;
-}
-
-.touch-btn {
-  font-family: var(--font-arcade);
-  color: var(--color-fg);
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(245, 245, 245, 0.4);
-  border-radius: 999px;
-  cursor: pointer;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.touch-btn:active {
-  background: rgba(34, 227, 90, 0.25);
-  border-color: var(--color-accent);
-}
-
-.touch-btn-fire {
-  width: 5.5rem;
-  height: 5.5rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.overlay-layout-edit {
-  background: transparent;
-  justify-content: flex-start;
-  padding-top: 1.25rem;
-  pointer-events: none;
-}
-
-.layout-edit-banner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.75rem 1rem;
-  background: rgba(0, 0, 0, 0.72);
-  border: 2px solid rgba(245, 245, 245, 0.25);
-  zoom: var(--chrome-scale);
-  pointer-events: auto;
-}
-
-.layout-edit-done {
-  font-family: var(--font-arcade);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-fg);
-  background: rgba(34, 227, 90, 0.2);
-  border: 2px solid var(--color-accent);
-  padding: 0.55rem 1.1rem;
-  cursor: pointer;
 }

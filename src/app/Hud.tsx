@@ -93,19 +93,15 @@ export function Overlay({
   muted = false,
   fullscreen = false,
   pauseIndex = 0,
-  layoutEditing = false,
   onPauseSelect,
   onPauseActivate,
-  onLayoutDone,
 }: {
   state: GameState;
   muted?: boolean;
   fullscreen?: boolean;
   pauseIndex?: number;
-  layoutEditing?: boolean;
   onPauseSelect?: (index: number) => void;
   onPauseActivate?: (index: number) => void;
-  onLayoutDone?: () => void;
 }) {
   if (state.phase === 'attract') {
     const showInfo = state.attractScreen === 'info';
@@ -138,19 +134,6 @@ export function Overlay({
     );
   }
   if (state.phase === 'paused') {
-    if (layoutEditing) {
-      return (
-        <div className="overlay overlay-layout-edit">
-          <div className="layout-edit-banner">
-            <p className="tagline">Drag controls</p>
-            <button type="button" className="layout-edit-done" onClick={() => onLayoutDone?.()}>
-              Done
-            </button>
-            <p className="hint-sub">Esc — cancel</p>
-          </div>
-        </div>
-      );
-    }
     return (
       <div className="overlay overlay-dim">
         <div className="overlay-panel">
@@ -212,7 +195,6 @@ export function Overlay({
 function pauseLabel(id: PauseMenuItem, muted: boolean, fullscreen: boolean): string {
   if (id === 'sound') return muted ? 'Sound Off' : 'Sound On';
   if (id === 'fullscreen') return fullscreen ? 'Fullscreen On' : 'Fullscreen Off';
-  if (id === 'controls') return 'Move controls';
   return 'Back to game';
 }
 

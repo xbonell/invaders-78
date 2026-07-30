@@ -26,8 +26,6 @@ export interface GameLoopApi {
   game: Game;
   state: GameState;
   version: number;
-  /** Force React reconcile (menu select / pause outside visualSig). */
-  bumpUi: () => void;
   /** Display-only motion; scene applies via useFrame (sim remains authoritative). */
   motionSnapshot: MutableRefObject<MotionSnapshot>;
   /** Called from R3F useFrame so sim + display share one clock. */
@@ -249,7 +247,7 @@ export function useGameLoop(
     };
   }, [game, pauseBridge]);
 
-  return { game, state: game.state, version, bumpUi, motionSnapshot, advanceRef };
+  return { game, state: game.state, version, motionSnapshot, advanceRef };
 }
 
 function maybePersistHi(

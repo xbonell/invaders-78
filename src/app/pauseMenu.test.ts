@@ -19,7 +19,6 @@ describe('pauseMenu', () => {
   it('resolves item ids by index', () => {
     expect(pauseItemAt(0)).toBe('sound');
     expect(pauseItemAt(1)).toBe('fullscreen');
-    expect(pauseItemAt(2)).toBe('controls');
-    expect(pauseItemAt(3)).toBe('back');
+    expect(pauseItemAt(2)).toBe('back');
   });
 });

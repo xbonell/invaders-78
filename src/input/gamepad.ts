@@ -109,7 +109,6 @@ export function pollGamepad(
       } else if (game.state.phase === 'playing') {
         dispatch(game, { type: 'pause' });
       } else if (game.state.phase === 'paused') {
-        if (pauseMenu?.escape?.()) return;
         dispatch(game, { type: 'resume' });
       }
     });

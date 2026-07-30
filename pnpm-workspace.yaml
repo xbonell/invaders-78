@@ -1,5 +1,6 @@
 allowBuilds:
   esbuild: true
+  simple-git-hooks: true
   workerd: true
 minimumReleaseAgeExclude:
   - '@cloudflare/workers-types@5.20260728.1'

@@ -17,6 +17,8 @@ pnpm format:check
 pnpm build
 ```
 
+`pnpm install` installs a **pre-commit** hook (`simple-git-hooks` + `lint-staged`) that runs `oxfmt` on staged files so CI `format:check` stays green.
+
 ## Controls
 
 | Action        | Keyboard      | Gamepad              |

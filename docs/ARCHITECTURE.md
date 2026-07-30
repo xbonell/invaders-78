@@ -13,6 +13,8 @@ pnpm format:check
 pnpm build
 ```
 
+Pre-commit (`simple-git-hooks` → `lint-staged`) auto-runs `oxfmt` on staged files after `pnpm install`.
+
 Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs/superpowers/specs/2026-07-25-space-invaders-design.md)
 
 ## Directory map

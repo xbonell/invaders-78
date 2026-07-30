@@ -6,29 +6,30 @@ type KeyInit = { code: string; key: string; repeat?: boolean };
 
 function mockWindow() {
   const handlers = new Map<string, Set<(e: KeyInput) => void>>();
-  const host: KeyboardHost & { dispatch: (type: 'keydown' | 'keyup' | 'blur', init?: KeyInit) => void } =
-    {
-      addEventListener(type, fn) {
-        let set = handlers.get(type);
-        if (!set) {
-          set = new Set();
-          handlers.set(type, set);
-        }
-        set.add(fn);
-      },
-      removeEventListener(type, fn) {
-        handlers.get(type)?.delete(fn);
-      },
-      dispatch(type, init = { code: '', key: '' }) {
-        const event: KeyInput = {
-          code: init.code,
-          key: init.key,
-          repeat: init.repeat ?? false,
-          preventDefault() {},
-        };
-        for (const fn of handlers.get(type) ?? []) fn(event);
-      },
-    };
+  const host: KeyboardHost & {
+    dispatch: (type: 'keydown' | 'keyup' | 'blur', init?: KeyInit) => void;
+  } = {
+    addEventListener(type, fn) {
+      let set = handlers.get(type);
+      if (!set) {
+        set = new Set();
+        handlers.set(type, set);
+      }
+      set.add(fn);
+    },
+    removeEventListener(type, fn) {
+      handlers.get(type)?.delete(fn);
+    },
+    dispatch(type, init = { code: '', key: '' }) {
+      const event: KeyInput = {
+        code: init.code,
+        key: init.key,
+        repeat: init.repeat ?? false,
+        preventDefault() {},
+      };
+      for (const fn of handlers.get(type) ?? []) fn(event);
+    },
+  };
   return host;
 }
 

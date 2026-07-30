@@ -94,10 +94,16 @@ body,
   overflow: hidden;
 }
 
-/* R3F Canvas root — fill the framed stage; never paint over the backdrop */
-.stage > :first-child {
+/* R3F Canvas host — fill the framed stage; never paint over the backdrop */
+.stage > .game-canvas-host {
   position: absolute !important;
   inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+}
+
+.stage > .game-canvas-host > div {
   width: 100% !important;
   height: 100% !important;
   background: transparent !important;

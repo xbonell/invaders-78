@@ -1,9 +1,23 @@
 import type { MutableRefObject, RefObject } from 'react';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import type { GameState } from '../game/types';
 import type { MotionSnapshot } from '../game/playerRender';
 import { GameSimDriver, OrthoCameraRig, Playfield } from './Playfield';
+
+/** iOS / coarse devices: avoid high-performance + AA (common WebGL context-loss path). */
+function fragileWebGL(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  // iPadOS desktop UA
+  if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+  try {
+    return window.matchMedia('(pointer: coarse)').matches;
+  } catch {
+    return false;
+  }
+}
 
 /** Keep WebGL clear fully transparent so `.shell` CSS backdrop shows through. */
 function TransparentClear() {
@@ -28,16 +42,18 @@ export function GameCanvas({
   motionSnapshot: MutableRefObject<MotionSnapshot>;
   advanceRef: RefObject<(now: number) => void>;
 }) {
+  const soft = useMemo(() => fragileWebGL(), []);
+
   return (
     <Canvas
       orthographic
       camera={{ position: [0, 30, 0], near: 0.1, far: 100, zoom: 1 }}
-      dpr={[1, 1.5]}
+      dpr={soft ? [1, 1] : [1, 1.5]}
       gl={{
-        antialias: true,
+        antialias: !soft,
         alpha: true,
         premultipliedAlpha: false,
-        powerPreference: 'high-performance',
+        powerPreference: soft ? 'default' : 'high-performance',
       }}
       style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' }}
       onCreated={({ camera, gl, scene }) => {

@@ -83,6 +83,9 @@ export function bakeBackdrop(opts: BakeOptions = {}): BakeResult {
   geometry.dispose();
   material.dispose();
   renderer.dispose();
+  // iOS Safari keeps the GPU context alive after dispose(); releasing it
+  // avoids starving the game canvas (often a hard 1–few WebGL limit).
+  renderer.forceContextLoss();
 
   return {
     url,

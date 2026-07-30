@@ -33,7 +33,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/game/*.test.ts` | Unit tests — extend when changing rules |
 | `src/hooks/useGameLoop.ts` | Fixed timestep + motion snapshot; advanced from R3F `GameSimDriver` (shared display clock) |
 | `src/game/playerRender.ts` | Display lerp helpers + `MotionSnapshot` (R3F `useFrame` applies X) |
-| `src/input/` | Keyboard, gamepad, start helpers |
+| `src/input/` | Keyboard, gamepad, touch overlay helpers, start helpers |
 | `src/audio/engine.ts` | Procedural Web Audio (SFX + descending formation march) |
 | `src/scene/GameCanvas.tsx` | R3F canvas + lights; transparent clear over `.shell` backdrop; no shadow maps |
 | `src/scene/backdrop/` | One-shot WebGL bake → CSS `--backdrop-url` on `.shell` (no game-loop cost) |
@@ -70,7 +70,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 - **Audio unlock:** first gesture must `await audio.unlock()` before start/fire that should make sound.
 - **Camera:** ortho, `camera.up.set(0,0,1)`; contain-fits `PLAYFIELD` (+ margin); player at negative Z (screen bottom). Left key → `moveDir = 1`.
 - **No bitmap game art:** recipes/code geometry only (`public/favicon.png` exempt). Shell backdrop is a one-shot procedural bake ([procedural backdrop](superpowers/specs/2026-07-27-procedural-backdrop-design.md)). All playfield voxels share square `VOXEL_SIZE` (= `SCALE_X`).
-- **Controls:** see README; attract/game-over: ←→ select 1P/2P, Fire/Enter/Start confirm ([start mode selector](docs/superpowers/specs/2026-07-27-start-mode-selector-design.md)).
+- **Controls:** see README; attract/game-over: ←→ select 1P/2P, Fire/Enter/Start confirm ([start mode selector](docs/superpowers/specs/2026-07-27-start-mode-selector-design.md)). Touch: floating stick + Fire/Pause on coarse/touch ([touch controls](docs/superpowers/specs/2026-07-30-touch-controls-design.md)).
 
 ## How to…
 

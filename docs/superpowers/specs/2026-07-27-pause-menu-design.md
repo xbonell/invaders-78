@@ -11,7 +11,7 @@ Replace the pause overlay’s hint-only UI with a small arcade-style menu for so
 | Topic | Choice |
 |-------|--------|
 | Ownership | React UI (`src/app/`), not the sim |
-| Items | Sound On/Off · Fullscreen On/Off · Back to game |
+| Items | Sound On/Off · Fullscreen On/Off · Move controls · Back to game |
 | Default highlight | Back to game (on each pause enter) |
 | Esc / gamepad Start | Always resume (Esc may also leave fullscreen — browser default) |
 | Enter / gamepad South (A) | Confirm highlighted item |
@@ -28,8 +28,9 @@ While `phase === 'paused'`:
 1. Overlay shows **Paused** plus three menu buttons; selected item is highlighted.
 2. Confirm on **Sound** toggles mute (label updates; stay paused).
 3. Confirm on **Fullscreen** requests or exits fullscreen (stay paused).
-4. Confirm on **Back to game** dispatches `resume`.
-5. Esc and Start still resume without needing the Back item. Esc may also leave fullscreen (browser default); use the menu toggle to enter/exit fullscreen explicitly.
+4. Confirm on **Move controls** opens touch layout edit (drag stick / Fire; Done saves; Esc cancels) — touch devices.
+5. Confirm on **Back to game** dispatches `resume`.
+6. Esc and Start still resume without needing the Back item (unless layout edit is open — then Esc cancels edit). Esc may also leave fullscreen (browser default); use the menu toggle to enter/exit fullscreen explicitly.
 
 While not paused, input behavior is unchanged (attract/game over: ←→ select mode, Fire / Enter / Start confirm; Start still pauses from play).
 

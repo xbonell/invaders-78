@@ -1,10 +1,12 @@
-export const PAUSE_ITEMS = ['sound', 'fullscreen', 'back'] as const;
+export const PAUSE_ITEMS = ['sound', 'fullscreen', 'controls', 'back'] as const;
 
 export type PauseMenuItem = (typeof PAUSE_ITEMS)[number];
 
 export type PauseMenuInput = {
   navigate: (dir: -1 | 1) => void;
   confirm: () => void;
+  /** When true, Esc/Start was consumed (e.g. exit layout edit). */
+  escape?: () => boolean;
 };
 
 /** Default selection when entering pause. */

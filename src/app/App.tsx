@@ -45,32 +45,14 @@ export default function App() {
     audio,
     pauseMenuRef,
   );
-  const [glReady, setGlReady] = useState(false);
   const wasPaused = useRef(false);
 
   useEffect(() => {
     const shell = shellRef.current;
-    if (!shell) {
-      setGlReady(true);
-      return undefined;
-    }
-
-    let revoke: (() => void) | undefined;
-    try {
-      // Bake before the game canvas mounts so iOS Safari does not juggle two
-      // WebGL contexts (often loses the playfield → black screen).
-      const soft =
-        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-        window.matchMedia('(pointer: coarse)').matches;
-      const baked = bakeBackdrop(soft ? { width: 960, height: 540 } : undefined);
-      applyBackdropUrl(shell, baked.url);
-      revoke = baked.dispose;
-    } catch {
-      // Solid shell bg remains; still allow the game canvas to mount.
-    }
-    setGlReady(true);
-    return () => revoke?.();
+    if (!shell) return undefined;
+    const baked = bakeBackdrop();
+    applyBackdropUrl(shell, baked.url);
+    return () => baked.dispose();
   }, []);
 
   useLayoutEffect(() => {
@@ -198,16 +180,12 @@ export default function App() {
           ['--play-inset-y' as string]: `${playViewInsetYPercent()}%`,
         }}
       >
-        <div className="game-canvas-host">
-          {glReady ? (
-            <GameCanvas
-              state={state}
-              version={version}
-              motionSnapshot={motionSnapshot}
-              advanceRef={advanceRef}
-            />
-          ) : null}
-        </div>
+        <GameCanvas
+          state={state}
+          version={version}
+          motionSnapshot={motionSnapshot}
+          advanceRef={advanceRef}
+        />
         <Hud state={state} />
         <FooterBar state={state} />
         <TouchControls

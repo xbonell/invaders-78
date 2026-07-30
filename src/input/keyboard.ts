@@ -5,9 +5,22 @@ import { confirmMenuStart, isStartable, selectMenu } from './actions';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
 
+/** Minimal key fields used by the handler (lets tests avoid DOM KeyboardEvent). */
+export type KeyInput = {
+  code: string;
+  key: string;
+  repeat: boolean;
+  preventDefault(): void;
+};
+
+export type KeyboardHost = {
+  addEventListener(type: 'keydown' | 'keyup' | 'blur', fn: (e: KeyInput) => void): void;
+  removeEventListener(type: 'keydown' | 'keyup' | 'blur', fn: (e: KeyInput) => void): void;
+};
+
 export function attachKeyboard(
   game: Game,
-  target: Window = window,
+  target: KeyboardHost = window,
   onGesture?: () => void | Promise<void>,
   /** HUD/overlay sync when input changes state outside the sim tick. */
   onUi?: () => void,
@@ -26,20 +39,15 @@ export function attachKeyboard(
     dispatch(game, { type: 'move', dir });
   };
 
+  // Never await audio unlock before gameplay — a quick Space tap released
+  // before unlock resolved and left ignoreFireUntilRelease stuck true.
   const withAudio = (fn: () => void) => {
-    const result = onGesture?.();
-    if (result && typeof result.then === 'function') {
-      void result.then(() => {
-        fn();
-        onUi?.();
-      });
-    } else {
-      fn();
-      onUi?.();
-    }
+    void onGesture?.();
+    fn();
+    onUi?.();
   };
 
-  const onKeyDown = (e: KeyboardEvent) => {
+  const onKeyDown = (e: KeyInput) => {
     if (e.repeat && (e.code === 'Space' || e.key === 'Control')) return;
 
     if (game.state.phase === 'paused' && pauseMenu) {
@@ -107,7 +115,7 @@ export function attachKeyboard(
     }
   };
 
-  const onKeyUp = (e: KeyboardEvent) => {
+  const onKeyUp = (e: KeyInput) => {
     if (e.code === 'Space' || e.key === 'Control') {
       ignoreFireUntilRelease = false;
     }

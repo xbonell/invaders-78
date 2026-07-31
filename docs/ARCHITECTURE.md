@@ -67,6 +67,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 - **Sim purity:** no DOM/Three/Audio inside `src/game/`.
 - **FX via events:** kills must `pushEvent` with `x,z` (and alien type/frame). Attract demo also emits hits (score 0) so explosions still play.
 - **Move input:** `dispatch({ type: 'move' })` always updates `moveDir`; clear on death/respawn/`beginPlay`. Never gate move updates on `phase === 'playing'` only.
+- **Gamepad:** poll **all** connected pads (OR inputs). On `"standard"` mapping use D-pad buttons 12–15 + sticks only — do **not** read axes 6/7 (POV idle values >1 cancel steer). Non-standard mapping may use digital hat axes in [-1,1]. Fullscreen toggles refocus the page; keyboard `blur` must not clear `moveDir` unless move keys were held (focus flicker vs pad).
 - **Audio unlock:** first gesture must `await audio.unlock()` before start/fire that should make sound.
 - **Camera:** ortho, `camera.up.set(0,0,1)`; contain-fits `PLAYFIELD` (+ margin); player at negative Z (screen bottom). Left key → `moveDir = 1`.
 - **No bitmap game art:** recipes/code geometry only (`public/favicon.png` exempt). Shell backdrop is a one-shot procedural bake ([procedural backdrop](superpowers/specs/2026-07-27-procedural-backdrop-design.md)). All playfield voxels share square `VOXEL_SIZE` (= `SCALE_X`).

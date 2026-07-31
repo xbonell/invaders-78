@@ -70,7 +70,7 @@ Input (keyboard/gamepad) → GameSimulation ← FixedTimestepLoop (useGameLoop)
 - Move always updates `moveDir` (even while dying) so releases are not lost; cleared on death/respawn/`beginPlay` (new credit must not inherit attract-demo or game-over leftovers)
 - Fire edge-triggered; AudioContext unlock awaited before start/fire when needed
 - Attract / game over: horizontal input selects 1P/2P (`menuPlayerCount`); Fire / Enter / Start confirms; confirm press is consumed until release so it does not fire on frame one
-- Gamepad: first connected pad; D-pad/stick + South fire + Start
+- Gamepad: all connected pads OR’d; D-pad/stick + South fire + Start (standard mapping ignores POV axes 6/7)
 - Pause menu: ↑↓ / pad vertical navigate; Enter / South confirm; Esc / Start always resume ([pause menu design](./2026-07-27-pause-menu-design.md))
 
 ## Audio

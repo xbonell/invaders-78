@@ -126,9 +126,13 @@ export function attachKeyboard(
   };
 
   const onBlur = () => {
+    const hadMoveKeys = [...down].some((k) => moveKeys.has(k));
     down.clear();
     ignoreFireUntilRelease = false;
-    dispatch(game, { type: 'move', dir: 0 });
+    // Only clear moveDir when keyboard was steering. Unconditional clear races
+    // with pollGamepad during fullscreen focus flicker (Steam Deck / Brave),
+    // which killed D-pad/stick while face buttons still worked.
+    if (hadMoveKeys) syncMove();
   };
 
   target.addEventListener('keydown', onKeyDown);

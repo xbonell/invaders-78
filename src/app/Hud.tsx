@@ -143,8 +143,10 @@ export function Overlay({
               <li key={id}>
                 <button
                   type="button"
+                  tabIndex={-1}
                   className={`pause-menu-item${index === pauseIndex ? ' selected' : ''}`}
                   onMouseEnter={() => onPauseSelect?.(index)}
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => onPauseActivate?.(index)}
                 >
                   <span className="pause-menu-cursor" aria-hidden>

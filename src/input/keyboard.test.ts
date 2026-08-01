@@ -9,7 +9,7 @@ function mockWindow() {
   const host: KeyboardHost & {
     dispatch: (type: 'keydown' | 'keyup' | 'blur', init?: KeyInit) => void;
   } = {
-    addEventListener(type, fn) {
+    addEventListener(type, fn, _options) {
       let set = handlers.get(type);
       if (!set) {
         set = new Set();
@@ -17,7 +17,7 @@ function mockWindow() {
       }
       set.add(fn);
     },
-    removeEventListener(type, fn) {
+    removeEventListener(type, fn, _options) {
       handlers.get(type)?.delete(fn);
     },
     dispatch(type, init = { code: '', key: '' }) {

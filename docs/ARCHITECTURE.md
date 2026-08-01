@@ -35,7 +35,8 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/game/playerRender.ts` | Display lerp helpers + `MotionSnapshot` (R3F `useFrame` applies X) |
 | `src/input/` | Keyboard, gamepad, start helpers |
 | `src/audio/engine.ts` | Procedural Web Audio (SFX + descending formation march) |
-| `src/scene/GameCanvas.tsx` | R3F canvas + lights; transparent clear over `.shell` backdrop; no shadow maps |
+| `src/scene/GameCanvas.tsx` | R3F canvas + lights; transparent clear over `.shell` backdrop; no shadow maps; remounts on WebGL context loss / dead buffer after fullscreen |
+| `src/scene/canvasRecovery.ts` | Pure helpers for positive host size + remount policy after fullscreen |
 | `src/scene/backdrop/` | One-shot WebGL bake → CSS `--backdrop-url` on `.shell` (no game-loop cost) |
 | `src/scene/Playfield.tsx` | Syncs sim snapshot → meshes |
 | `src/scene/voxels/recipes.ts` | Pixel grids → voxel bits (aliens, player, UFO) |

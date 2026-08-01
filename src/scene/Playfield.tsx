@@ -185,7 +185,9 @@ export function OrthoCameraRig() {
   const lastAspect = useRef(0);
   useFrame(({ camera, size }) => {
     if (!(camera instanceof THREE.OrthographicCamera)) return;
-    const aspect = size.width / Math.max(size.height, 1);
+    // Skip mid-fullscreen 0×0 measures so we don't lock a degenerate frustum.
+    if (!(size.width > 0) || !(size.height > 0)) return;
+    const aspect = size.width / size.height;
     if (Math.abs(aspect - lastAspect.current) < 1e-6) return;
     lastAspect.current = aspect;
 

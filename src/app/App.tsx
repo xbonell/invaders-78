@@ -5,6 +5,7 @@ import { dispatch } from '../game/simulation';
 import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { applyBackdropUrl, bakeBackdrop } from '../scene/backdrop/bakeBackdrop';
+import { bumpCanvasMountKey } from '../scene/canvasRecovery';
 import { GameCanvas } from '../scene/GameCanvas';
 import {
   attachFullscreenListeners,
@@ -24,6 +25,8 @@ export default function App() {
   const [fullscreen, setFullscreen] = useState(
     () => typeof document !== 'undefined' && !!document.fullscreenElement,
   );
+  // Remount key: WebGL context loss / dead buffer after fullscreen on some GPUs.
+  const [canvasMountKey, setCanvasMountKey] = useState(0);
   const [pauseIndex, setPauseIndex] = useState(PAUSE_DEFAULT_INDEX);
   const pauseMenuRef = useRef<PauseMenuInput | null>(null);
   const pauseIndexRef = useRef(pauseIndex);
@@ -130,10 +133,12 @@ export default function App() {
         }}
       >
         <GameCanvas
+          key={canvasMountKey}
           state={state}
           version={version}
           motionSnapshot={motionSnapshot}
           advanceRef={advanceRef}
+          onContextLost={() => setCanvasMountKey((k) => bumpCanvasMountKey(k))}
         />
         <Hud state={state} />
         <FooterBar state={state} />

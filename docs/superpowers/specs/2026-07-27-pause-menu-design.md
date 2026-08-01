@@ -18,7 +18,7 @@ Replace the pause overlay’s hint-only UI with a small arcade-style menu for so
 | ↑↓ / D-pad / stick Y | Move highlight |
 | Mouse | Click item to activate |
 | Mute persistence | Existing `localStorage` via `loadMute` / `saveMute` |
-| Fullscreen | `document.documentElement` Fullscreen API; sync via `fullscreenchange`; no persistence; Esc uses UA default |
+| Fullscreen | `document.documentElement` Fullscreen API; sync via `fullscreenchange`; no persistence; Esc uses UA default; play canvas re-syncs size and remounts if the WebGL context/buffer dies (dual-GPU / some drivers) |
 | HUD mute button | Removed |
 
 ## Behavior
@@ -59,4 +59,4 @@ pnpm test    # includes pauseMenu navigation wrap
 pnpm lint && pnpm build
 ```
 
-Manual: pause → navigate keys/pad → toggle sound (persists) → toggle fullscreen → Back / Esc / Start resume; mouse each item; no HUD mute button.
+Manual: pause → navigate keys/pad → toggle sound (persists) → toggle fullscreen (playfield stays visible; HUD/footer alone = bug) → Back / Esc / Start resume; mouse each item; no HUD mute button.

@@ -83,6 +83,8 @@ export function bakeBackdrop(opts: BakeOptions = {}): BakeResult {
   geometry.dispose();
   material.dispose();
   renderer.dispose();
+  // Release the bake context so fragile GPUs (iOS / dual-GPU) don't starve the game canvas.
+  renderer.forceContextLoss();
 
   return {
     url,

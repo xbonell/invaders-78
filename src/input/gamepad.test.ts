@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { createGame, dispatch } from '../game/simulation';
+import { activeBoard, createGame, dispatch } from '../game/simulation';
 import { pollGamepad, readPadSteer, type GamepadPrev, type PadLike } from './gamepad';
 
 function emptyPrev(): GamepadPrev {
@@ -41,6 +41,11 @@ function stubPads(pads: Array<PadLike | null>) {
     configurable: true,
     value: () => pads,
   });
+}
+
+/** Unlock that never resolves — pad actions must not wait on it. */
+function hangingUnlock() {
+  return new Promise<void>(() => {});
 }
 
 describe('readPadSteer', () => {
@@ -153,5 +158,37 @@ describe('pollGamepad', () => {
     const prev = emptyPrev();
     pollGamepad(game, prev);
     expect(game.moveDir).toBe(1);
+  });
+
+  it('pauses on Start without waiting for audio unlock', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'confirmStart' });
+    expect(game.state.phase).toBe('playing');
+
+    const buttons = Array.from({ length: 17 }, () => button(false));
+    buttons[9] = button(true);
+    stubPads([mockPad({ buttons })]);
+
+    let resolveUnlock!: () => void;
+    const unlock = () =>
+      new Promise<void>((resolve) => {
+        resolveUnlock = resolve;
+      });
+
+    pollGamepad(game, emptyPrev(), unlock);
+    expect(game.state.phase).toBe('paused');
+    resolveUnlock();
+  });
+
+  it('fires South without waiting for audio unlock', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'confirmStart' });
+
+    const buttons = Array.from({ length: 17 }, () => button(false));
+    buttons[0] = button(true);
+    stubPads([mockPad({ buttons })]);
+
+    pollGamepad(game, emptyPrev(), hangingUnlock);
+    expect(activeBoard(game.state).playerBullet).not.toBeNull();
   });
 });

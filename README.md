@@ -21,15 +21,15 @@ pnpm build
 
 ## Controls
 
-| Action        | Keyboard      | Gamepad              |
-| ------------- | ------------- | -------------------- |
-| Select mode   | ← → / A D     | D-pad / left stick   |
-| Confirm start | Space / Enter | South (A) / Start    |
-| Move          | ← → / A D     | D-pad / left stick   |
-| Fire          | Space / Ctrl  | South (A / ×)        |
-| Pause         | Esc           | Start (in play)      |
-| Pause menu    | ↑↓ · Enter    | D-pad/stick Y · A    |
-| Resume        | Esc           | Start (while paused) |
+| Action        | Keyboard             | Gamepad                |
+| ------------- | -------------------- | ---------------------- |
+| Select mode   | ← → / A D            | D-pad / left stick     |
+| Confirm start | Space / Enter        | South (A) / Start      |
+| Move          | ← → / A D            | D-pad / left stick     |
+| Fire          | Space / Ctrl / Enter | South (A / ×)          |
+| Pause         | Esc                  | Start / Menu (in play) |
+| Pause menu    | ↑↓ · Enter           | D-pad/stick Y · A      |
+| Resume        | Esc                  | Start (while paused)   |
 
 ## Docs for contributors / agents
 

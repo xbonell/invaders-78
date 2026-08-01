@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { activeBoard, createGame, dispatch } from '../game/simulation';
 import { pollGamepad, readPadSteer, type GamepadPrev, type PadLike } from './gamepad';
+import { clearKeyboardSteer, setKeyboardSteer } from './steer';
 
 function emptyPrev(): GamepadPrev {
   return {
@@ -104,8 +105,13 @@ describe('readPadSteer', () => {
 });
 
 describe('pollGamepad', () => {
+  beforeEach(() => {
+    clearKeyboardSteer();
+  });
+
   afterEach(() => {
     Reflect.deleteProperty(navigator, 'getGamepads');
+    clearKeyboardSteer();
   });
 
   it('moves with D-pad left even when a phantom POV axis idles above 1', () => {
@@ -190,5 +196,22 @@ describe('pollGamepad', () => {
 
     pollGamepad(game, emptyPrev(), hangingUnlock);
     expect(activeBoard(game.state).playerBullet).not.toBeNull();
+  });
+
+  it('does not wipe keyboard steer when a pad reports conflicting left+right', () => {
+    const game = createGame(0);
+    dispatch(game, { type: 'confirmStart' });
+    setKeyboardSteer({ left: true });
+
+    // Ghost / dual binding: both D-pad buttons "down" → must not force moveDir 0.
+    const buttons = Array.from({ length: 17 }, () => button(false));
+    buttons[14] = button(true);
+    buttons[15] = button(true);
+    stubPads([mockPad({ buttons })]);
+
+    const prev = emptyPrev();
+    pollGamepad(game, prev);
+    expect(game.moveDir).toBe(1);
+    expect(prev.steering).toBe(true);
   });
 });

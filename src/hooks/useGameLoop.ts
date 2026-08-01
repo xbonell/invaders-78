@@ -229,7 +229,7 @@ export function useGameLoop(
 
   useEffect(() => {
     const unlock = () => audioRef.current?.unlock() ?? Promise.resolve();
-    const detach = attachKeyboard(game, window, unlock, () => bumpUiRef.current(), pauseBridge);
+    const detach = attachKeyboard(game, document, unlock, () => bumpUiRef.current(), pauseBridge);
 
     const onVis = () => {
       if (document.visibilityState === 'hidden') {

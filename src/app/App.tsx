@@ -6,7 +6,12 @@ import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';
 import { applyBackdropUrl, bakeBackdrop } from '../scene/backdrop/bakeBackdrop';
 import { GameCanvas } from '../scene/GameCanvas';
-import { attachFullscreenListeners, subscribeFullscreen, toggleFullscreen } from './fullscreen';
+import {
+  attachFullscreenListeners,
+  setFullscreenFocusTarget,
+  subscribeFullscreen,
+  toggleFullscreen,
+} from './fullscreen';
 import { FooterBar, Hud, Overlay } from './Hud';
 import { CHROME_REF_WIDTH_PX } from './chromeScale';
 import { movePauseIndex, PAUSE_DEFAULT_INDEX, pauseItemAt, type PauseMenuInput } from './pauseMenu';
@@ -62,6 +67,11 @@ export default function App() {
   useEffect(() => subscribeFullscreen(setFullscreen), []);
 
   useEffect(() => {
+    setFullscreenFocusTarget(shellRef.current);
+    return () => setFullscreenFocusTarget(null);
+  }, []);
+
+  useEffect(() => {
     const paused = state.phase === 'paused';
     if (paused && !wasPaused.current) {
       setPauseIndex(PAUSE_DEFAULT_INDEX);
@@ -96,7 +106,7 @@ export default function App() {
   };
 
   return (
-    <div ref={shellRef} className="shell" onPointerDown={unlock} onKeyDown={unlock}>
+    <div ref={shellRef} className="shell" tabIndex={-1} onPointerDown={unlock} onKeyDown={unlock}>
       <div
         ref={stageRef}
         className="stage"

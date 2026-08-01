@@ -2,6 +2,7 @@ import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import type { PauseMenuInput } from '../app/pauseMenu';
 import { confirmMenuStart, isStartable, selectMenu } from './actions';
+import { clearKeyboardSteer, setKeyboardSteer, steerDir } from './steer';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
 
@@ -18,8 +19,16 @@ export type KeyInput = {
 };
 
 export type KeyboardHost = {
-  addEventListener(type: 'keydown' | 'keyup' | 'blur', fn: (e: KeyInput) => void): void;
-  removeEventListener(type: 'keydown' | 'keyup' | 'blur', fn: (e: KeyInput) => void): void;
+  addEventListener(
+    type: 'keydown' | 'keyup' | 'blur',
+    fn: (e: KeyInput) => void,
+    options?: boolean | { capture?: boolean },
+  ): void;
+  removeEventListener(
+    type: 'keydown' | 'keyup' | 'blur',
+    fn: (e: KeyInput) => void,
+    options?: boolean | { capture?: boolean },
+  ): void;
 };
 
 export function attachKeyboard(
@@ -31,15 +40,14 @@ export function attachKeyboard(
   pauseMenu?: PauseMenuInput | null,
 ): () => void {
   const down = new Set<string>();
-  /** After confirmStart, ignore fire until Space/Control is released. */
+  /** After confirmStart, ignore fire until Space/Control/Enter is released. */
   let ignoreFireUntilRelease = false;
 
   const syncMove = () => {
     const left = down.has('ArrowLeft') || down.has('a') || down.has('A');
     const right = down.has('ArrowRight') || down.has('d') || down.has('D');
-    let dir: -1 | 0 | 1 = 0;
-    if (left && !right) dir = 1;
-    else if (right && !left) dir = -1;
+    setKeyboardSteer({ left, right });
+    const dir = steerDir(left, right);
     dispatch(game, { type: 'move', dir });
   };
 
@@ -127,19 +135,22 @@ export function attachKeyboard(
     const hadMoveKeys = [...down].some((k) => moveKeys.has(k));
     down.clear();
     ignoreFireUntilRelease = false;
+    clearKeyboardSteer();
     // Only clear moveDir when keyboard was steering. Unconditional clear races
-    // with pollGamepad during fullscreen focus flicker (Steam Deck / Brave),
-    // which killed D-pad/stick while face buttons still worked.
+    // with pollGamepad during fullscreen focus flicker (Steam Deck / Brave).
     if (hadMoveKeys) syncMove();
   };
 
-  target.addEventListener('keydown', onKeyDown);
-  target.addEventListener('keyup', onKeyUp);
+  // Capture so Space/arrows win over focused pause <button>s (Steam Y→Space).
+  const opts = { capture: true };
+  target.addEventListener('keydown', onKeyDown, opts);
+  target.addEventListener('keyup', onKeyUp, opts);
   target.addEventListener('blur', onBlur);
 
   return () => {
-    target.removeEventListener('keydown', onKeyDown);
-    target.removeEventListener('keyup', onKeyUp);
+    target.removeEventListener('keydown', onKeyDown, opts);
+    target.removeEventListener('keyup', onKeyUp, opts);
     target.removeEventListener('blur', onBlur);
+    clearKeyboardSteer();
   };
 }

@@ -2,6 +2,7 @@ import type { PauseMenuInput } from '../app/pauseMenu';
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import { confirmMenuStart, isStartable, selectMenu } from './actions';
+import { combineSteer, getKeyboardSteer, steerDir, type DigitalSteer } from './steer';
 
 export type GamepadPrev = {
   fire: boolean;
@@ -24,12 +25,7 @@ export type PadLike = {
   axes: ArrayLike<number>;
 };
 
-export type PadSteer = {
-  left: boolean;
-  right: boolean;
-  up: boolean;
-  down: boolean;
-};
+export type PadSteer = DigitalSteer;
 
 const AXIS_DEADZONE = 0.4;
 /** POV hats idle at values > 1 when centered; digital hats stay in [-1, 1]. */
@@ -37,7 +33,8 @@ const HAT_AXIS_MAX = 1.0001;
 
 export function isButtonDown(button: { pressed: boolean; value: number } | undefined): boolean {
   if (!button) return false;
-  return button.pressed || button.value > 0.5;
+  // Prefer pressed; high value threshold avoids noisy analog ghosts at ~0.5.
+  return button.pressed || button.value >= 0.9;
 }
 
 function axisValue(axes: ArrayLike<number>, index: number): number {
@@ -56,6 +53,7 @@ function isDigitalHatAxis(v: number): boolean {
  * Standard mapping: D-pad is buttons 12–15; only sticks use axes 0–3.
  * Non-standard: also accept axes 6/7 as a digital hat, but ignore POV idle
  * values outside [-1, 1] so they cannot cancel real D-pad buttons.
+ * Opposing left/right (or up/down) on one pad are treated as idle (noise).
  */
 export function readPadSteer(pad: PadLike): PadSteer {
   const leftStick = axisValue(pad.axes, 0) < -AXIS_DEADZONE;
@@ -83,12 +81,22 @@ export function readPadSteer(pad: PadLike): PadSteer {
     }
   }
 
-  return {
-    left: isButtonDown(pad.buttons[14]) || leftStick || leftHat,
-    right: isButtonDown(pad.buttons[15]) || rightStick || rightHat,
-    up: isButtonDown(pad.buttons[12]) || upStick || upHat,
-    down: isButtonDown(pad.buttons[13]) || downStick || downHat,
-  };
+  let left = isButtonDown(pad.buttons[14]) || leftStick || leftHat;
+  let right = isButtonDown(pad.buttons[15]) || rightStick || rightHat;
+  let up = isButtonDown(pad.buttons[12]) || upStick || upHat;
+  let down = isButtonDown(pad.buttons[13]) || downStick || downHat;
+
+  // Conflicting axes/buttons on one device → idle (do not wipe keyboard).
+  if (left && right) {
+    left = false;
+    right = false;
+  }
+  if (up && down) {
+    up = false;
+    down = false;
+  }
+
+  return { left, right, up, down };
 }
 
 function asPadLike(pad: {
@@ -120,15 +128,27 @@ function connectedPadsFromNavigator(): PadLike[] {
   return out;
 }
 
-/** OR steer across every connected pad (Steam Input may split devices). */
+/**
+ * Merge pads with exclusive directions only.
+ * A noisy pad that reports both ways is ignored; two pads pulling opposite
+ * ways cancel — keyboard steer is applied separately on top.
+ */
 export function mergePadSteer(pads: PadLike[]): PadSteer {
   const merged: PadSteer = { left: false, right: false, up: false, down: false };
   for (const pad of pads) {
     const s = readPadSteer(pad);
-    merged.left ||= s.left;
-    merged.right ||= s.right;
-    merged.up ||= s.up;
-    merged.down ||= s.down;
+    if (s.left) merged.left = true;
+    if (s.right) merged.right = true;
+    if (s.up) merged.up = true;
+    if (s.down) merged.down = true;
+  }
+  if (merged.left && merged.right) {
+    merged.left = false;
+    merged.right = false;
+  }
+  if (merged.up && merged.down) {
+    merged.up = false;
+    merged.down = false;
   }
   return merged;
 }
@@ -140,6 +160,23 @@ function anyButtonDown(pads: PadLike[], index: number): boolean {
   return false;
 }
 
+function applyPlaySteer(game: Game, pad: PadSteer, prev: GamepadPrev): void {
+  const combined = combineSteer(pad, getKeyboardSteer());
+  const left = combined.left;
+  const right = combined.right;
+  const dir = steerDir(left, right);
+
+  if (dir !== 0) {
+    dispatch(game, { type: 'move', dir });
+    prev.steering = true;
+  } else if (prev.steering) {
+    dispatch(game, { type: 'move', dir: 0 });
+    prev.steering = false;
+  }
+  prev.left = left;
+  prev.right = right;
+}
+
 /** Poll connected gamepads each call (ORs all pads for Steam Input quirks). */
 export function pollGamepad(
   game: Game,
@@ -148,19 +185,17 @@ export function pollGamepad(
   pauseMenu?: PauseMenuInput | null,
 ): void {
   const pads = connectedPadsFromNavigator();
-  if (!pads.length) {
-    return;
-  }
 
   // Match keyboard: never await audio unlock before gameplay actions.
-  // Awaiting made Start/South feel dead when unlock was slow or pending
-  // (Steam Deck often fires via keyboard Y→Space while Start is pad-only).
   const withAudio = (fn: () => void) => {
     void onGesture?.();
     fn();
   };
 
-  const { left, right, up, down } = mergePadSteer(pads);
+  const padSteer = pads.length
+    ? mergePadSteer(pads)
+    : { left: false, right: false, up: false, down: false };
+  const { left, right, up, down } = combineSteer(padSteer, getKeyboardSteer());
 
   if (isStartable(game)) {
     if (left && !prev.left) {
@@ -177,23 +212,16 @@ export function pollGamepad(
       dispatch(game, { type: 'move', dir: 0 });
       prev.steering = false;
     }
-  } else if (left || right) {
-    void onGesture?.();
-    let dir: -1 | 0 | 1 = 0;
-    if (left && !right) dir = 1;
-    else if (right && !left) dir = -1;
-    dispatch(game, { type: 'move', dir });
-    prev.steering = true;
-    prev.left = left;
-    prev.right = right;
-  } else if (prev.steering) {
-    dispatch(game, { type: 'move', dir: 0 });
-    prev.steering = false;
-    prev.left = false;
-    prev.right = false;
   } else {
-    prev.left = left;
-    prev.right = right;
+    // Always re-apply combined pad+keyboard steer. A conflicting/ghost pad
+    // used to dispatch moveDir=0 every frame and wipe Steam desktop arrows.
+    if (pads.length || prev.steering || getKeyboardSteer().left || getKeyboardSteer().right) {
+      if (steerDir(left, right) !== 0) void onGesture?.();
+      applyPlaySteer(game, padSteer, prev);
+    } else {
+      prev.left = left;
+      prev.right = right;
+    }
   }
 
   if (game.state.phase === 'paused' && pauseMenu) {
@@ -202,6 +230,10 @@ export function pollGamepad(
   }
   prev.up = up;
   prev.down = down;
+
+  if (!pads.length) {
+    return;
+  }
 
   const fireBtn = anyButtonDown(pads, 0);
   if (fireBtn && !prev.fire) {

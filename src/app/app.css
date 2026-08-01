@@ -83,6 +83,11 @@ body,
   font-family: var(--font-arcade);
 }
 
+/* Focus target after fullscreen — no visible ring (Steam Deck / Brave). */
+.shell:focus {
+  outline: none;
+}
+
 .stage {
   position: relative;
   aspect-ratio: var(--stage-aspect);

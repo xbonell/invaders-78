@@ -15,7 +15,7 @@ import type { AlienShotType, GameEvent, GameState } from '../game/types';
 import { visualSig } from '../game/visualSig';
 import type { PauseMenuInput } from '../app/pauseMenu';
 import { attachKeyboard } from '../input/keyboard';
-import { pollGamepad } from '../input/gamepad';
+import { createGamepadPrev, pollGamepad } from '../input/gamepad';
 import type { AudioEngine } from '../audio/engine';
 import { enqueueFx } from '../scene/voxels/fxQueue';
 import { enqueueScoreFloats } from '../scene/voxels/scoreFloatQueue';
@@ -90,17 +90,7 @@ export function useGameLoop(
   const motionSnapshot = useRef(createMotionSnapshot(activeBoard(game.state).player.x));
   const prevCapture = useRef<MotionPrevCapture>(emptyPrev(game.state));
   const lastVisualSig = useRef(visualSig(game.state));
-  const padPrev = useRef({
-    fire: false,
-    start: false,
-    select: false,
-    steering: false,
-    left: false,
-    right: false,
-    up: false,
-    down: false,
-    ignoreFireUntilRelease: false,
-  });
+  const padPrev = useRef(createGamepadPrev());
   const audioRef = useRef(audio);
   audioRef.current = audio;
   const pauseMenuRefHold = useRef(pauseMenuRef);

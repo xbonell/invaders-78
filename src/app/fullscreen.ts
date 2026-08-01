@@ -1,3 +1,5 @@
+import { resetGamepadEdges } from '../input/gamepad';
+
 /** Thin Fullscreen API helpers; Esc uses the browser default (leave fullscreen). */
 
 const listeners = new Set<(on: boolean) => void>();
@@ -55,6 +57,8 @@ export async function toggleFullscreen(): Promise<void> {
 
 export function attachFullscreenListeners(): () => void {
   const onFs = () => {
+    // Fullscreen remaps Steam pads; clear stuck South so A can fire again.
+    resetGamepadEdges();
     notify(!!document.fullscreenElement);
     // rAF: focus after the UA finishes the FS transition.
     requestAnimationFrame(() => refocusPage());

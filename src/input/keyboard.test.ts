@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { activeBoard, createGame } from '../game/simulation';
 import { attachKeyboard, type KeyInput, type KeyboardHost } from './keyboard';
+import { setGamepadPresent } from './padPresence';
 
 type KeyInit = { code: string; key: string; repeat?: boolean };
 
@@ -34,6 +35,10 @@ function mockWindow() {
 }
 
 describe('attachKeyboard menu start', () => {
+  afterEach(() => {
+    setGamepadPresent(false);
+  });
+
   it('starts on Space without waiting for deferred audio unlock', async () => {
     const game = createGame(0);
     const win = mockWindow();
@@ -70,6 +75,25 @@ describe('attachKeyboard menu start', () => {
     expect(game.moveDir).toBe(0);
 
     win.dispatch('keyup', { code: 'Enter', key: 'Enter' });
+    win.dispatch('keydown', { code: 'Enter', key: 'Enter' });
+    expect(activeBoard(game.state).playerBullet).not.toBeNull();
+
+    detach();
+  });
+
+  it('ignores Space fire when a gamepad is present (Steam Deck Y → Space)', () => {
+    setGamepadPresent(true);
+    const game = createGame(0);
+    const win = mockWindow();
+    const detach = attachKeyboard(game, win);
+
+    win.dispatch('keydown', { code: 'Enter', key: 'Enter' });
+    expect(game.state.phase).toBe('playing');
+    win.dispatch('keyup', { code: 'Enter', key: 'Enter' });
+
+    win.dispatch('keydown', { code: 'Space', key: ' ' });
+    expect(activeBoard(game.state).playerBullet).toBeNull();
+
     win.dispatch('keydown', { code: 'Enter', key: 'Enter' });
     expect(activeBoard(game.state).playerBullet).not.toBeNull();
 

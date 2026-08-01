@@ -106,7 +106,9 @@ export function GameCanvas({
   return (
     <Canvas
       orthographic
-      camera={{ position: [0, 30, 0], near: 0.1, far: 100, zoom: 1 }}
+      // manual: R3F must not rewrite ortho L/R/T/B in CSS pixels on resize —
+      // OrthoCameraRig owns the play-view world frustum (fullscreen keeps aspect).
+      camera={{ position: [0, 30, 0], near: 0.1, far: 100, zoom: 1, manual: true }}
       dpr={[1, 1.5]}
       gl={{
         antialias: true,
@@ -116,6 +118,7 @@ export function GameCanvas({
       }}
       style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' }}
       onCreated={({ camera, gl, scene }) => {
+        camera.manual = true;
         camera.up.set(0, 0, 1);
         camera.lookAt(0, 0, 0);
         scene.background = null;

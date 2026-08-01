@@ -152,13 +152,12 @@ export function pollGamepad(
     return;
   }
 
+  // Match keyboard: never await audio unlock before gameplay actions.
+  // Awaiting made Start/South feel dead when unlock was slow or pending
+  // (Steam Deck often fires via keyboard Y→Space while Start is pad-only).
   const withAudio = (fn: () => void) => {
-    const result = onGesture?.();
-    if (result && typeof result.then === 'function') {
-      void result.then(fn);
-    } else {
-      fn();
-    }
+    void onGesture?.();
+    fn();
   };
 
   const { left, right, up, down } = mergePadSteer(pads);

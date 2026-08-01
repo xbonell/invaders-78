@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createGame } from '../game/simulation';
+import { activeBoard, createGame } from '../game/simulation';
 import { attachKeyboard, type KeyInput, type KeyboardHost } from './keyboard';
 
 type KeyInit = { code: string; key: string; repeat?: boolean };
@@ -55,6 +55,23 @@ describe('attachKeyboard menu start', () => {
     game.state.phase = 'gameOver';
     win.dispatch('keydown', { code: 'Space', key: ' ' });
     expect(game.state.phase).toBe('playing');
+
+    detach();
+  });
+
+  it('fires on Enter while playing (Steam Deck desktop A → Enter)', () => {
+    const game = createGame(0);
+    const win = mockWindow();
+    const detach = attachKeyboard(game, win);
+
+    win.dispatch('keydown', { code: 'Enter', key: 'Enter' });
+    expect(game.state.phase).toBe('playing');
+    // Same Enter must not shoot on frame one of play.
+    expect(game.moveDir).toBe(0);
+
+    win.dispatch('keyup', { code: 'Enter', key: 'Enter' });
+    win.dispatch('keydown', { code: 'Enter', key: 'Enter' });
+    expect(activeBoard(game.state).playerBullet).not.toBeNull();
 
     detach();
   });

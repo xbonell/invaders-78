@@ -5,6 +5,10 @@ import { confirmMenuStart, isStartable, selectMenu } from './actions';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
 
+function isFireKey(e: { code: string; key: string }): boolean {
+  return e.code === 'Space' || e.key === 'Control' || e.key === 'Enter';
+}
+
 /** Minimal key fields used by the handler (lets tests avoid DOM KeyboardEvent). */
 export type KeyInput = {
   code: string;
@@ -48,7 +52,7 @@ export function attachKeyboard(
   };
 
   const onKeyDown = (e: KeyInput) => {
-    if (e.repeat && (e.code === 'Space' || e.key === 'Control')) return;
+    if (e.repeat && isFireKey(e)) return;
 
     if (game.state.phase === 'paused' && pauseMenu) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -79,7 +83,9 @@ export function attachKeyboard(
       return;
     }
 
-    if (e.code === 'Space' || e.key === 'Control') {
+    // Space / Ctrl / Enter fire. Enter is required for Steam Deck desktop
+    // layout where A → Enter and Y → Space (only Space used to fire).
+    if (isFireKey(e)) {
       e.preventDefault();
       if (ignoreFireUntilRelease) return;
       if (isStartable(game)) {
@@ -91,17 +97,9 @@ export function attachKeyboard(
       withAudio(() => dispatch(game, { type: 'fire' }));
       return;
     }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (isStartable(game)) {
-        withAudio(() => {
-          confirmMenuStart(game);
-        });
-      }
-      return;
-    }
     if (e.key === 'Escape') {
       // Do not preventDefault — allow the UA to leave fullscreen if active.
+      // Steam Deck desktop: B and Menu/Start both emit Escape.
       if (game.state.phase === 'playing') dispatch(game, { type: 'pause' });
       else if (game.state.phase === 'paused') dispatch(game, { type: 'resume' });
       onUi?.();
@@ -116,7 +114,7 @@ export function attachKeyboard(
   };
 
   const onKeyUp = (e: KeyInput) => {
-    if (e.code === 'Space' || e.key === 'Control') {
+    if (isFireKey(e)) {
       ignoreFireUntilRelease = false;
     }
     if (moveKeys.has(e.key)) {

@@ -4,7 +4,7 @@ import { playViewAspect, playViewInsetXPercent, playViewInsetYPercent } from '..
 import { dispatch } from '../game/simulation';
 import { loadMute, saveMute } from '../game/storage';
 import { useGameLoop } from '../hooks/useGameLoop';
-import { applyBackdropUrl, bakeBackdrop } from '../scene/backdrop/bakeBackdrop';
+import { applyBackdropUrl, getPageBackdrop } from '../scene/backdrop/bakeBackdrop';
 import { bumpCanvasMountKey } from '../scene/canvasRecovery';
 import { GameCanvas } from '../scene/GameCanvas';
 import {
@@ -38,10 +38,9 @@ export default function App() {
 
   useEffect(() => {
     const shell = shellRef.current;
-    if (!shell) return undefined;
-    const baked = bakeBackdrop();
-    applyBackdropUrl(shell, baked.url);
-    return () => baked.dispose();
+    if (!shell) return;
+    // Page-lifetime blob — Strict Mode cleanup must not revoke (ERR_FILE_NOT_FOUND).
+    applyBackdropUrl(shell, getPageBackdrop().url);
   }, []);
 
   useLayoutEffect(() => {

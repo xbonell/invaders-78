@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { BACKDROP_FRAGMENT, BACKDROP_VERTEX } from './backdropShader';
+import { retainBake, type BakeSlot } from './retainBake';
 
 export type BakeResult = {
   url: string;
@@ -12,6 +13,16 @@ export type BakeOptions = {
   /** Output height in CSS pixels (capped). Default 1080. */
   height?: number;
 };
+
+const pageBake: BakeSlot<BakeResult> = { current: null };
+
+/**
+ * One bake per page load. Safe under React Strict Mode remounts — do not revoke
+ * the blob while CSS still uses it.
+ */
+export function getPageBackdrop(opts: BakeOptions = {}): BakeResult {
+  return retainBake(pageBake, () => bakeBackdrop(opts));
+}
 
 const MAX_W = 1920;
 const MAX_H = 1080;
@@ -30,7 +41,8 @@ function canvasToBlobUrl(canvas: HTMLCanvasElement): string {
 /**
  * Render the arcade-flat planet/sky backdrop once into a canvas and return a
  * blob object URL for CSS `background-image`. Disposes all GL resources
- * immediately; caller must `dispose()` to revoke the URL.
+ * immediately. Prefer `getPageBackdrop()` so Strict Mode does not revoke a
+ * still-referenced blob.
  */
 export function bakeBackdrop(opts: BakeOptions = {}): BakeResult {
   const width = Math.min(Math.max(1, Math.floor(opts.width ?? MAX_W)), MAX_W);

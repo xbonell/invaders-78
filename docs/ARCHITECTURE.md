@@ -35,7 +35,8 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 | `src/game/playerRender.ts` | Display lerp helpers + `MotionSnapshot` (R3F `useFrame` applies X) |
 | `src/input/` | Keyboard, gamepad, start helpers |
 | `src/audio/engine.ts` | Procedural Web Audio (SFX + descending formation march) |
-| `src/scene/GameCanvas.tsx` | R3F canvas + lights; transparent clear over `.shell` backdrop; no shadow maps; remounts on WebGL context loss / dead buffer after fullscreen |
+| `src/scene/GameCanvas.tsx` | R3F canvas + lights; transparent clear over `.shell` backdrop; no shadow maps; `camera.manual` so R3F does not stomp the play frustum; remounts on WebGL context loss |
+| `src/scene/orthoPlayView.ts` | Contain-fit ortho frustum + resize update policy (re-apply on pixel size change, not aspect-only) |
 | `src/scene/canvasRecovery.ts` | Pure helpers for positive host size + remount policy after fullscreen |
 | `src/scene/backdrop/` | One-shot WebGL bake → CSS `--backdrop-url` on `.shell` (no game-loop cost) |
 | `src/scene/Playfield.tsx` | Syncs sim snapshot → meshes |
@@ -71,7 +72,7 @@ Design intent: [docs/superpowers/specs/2026-07-25-space-invaders-design.md](docs
 - **Gamepad:** poll **all** connected pads; opposing left/right on one pad (or across pads) are treated as idle. Combine with keyboard steer every frame (`src/input/steer.ts`) so a ghost pad cannot wipe Steam desktop arrow keys. Face buttons use **per-pad rising edges** (stuck South on a ghost pad must not block A on another). On `"standard"` mapping use D-pad buttons 12–15 + sticks only — do **not** read axes 6/7. Fullscreen focuses `.shell` and calls `resetGamepadEdges()`. Do not await audio unlock before pad fire/Start.
 - **Steam Deck desktop layout:** After fullscreen, Steam often drops Gamepad API face buttons and uses desktop keys/mouse: **A→left-click (or Enter)**, **Y→Space**, **B/Menu→Esc**. Space fire is suppressed for the rest of the session once a pad was seen; primary click on the shell fires/starts when a pad was seen (`pointerFire.ts`) so A keeps working when it is LMB.
 - **Audio unlock:** first gesture must `await audio.unlock()` before start/fire that should make sound.
-- **Camera:** ortho, `camera.up.set(0,0,1)`; contain-fits `PLAYFIELD` (+ margin); player at negative Z (screen bottom). Left key → `moveDir = 1`.
+- **Camera:** ortho, `camera.up.set(0,0,1)`, **`manual: true`**; contain-fits play view (+ margin) in `OrthoCameraRig` / `orthoPlayView.ts`. Re-apply frustum whenever canvas CSS pixel size changes — aspect-only updates miss fullscreen (stage `aspect-ratio` is fixed) and R3F would otherwise leave a pixel-unit frustum (playfield vanishes; DOM HUD remains). Player at negative Z (screen bottom). Left key → `moveDir = 1`.
 - **No bitmap game art:** recipes/code geometry only (`public/favicon.png` exempt). Shell backdrop is a one-shot procedural bake ([procedural backdrop](superpowers/specs/2026-07-27-procedural-backdrop-design.md)). All playfield voxels share square `VOXEL_SIZE` (= `SCALE_X`).
 - **Controls:** see README; attract/game-over: ←→ select 1P/2P, Fire/Enter/Start confirm ([start mode selector](docs/superpowers/specs/2026-07-27-start-mode-selector-design.md)).
 

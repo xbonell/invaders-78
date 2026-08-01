@@ -5,12 +5,12 @@ import type { Alien, AlienShotType, GameState } from '../game/types';
 import type { MotionSnapshot } from '../game/playerRender';
 import { activeBoard } from '../game/board';
 import { FORMATION, GROUND_LINE, PLAYER, UFO } from '../game/constants';
-import { playViewDepth, playViewWidth } from '../game/playView';
 import { BunkerMesh } from './meshes/BunkerMesh';
 import { GlowAlienShot } from './meshes/GlowAlienShot';
 import { GlowBullet } from './meshes/GlowBullet';
 import { RecipeMesh } from './voxels/RecipeMesh';
 import { ScoreFloatField } from './meshes/ScoreFloatField';
+import { orthoPlayViewFrustum, shouldUpdateOrthoFrustum } from './orthoPlayView';
 import { DebrisField } from './voxels/DebrisField';
 import { alienRecipe, PLAYER_RECIPE, ufoRecipe } from './voxels/recipes';
 
@@ -182,29 +182,18 @@ export function Playfield({
 }
 
 export function OrthoCameraRig() {
-  const lastAspect = useRef(0);
+  const lastSize = useRef({ width: 0, height: 0 });
   useFrame(({ camera, size }) => {
     if (!(camera instanceof THREE.OrthographicCamera)) return;
-    // Skip mid-fullscreen 0×0 measures so we don't lock a degenerate frustum.
-    if (!(size.width > 0) || !(size.height > 0)) return;
+    if (!shouldUpdateOrthoFrustum(lastSize.current, size)) return;
+    lastSize.current = { width: size.width, height: size.height };
+
     const aspect = size.width / size.height;
-    if (Math.abs(aspect - lastAspect.current) < 1e-6) return;
-    lastAspect.current = aspect;
-
-    const halfW = playViewWidth() / 2;
-    const halfD = playViewDepth() / 2;
-    // Stage CSS matches play aspect; contain-fit covers 1px canvas drift.
-    let viewH = halfD * 2;
-    let viewW = viewH * aspect;
-    if (viewW < halfW * 2) {
-      viewW = halfW * 2;
-      viewH = viewW / aspect;
-    }
-
-    camera.left = -viewW / 2;
-    camera.right = viewW / 2;
-    camera.top = viewH / 2;
-    camera.bottom = -viewH / 2;
+    const frustum = orthoPlayViewFrustum(aspect);
+    camera.left = frustum.left;
+    camera.right = frustum.right;
+    camera.top = frustum.top;
+    camera.bottom = frustum.bottom;
     camera.position.set(0, 30, 0);
     camera.up.set(0, 0, 1);
     camera.lookAt(0, 0, 0);

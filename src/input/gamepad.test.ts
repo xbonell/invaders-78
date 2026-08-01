@@ -9,7 +9,7 @@ import {
   type GamepadPrev,
   type PadLike,
 } from './gamepad';
-import { isGamepadPresent, setGamepadPresent } from './padPresence';
+import { hasSeenGamepad, isGamepadPresent, resetGamepadPresenceForTests } from './padPresence';
 import { clearKeyboardSteer, setKeyboardSteer } from './steer';
 
 function emptyPrev(): GamepadPrev {
@@ -134,13 +134,13 @@ describe('risingButtonEdge', () => {
 describe('pollGamepad', () => {
   beforeEach(() => {
     clearKeyboardSteer();
-    setGamepadPresent(false);
+    resetGamepadPresenceForTests();
   });
 
   afterEach(() => {
     Reflect.deleteProperty(navigator, 'getGamepads');
     clearKeyboardSteer();
-    setGamepadPresent(false);
+    resetGamepadPresenceForTests();
   });
 
   it('moves with D-pad left even when a phantom POV axis idles above 1', () => {
@@ -286,5 +286,15 @@ describe('pollGamepad', () => {
     stubPads([mockPad()]);
     pollGamepad(createGame(0), emptyPrev());
     expect(isGamepadPresent()).toBe(true);
+    expect(hasSeenGamepad()).toBe(true);
+  });
+
+  it('keeps seen-gamepad latch after pads disconnect', () => {
+    stubPads([mockPad()]);
+    pollGamepad(createGame(0), emptyPrev());
+    stubPads([]);
+    pollGamepad(createGame(0), emptyPrev());
+    expect(isGamepadPresent()).toBe(false);
+    expect(hasSeenGamepad()).toBe(true);
   });
 });

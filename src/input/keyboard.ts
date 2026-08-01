@@ -2,7 +2,7 @@ import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import type { PauseMenuInput } from '../app/pauseMenu';
 import { confirmMenuStart, isStartable, selectMenu } from './actions';
-import { isGamepadPresent } from './padPresence';
+import { hasSeenGamepad } from './padPresence';
 import { clearKeyboardSteer, setKeyboardSteer, steerDir } from './steer';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
@@ -11,9 +11,12 @@ function isFireKey(e: { code: string; key: string }): boolean {
   return e.code === 'Space' || e.key === 'Control' || e.key === 'Enter' || e.code === 'Enter';
 }
 
-/** Space is Y on Steam Deck desktop layout — suppress when a pad is present so fire stays on A. */
+/**
+ * Space is Y on Steam Deck desktop layout. Latch on hasSeenGamepad — fullscreen
+ * often clears getGamepads() while Y→Space keeps working.
+ */
 function shouldIgnoreSpaceFire(e: { code: string }): boolean {
-  return e.code === 'Space' && isGamepadPresent();
+  return e.code === 'Space' && hasSeenGamepad();
 }
 
 /** Minimal key fields used by the handler (lets tests avoid DOM KeyboardEvent). */

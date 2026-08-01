@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { activeBoard, createGame } from '../game/simulation';
 import { attachKeyboard, type KeyInput, type KeyboardHost } from './keyboard';
-import { setGamepadPresent } from './padPresence';
+import { resetGamepadPresenceForTests, setGamepadPresent } from './padPresence';
 
 type KeyInit = { code: string; key: string; repeat?: boolean };
 
@@ -36,7 +36,7 @@ function mockWindow() {
 
 describe('attachKeyboard menu start', () => {
   afterEach(() => {
-    setGamepadPresent(false);
+    resetGamepadPresenceForTests();
   });
 
   it('starts on Space without waiting for deferred audio unlock', async () => {
@@ -81,8 +81,9 @@ describe('attachKeyboard menu start', () => {
     detach();
   });
 
-  it('ignores Space fire when a gamepad is present (Steam Deck Y → Space)', () => {
+  it('ignores Space fire after a gamepad was seen (Steam Deck Y → Space)', () => {
     setGamepadPresent(true);
+    setGamepadPresent(false); // pad dropped (common after fullscreen) — latch remains
     const game = createGame(0);
     const win = mockWindow();
     const detach = attachKeyboard(game, win);

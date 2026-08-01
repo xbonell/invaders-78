@@ -15,6 +15,7 @@ import {
 import { FooterBar, Hud, Overlay } from './Hud';
 import { CHROME_REF_WIDTH_PX } from './chromeScale';
 import { movePauseIndex, PAUSE_DEFAULT_INDEX, pauseItemAt, type PauseMenuInput } from './pauseMenu';
+import { handleDeckPointerFire } from '../input/pointerFire';
 import './app.css';
 
 export default function App() {
@@ -83,6 +84,12 @@ export default function App() {
     void audio.unlock();
   };
 
+  const onShellPointerDown = (e: { button: number }) => {
+    unlock();
+    // Steam Deck desktop: A often becomes left-click after fullscreen.
+    handleDeckPointerFire(game, e.button, unlock);
+  };
+
   const toggleMute = () => {
     setMuted((prev) => {
       const next = !prev;
@@ -106,7 +113,13 @@ export default function App() {
   };
 
   return (
-    <div ref={shellRef} className="shell" tabIndex={-1} onPointerDown={unlock} onKeyDown={unlock}>
+    <div
+      ref={shellRef}
+      className="shell"
+      tabIndex={-1}
+      onPointerDown={onShellPointerDown}
+      onKeyDown={unlock}
+    >
       <div
         ref={stageRef}
         className="stage"

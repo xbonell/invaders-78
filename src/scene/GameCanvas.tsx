@@ -68,10 +68,11 @@ function FullscreenCanvasRecovery({ onNeedsRemount }: { onNeedsRemount: () => vo
             (width, height) => setSize(width, height),
           );
           const ctx = gl.getContext();
+          const contextLost = ctx == null || ctx.isContextLost();
           if (
             canvasNeedsRemount({
               sizeApplied,
-              contextLost: !!ctx?.isContextLost?.(),
+              contextLost,
               bufferWidth: gl.domElement.width,
               bufferHeight: gl.domElement.height,
             })

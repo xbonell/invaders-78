@@ -22,19 +22,19 @@ describe('positiveSize', () => {
 
 describe('applyHostSize', () => {
   it('applies measured size when positive', () => {
-    const apply = vi.fn();
+    const apply = vi.fn<(width: number, height: number) => void>();
     expect(applyHostSize(() => ({ width: 1280, height: 720 }), apply)).toBe(true);
     expect(apply).toHaveBeenCalledWith(1280, 720);
   });
 
   it('no-ops while host reports 0×0 (fullscreen transition)', () => {
-    const apply = vi.fn();
+    const apply = vi.fn<(width: number, height: number) => void>();
     expect(applyHostSize(() => ({ width: 0, height: 0 }), apply)).toBe(false);
     expect(apply).not.toHaveBeenCalled();
   });
 
   it('no-ops when measure returns null', () => {
-    const apply = vi.fn();
+    const apply = vi.fn<(width: number, height: number) => void>();
     expect(applyHostSize(() => null, apply)).toBe(false);
     expect(apply).not.toHaveBeenCalled();
   });

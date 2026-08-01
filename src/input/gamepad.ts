@@ -2,6 +2,7 @@ import type { PauseMenuInput } from '../app/pauseMenu';
 import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import { confirmMenuStart, isStartable, selectMenu } from './actions';
+import { setGamepadPresent } from './padPresence';
 import { combineSteer, getKeyboardSteer, steerDir, type DigitalSteer } from './steer';
 
 export type GamepadPrev = {
@@ -15,15 +16,40 @@ export type GamepadPrev = {
   down: boolean;
   /** After confirmStart, ignore South fire until button release. */
   ignoreFireUntilRelease: boolean;
+  /** Per gamepad.index last-seen South / Start / Select for rising edges. */
+  buttonEdges: Record<number, { fire: boolean; start: boolean; select: boolean }>;
 };
 
 /** Minimal Gamepad fields used by the poller (lets tests avoid DOM Gamepad). */
 export type PadLike = {
+  index: number;
   connected: boolean;
   mapping: string;
   buttons: Array<{ pressed: boolean; value: number } | undefined>;
   axes: ArrayLike<number>;
 };
+
+/** Cleared on fullscreen enter/exit so stuck South after FS cannot block A. */
+let edgesNeedReset = false;
+
+export function resetGamepadEdges(): void {
+  edgesNeedReset = true;
+}
+
+export function createGamepadPrev(): GamepadPrev {
+  return {
+    fire: false,
+    start: false,
+    select: false,
+    steering: false,
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+    ignoreFireUntilRelease: false,
+    buttonEdges: {},
+  };
+}
 
 export type PadSteer = DigitalSteer;
 
@@ -100,6 +126,7 @@ export function readPadSteer(pad: PadLike): PadSteer {
 }
 
 function asPadLike(pad: {
+  index: number;
   connected: boolean;
   mapping: string;
   buttons: ArrayLike<{ pressed: boolean; value: number } | undefined | null>;
@@ -111,6 +138,7 @@ function asPadLike(pad: {
     buttons.push(b ? { pressed: b.pressed, value: b.value } : undefined);
   }
   return {
+    index: pad.index,
     connected: pad.connected,
     mapping: pad.mapping,
     buttons,
@@ -126,6 +154,30 @@ function connectedPadsFromNavigator(): PadLike[] {
     if (p?.connected) out.push(asPadLike(p));
   }
   return out;
+}
+
+/** Rising edge on any pad for a button index (ghost stuck-high cannot block others). */
+export function risingButtonEdge(
+  pads: PadLike[],
+  buttonIndex: number,
+  prevEdges: Record<number, boolean>,
+): { edge: boolean; down: boolean; next: Record<number, boolean> } {
+  const next: Record<number, boolean> = { ...prevEdges };
+  let edge = false;
+  let down = false;
+  const seen = new Set<number>();
+  for (const pad of pads) {
+    seen.add(pad.index);
+    const pressed = isButtonDown(pad.buttons[buttonIndex]);
+    if (pressed && !prevEdges[pad.index]) edge = true;
+    if (pressed) down = true;
+    next[pad.index] = pressed;
+  }
+  for (const key of Object.keys(next)) {
+    const idx = Number(key);
+    if (!seen.has(idx)) delete next[idx];
+  }
+  return { edge, down, next };
 }
 
 /**
@@ -153,13 +205,6 @@ export function mergePadSteer(pads: PadLike[]): PadSteer {
   return merged;
 }
 
-function anyButtonDown(pads: PadLike[], index: number): boolean {
-  for (const pad of pads) {
-    if (isButtonDown(pad.buttons[index])) return true;
-  }
-  return false;
-}
-
 function applyPlaySteer(game: Game, pad: PadSteer, prev: GamepadPrev): void {
   const combined = combineSteer(pad, getKeyboardSteer());
   const left = combined.left;
@@ -177,6 +222,16 @@ function applyPlaySteer(game: Game, pad: PadSteer, prev: GamepadPrev): void {
   prev.right = right;
 }
 
+function applyEdgeReset(prev: GamepadPrev): void {
+  if (!edgesNeedReset) return;
+  edgesNeedReset = false;
+  prev.fire = false;
+  prev.start = false;
+  prev.select = false;
+  prev.ignoreFireUntilRelease = false;
+  prev.buttonEdges = {};
+}
+
 /** Poll connected gamepads each call (ORs all pads for Steam Input quirks). */
 export function pollGamepad(
   game: Game,
@@ -184,7 +239,11 @@ export function pollGamepad(
   onGesture?: () => void | Promise<void>,
   pauseMenu?: PauseMenuInput | null,
 ): void {
+  applyEdgeReset(prev);
+  if (!prev.buttonEdges) prev.buttonEdges = {};
+
   const pads = connectedPadsFromNavigator();
+  setGamepadPresent(pads.length > 0);
 
   // Match keyboard: never await audio unlock before gameplay actions.
   const withAudio = (fn: () => void) => {
@@ -232,11 +291,38 @@ export function pollGamepad(
   prev.down = down;
 
   if (!pads.length) {
+    prev.fire = false;
+    prev.start = false;
+    prev.select = false;
+    prev.buttonEdges = {};
     return;
   }
 
-  const fireBtn = anyButtonDown(pads, 0);
-  if (fireBtn && !prev.fire) {
+  const fireEdges = Object.fromEntries(
+    Object.entries(prev.buttonEdges).map(([k, v]) => [Number(k), v.fire]),
+  );
+  const startEdges = Object.fromEntries(
+    Object.entries(prev.buttonEdges).map(([k, v]) => [Number(k), v.start]),
+  );
+  const selectEdges = Object.fromEntries(
+    Object.entries(prev.buttonEdges).map(([k, v]) => [Number(k), v.select]),
+  );
+
+  const fire = risingButtonEdge(pads, 0, fireEdges);
+  const start = risingButtonEdge(pads, 9, startEdges);
+  const select = risingButtonEdge(pads, 8, selectEdges);
+
+  const nextButtonEdges: GamepadPrev['buttonEdges'] = {};
+  for (const pad of pads) {
+    nextButtonEdges[pad.index] = {
+      fire: fire.next[pad.index] ?? false,
+      start: start.next[pad.index] ?? false,
+      select: select.next[pad.index] ?? false,
+    };
+  }
+  prev.buttonEdges = nextButtonEdges;
+
+  if (fire.edge) {
     if (game.state.phase === 'paused' && pauseMenu) {
       withAudio(() => pauseMenu.confirm());
     } else if (isStartable(game)) {
@@ -247,15 +333,14 @@ export function pollGamepad(
       withAudio(() => dispatch(game, { type: 'fire' }));
     }
   }
-  if (!fireBtn) prev.ignoreFireUntilRelease = false;
-  prev.fire = fireBtn;
+  if (!fire.down) prev.ignoreFireUntilRelease = false;
+  prev.fire = fire.down;
 
-  const startBtn = anyButtonDown(pads, 9);
-  if (startBtn && !prev.start) {
+  if (start.edge) {
     withAudio(() => {
       if (isStartable(game)) {
         confirmMenuStart(game);
-        if (fireBtn) prev.ignoreFireUntilRelease = true;
+        if (fire.down) prev.ignoreFireUntilRelease = true;
       } else if (game.state.phase === 'playing') {
         dispatch(game, { type: 'pause' });
       } else if (game.state.phase === 'paused') {
@@ -263,8 +348,8 @@ export function pollGamepad(
       }
     });
   }
-  prev.start = startBtn;
+  prev.start = start.down;
 
   // Select/Back no longer starts 2P; keep edge tracking so a later binding can use it.
-  prev.select = anyButtonDown(pads, 8);
+  prev.select = select.down;
 }

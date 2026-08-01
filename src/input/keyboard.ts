@@ -2,12 +2,18 @@ import type { Game } from '../game/simulation';
 import { dispatch } from '../game/simulation';
 import type { PauseMenuInput } from '../app/pauseMenu';
 import { confirmMenuStart, isStartable, selectMenu } from './actions';
+import { isGamepadPresent } from './padPresence';
 import { clearKeyboardSteer, setKeyboardSteer, steerDir } from './steer';
 
 const moveKeys = new Set(['ArrowLeft', 'ArrowRight', 'a', 'A', 'd', 'D']);
 
 function isFireKey(e: { code: string; key: string }): boolean {
-  return e.code === 'Space' || e.key === 'Control' || e.key === 'Enter';
+  return e.code === 'Space' || e.key === 'Control' || e.key === 'Enter' || e.code === 'Enter';
+}
+
+/** Space is Y on Steam Deck desktop layout — suppress when a pad is present so fire stays on A. */
+function shouldIgnoreSpaceFire(e: { code: string }): boolean {
+  return e.code === 'Space' && isGamepadPresent();
 }
 
 /** Minimal key fields used by the handler (lets tests avoid DOM KeyboardEvent). */
@@ -91,10 +97,11 @@ export function attachKeyboard(
       return;
     }
 
-    // Space / Ctrl / Enter fire. Enter is required for Steam Deck desktop
-    // layout where A → Enter and Y → Space (only Space used to fire).
+    // Space / Ctrl / Enter fire. Enter = Steam Deck desktop A; Space = Y —
+    // ignore Space while a gamepad is present so fire does not jump to Y.
     if (isFireKey(e)) {
       e.preventDefault();
+      if (shouldIgnoreSpaceFire(e)) return;
       if (ignoreFireUntilRelease) return;
       if (isStartable(game)) {
         withAudio(() => {

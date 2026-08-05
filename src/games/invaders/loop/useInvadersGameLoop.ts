@@ -182,6 +182,3 @@ function maybePersistHi(
     if (stored != null) knownGlobalRef.current = stored;
   });
 }
-
-/** @deprecated Use useInvadersGameLoop */
-export const useGameLoop = useInvadersGameLoop;
